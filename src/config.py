@@ -1,3 +1,4 @@
+﻿from pydantic_settings import BaseSettings, SettingsConfigDict
 #==================================================================================\\\
 # src/config.py ===================================================================\\\
 #==================================================================================\\\
@@ -12,7 +13,13 @@ from types import SimpleNamespace
 from typing import Any, Dict, List, Optional, Tuple, Type
 
 import yaml
-from pydantic import BaseModel, BaseSettings, ConfigDict, Field, SecretStr, field_validator, model_validator
+
+  param($m)
+  $lead = $m.Groups[1].Value
+  $rest = $m.Groups[2].Value
+  $rest = $rest -replace '\bBaseSettings\b,\s*', '' -replace ',\s*\bBaseSettings\b', '' -replace '\bBaseSettings\b', ''
+  $lead + $rest
+
 from pydantic.fields import FieldInfo
 from pydantic_settings import (
     BaseSettings as PydanticBaseSettings,
