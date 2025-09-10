@@ -8,15 +8,29 @@ jobs:
   pytest:
     runs-on: ubuntu-latest
     env:
-      PYTHONPATH: ${{ github.workspace }}/src
+      # Put the REPO ROOT on sys.path so `import src.config` works.
+      # Also append /src for tools that expect it directly.
+      PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/src
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
       - run: python -m pip install -U pip
       - run: pip install -r requirements.txt || true
       - run: pip install pytest "pydantic>=2.5" python-dotenv PyYAML
-      - name: Ensure PYTHONPATH is set for subsequent steps
-        run: echo "PYTHONPATH=${GITHUB_WORKSPACE}/src" >> $GITHUB_ENV
+
+      # Make sure subsequent steps see it too
+      - name: Ensure PYTHONPATH is set
+        run: |
+          echo "PYTHONPATH=${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}/src" >> $GITHUB_ENV
+          python - <<'PY'
+          import os, sys
+          print("PYTHONPATH:", os.environ.get("PYTHONPATH"))
+          print("sys.path head:", sys.path[:3])
+          import importlib; importlib.import_module("src.config")
+          print("import src.config OK")
+          PY
+
       - run: pytest -q
