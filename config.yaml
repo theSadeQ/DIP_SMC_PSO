@@ -1,0 +1,305 @@
+# Changed: replaced deprecated `use_equivalent` with `enable_equivalent` and
+# enforced sat_soft_width ≥ dead_zone; added explanatory comments with citations.
+global_seed: 42
+controller_defaults:
+  classical_smc:
+    gains:
+    - 5.0
+    - 5.0
+    - 5.0
+    - 0.5
+    - 0.5
+    - 0.5
+  sta_smc:
+    gains:
+    - 4.0
+    - 4.0
+    - 4.0
+    - 0.4
+    - 0.4
+    - 0.4
+  adaptive_smc:
+    gains:
+    - 10.0
+    - 8.0
+    - 5.0
+    - 4.0
+    - 1.0
+
+  # Default sliding surface gains for the hybrid adaptive super‑twisting
+  # controller.  These four values correspond to [c1, lambda1, c2, lambda2].
+  # They define the dynamics on the sliding surface used to drive the
+  # pendulum angles to zero.
+  hybrid_adaptive_sta_smc:
+    gains:
+    - 5.0
+    - 5.0
+    - 5.0
+    - 0.5
+controllers:
+  classical_smc:
+    max_force: 150.0
+    boundary_layer: 0.02
+  sta_smc:
+    damping_gain: 0.0
+    max_force: 150.0
+    dt: 0.001
+  adaptive_smc:
+    max_force: 150.0
+    leak_rate: 0.01
+    dead_zone: 0.05
+    adapt_rate_limit: 10.0
+    K_min: 0.1
+    K_max: 100.0
+    dt: 0.001
+    smooth_switch: true
+    boundary_layer: 0.1
+  swing_up_smc:
+    stabilizing_controller: classical_smc
+    energy_gain: 50.0
+    switch_energy_factor: 0.95
+    switch_angle_tolerance: 0.35
+    exit_energy_factor: 0.9
+    reentry_angle_tolerance: 0.4
+    max_force: 150.0
+
+  # Hybrid adaptive super‑twisting sliding mode controller.  This
+  # configuration enables the controller described in Deepresearch.md
+  # section II.B.  Each parameter aligns with the theoretical
+  # formulation for finite‑time convergence and adaptive gain
+  # adjustment.
+  hybrid_adaptive_sta_smc:
+    # Actuator saturation limit [N].  Control commands will be clipped
+    # to the interval [-max_force, max_force].
+    max_force: 150.0
+    # Discrete integration step [s] for the adaptive gains and STA
+    # integral term.  Should match the simulator time step.
+    dt: 0.001
+    # Initial value for the proportional‑like adaptive gain k1.
+    k1_init: 4.0
+    # Initial value for the integral‑like adaptive gain k2.
+    k2_init: 0.4
+    # Adaptation rate for k1.  Controls how quickly k1 increases
+    # outside the dead‑zone.  Larger values yield faster adaptation but
+    # may introduce oscillations.
+    gamma1: 2.0
+    # Adaptation rate for k2.  Typically smaller than gamma1 to
+    # balance the proportional and integral actions.
+    gamma2: 0.5
+    # Dead‑zone width.  When |s| ≤ dead_zone the gains are held
+    # constant to prevent wind‑up from measurement noise.
+    dead_zone: 0.05
+    # Optional knobs for the hybrid adaptive STA controller.  Expose these
+    # parameters so that PSO can tune the sliding surface, damping and
+    # recentering behaviour.  The defaults correspond to the original
+    # implementation but can be overridden.
+    #
+    # The ``enable_equivalent`` flag toggles the model‑based equivalent
+    # control term.  The legacy alias ``use_equivalent`` has been removed
+    # from this configuration; the controller still recognises it for
+    # backward compatibility and will emit a ``DeprecationWarning`` when
+    # provided.  New configurations should specify ``enable_equivalent``
+    # exclusively to avoid ambiguity【OkstateThesis2013†L1415-L1419】.
+    enable_equivalent: false
+    damping_gain: 3.0
+    adapt_rate_limit: 5.0
+    # The soft saturation width acts as a boundary layer for the smooth sign
+    # function and must be at least as large as the dead zone.  Setting
+    # ``sat_soft_width`` equal to ``dead_zone`` (0.05) satisfies
+    # ``sat_soft_width ≥ dead_zone`` and reduces chattering【OkstateThesis2013†L1415-L1419】.
+    sat_soft_width: 0.05
+    cart_gain: 0.5
+    cart_lambda: 1.0
+    cart_p_gain: 80.0
+    cart_p_lambda: 2.0
+pso:
+  # Empirically, swarms of 10–30 particles achieve good convergence on typical
+  # optimisation problems【360839346985391†L34-L39】.  Using a smaller swarm reduces
+  # computational cost and improves reproducibility.  Increase only if the
+  # cost landscape is highly multimodal.
+  n_particles: 20
+  bounds:
+    min:
+    - 1.0
+    - 1.0
+    - 1.0
+    - 1.0
+    - 5.0
+    - 0.1
+    max:
+    - 100.0
+    - 100.0
+    - 20.0
+    - 20.0
+    - 150.0
+    - 10.0
+  # Set inertia weight within [0.4,0.9] and balance cognitive/social
+  # acceleration coefficients.  A balanced choice c1≈c2≈2.0 encourages
+  # exploration without divergence【360839346985391†L94-L100】.
+  w: 0.7
+  c1: 2.0
+  c2: 2.0
+  iters: 200
+  # Deprecated fields removed to ensure clean configuration.  Previously
+  # unused fields such as n_processes, hyper_trials, hyper_search and
+  # study_timeout were ignored by the PSO tuner, yet their presence
+  # could mask typographical errors.  In keeping with the design
+  # review recommendation to eliminate legacy options (issue #16),
+  # these fields have been removed.
+  seed: 42
+  tune:
+    cart_mass:
+      min: 1.0
+      max: 2.0
+    pendulum1_mass:
+      min: 0.1
+      max: 0.3
+    pendulum2_mass:
+      min: 0.1
+      max: 0.2
+    pendulum1_length:
+      min: 0.3
+      max: 0.5
+    pendulum2_length:
+      min: 0.2
+      max: 0.4
+    pendulum1_com:
+      min: 0.15
+      max: 0.25
+    pendulum2_com:
+      min: 0.1
+      max: 0.2
+    pendulum1_inertia:
+      min: 0.0015
+      max: 0.004
+    pendulum2_inertia:
+      min: 0.0005
+      max: 0.002
+    cart_friction:
+      min: 0.1
+      max: 0.5
+    joint1_friction:
+      min: 0.001
+      max: 0.01
+    joint2_friction:
+      min: 0.001
+      max: 0.01
+    boundary_layer:
+      min: 0.01
+      max: 0.05
+physics:
+  cart_mass: 1.5
+  pendulum1_mass: 0.2
+  pendulum2_mass: 0.15
+  pendulum1_length: 0.4
+  pendulum2_length: 0.3
+  pendulum1_com: 0.2
+  pendulum2_com: 0.15
+  pendulum1_inertia: 0.00265
+  pendulum2_inertia: 0.00115
+  gravity: 9.81
+  cart_friction: 0.2
+  joint1_friction: 0.005
+  joint2_friction: 0.004
+  singularity_cond_threshold: 100000000.0
+physics_uncertainty:
+  n_evals: 10
+  cart_mass: 0.05
+  pendulum1_mass: 0.05
+  pendulum2_mass: 0.05
+  pendulum1_length: 0.05
+  pendulum2_length: 0.05
+  pendulum1_com: 0.05
+  pendulum2_com: 0.05
+  pendulum1_inertia: 0.05
+  pendulum2_inertia: 0.05
+  gravity: 0.0
+  cart_friction: 0.1
+  joint1_friction: 0.1
+  joint2_friction: 0.1
+simulation:
+  duration: 10.0
+  dt: 0.01
+  initial_state:
+  - 0.0
+  - 0.05
+  - -0.03
+  - 0.0
+  - 0.0
+  - 0.0
+  use_full_dynamics: true
+verification:
+  test_conditions:
+  - name: nominal
+    initial_state:
+    - 0.0
+    - 0.1
+    - 0.05
+    - 0.0
+    - 0.0
+    - 0.0
+    disturbance: false
+  - name: with_velocity
+    initial_state:
+    - 0.0
+    - 0.1
+    - 0.1
+    - 0.2
+    - 0.5
+    - 0.3
+    disturbance: false
+  - name: disturbance
+    initial_state:
+    - 0.0
+    - 0.1
+    - 0.05
+    - 0.0
+    - 0.0
+    - 0.0
+    disturbance: true
+  integrators:
+  - euler
+  - rk4
+  - rk45
+  criteria:
+    max_angle: 0.5
+    settling_time: 5.0
+    steady_error: 0.01
+cost_function:
+  weights:
+    state_error: 50.0
+    control_effort: 0.2
+    control_rate: 0.1
+    stability: 0.1
+  baseline:
+    gains:
+    - 50
+    - 100
+    - 10
+    - 8
+    - 5
+    - 4
+  instability_penalty: 1000.0
+  # Combine mean and max costs using configurable weights.  The PSO tuner
+  # aggregates per‑particle costs as ``combine_weights.mean * mean(costs) +
+  # combine_weights.max * max(costs)``.  See design review for details.
+  combine_weights:
+    mean: 0.7
+    max: 0.3
+  # Normalisation threshold used by the PSO tuner when dividing by
+  # denominators.  Values below this threshold skip division to avoid
+  # floating‑point noise.  The default of 1e-12 matches the original
+  # implementation.
+  normalization_threshold: 1e-12
+sensors:
+  angle_noise_std: 0.005
+  position_noise_std: 0.001
+  quantization_angle: 0.01
+  quantization_position: 0.0005
+hil:
+  plant_ip: 127.0.0.1
+  plant_port: 9000
+  controller_ip: 127.0.0.1
+  controller_port: 9001
+  extra_latency_ms: 0.0
+  sensor_noise_std: 0.0

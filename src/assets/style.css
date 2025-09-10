@@ -1,0 +1,60 @@
+/* src/assets/style.css */
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&family=Montserrat:wght@400;700&display=swap');
+
+body {
+    color: #E5E5E5 !important;
+    background-color: #141414 !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: #FFFFFF !important;
+}
+
+[data-testid="stSidebar"] {
+    background-color: #181818 !important;
+    border-right: 1px solid #333;
+}
+
+.stButton>button {
+    background-color: #E50914 !important;
+    color: white !important;
+    border: none !important;
+    font-weight: bold;
+    border-radius: 5px;
+    padding: 0.5em 1em;
+}
+.stButton>button:hover {
+    background-color: #F6121D !important;
+    color: white !important;
+}
+.stButton>button:active {
+    background-color: #B20710 !important;
+    color: white !important;
+}
+
+[data-testid="stProgressBar"] > div > div > div > div {
+    background-color: #E50914 !important;
+}
+
+/* RTL and Font Styling */
+body[dir="rtl"] {
+    font-family: 'Vazirmatn', sans-serif !important;
+}
+body[dir="rtl"] h1, body[dir="rtl"] h2, body[dir="rtl"] h3 {
+    font-weight: 700;
+}
+
+body[dir="ltr"] {
+    font-family: 'Montserrat', sans-serif !important;
+}
+body[dir="ltr"] h1, body[dir="ltr"] h2, body[dir="ltr"] h3 {
+    font-weight: 700;
+}
+
+/* Align sidebar elements for RTL */
+[dir="rtl"] .st-emotion-cache-16txtl3 {
+    text-align: right;
+}
+[dir="rtl"] .st-emotion-cache-1r4qj8v {
+    direction: rtl;
+}
