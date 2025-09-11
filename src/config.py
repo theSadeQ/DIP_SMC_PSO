@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional, Tuple, Type
 
 import yaml
 
-  param($m)
+
   $lead = $m.Groups[1].Value
   $rest = $m.Groups[2].Value
   $rest = $rest -replace '\bBaseSettings\b,\s*', '' -replace ',\s*\bBaseSettings\b', '' -replace '\bBaseSettings\b', ''
