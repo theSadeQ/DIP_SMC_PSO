@@ -1,17 +1,20 @@
-#=========================================================================================\\\
+# =========================================================================================\\\
 # src/fault_detection/fdi.py =============================================================\\\
-#=========================================================================================\\\
+# =========================================================================================\\\
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional, Tuple, List, Protocol
 import numpy as np
 import logging
 
+
 class DynamicsProtocol(Protocol):
     """Protocol defining the expected interface for dynamics models."""
+
     def step(self, state: np.ndarray, u: float, dt: float) -> np.ndarray:
         """Advance the system dynamics by one timestep."""
         ...
+
 
 @dataclass
 class FDIsystem:
@@ -111,14 +114,14 @@ class FDIsystem:
     ) -> Tuple[str, float]:
         """
         Check for a fault at the current time step.
-        
+
         Args:
             t: Current simulation time
             meas: Current state measurement
             u: Control input applied
             dt: Time step
             dynamics_model: Model with step(state, u, dt) method for prediction
-            
+
         Returns:
             Tuple of (status, residual_norm) where status is "OK" or "FAULT"
         """
@@ -139,7 +142,7 @@ class FDIsystem:
         # One-step prediction using the dynamics model
         try:
             predicted_state = dynamics_model.step(self._last_state, u, dt)
-            
+
             # Check for numerical issues in prediction
             if not np.all(np.isfinite(predicted_state)):
                 logging.warning(
@@ -147,7 +150,7 @@ class FDIsystem:
                     f"(nan or inf). Skipping residual computation."
                 )
                 return "OK", 0.0
-                
+
         except Exception as e:
             # If model fails, cannot compute residual; assume OK for now but log it
             logging.warning(
@@ -235,4 +238,6 @@ class FDIsystem:
         # Update state for next prediction
         self._last_state = meas.copy()
         return "OK", residual_norm
-#===================================================================================\\\
+
+
+# ===================================================================================\\\

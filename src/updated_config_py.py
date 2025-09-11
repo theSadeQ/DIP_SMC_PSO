@@ -1,18 +1,25 @@
-#==================================================================================\\\
+# ==================================================================================\\\
 # src/config.py ===================================================================\\\
-#==================================================================================\\\
+# ==================================================================================\\\
 
 from __future__ import annotations
 
 import json
 import logging
-import os
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Dict, List, Optional, Tuple, Type
 
 import yaml
-from pydantic import BaseModel, BaseSettings, ConfigDict, Field, SecretStr, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    BaseSettings,
+    ConfigDict,
+    Field,
+    SecretStr,
+    field_validator,
+    model_validator,
+)
 from pydantic.fields import FieldInfo
 from pydantic_settings import (
     BaseSettings as PydanticBaseSettings,
@@ -28,9 +35,11 @@ from src.utils.seed import set_global_seed
 logger = logging.getLogger("project.config")
 logger.setLevel(logging.INFO)
 
+
 # Custom exception for configuration errors
 class InvalidConfigurationError(Exception):
     """Raised when configuration validation fails with aggregated error messages."""
+
     pass
 
 
@@ -40,7 +49,8 @@ def redact_value(value: Any) -> str:
     if isinstance(value, SecretStr):
         return "***"
     if isinstance(value, str) and any(
-        keyword in str(value).lower() for keyword in ["password", "secret", "token", "key"]
+        keyword in str(value).lower()
+        for keyword in ["password", "secret", "token", "key"]
     ):
         return "***"
     return str(value)
@@ -51,7 +61,7 @@ class StrictModel(BaseModel):
     # Enforce no implicit coercions across all nested models
     model_config = ConfigDict(
         strict=True,
-        extra='forbid',
+        extra="forbid",
         populate_by_name=True,
         validate_default=True,
         validate_assignment=True,
@@ -78,21 +88,28 @@ class PhysicsConfig(StrictModel):
     det_threshold: float = Field(1e-12, ge=0.0, le=1e-3)
 
     @field_validator(
-        'cart_mass', 'pendulum1_mass', 'pendulum2_mass',
-        'pendulum1_length', 'pendulum2_length',
-        'pendulum1_inertia', 'pendulum2_inertia',
-        'pendulum1_com', 'pendulum2_com',
-        'gravity'
+        "cart_mass",
+        "pendulum1_mass",
+        "pendulum2_mass",
+        "pendulum1_length",
+        "pendulum2_length",
+        "pendulum1_inertia",
+        "pendulum2_inertia",
+        "pendulum1_com",
+        "pendulum2_com",
+        "gravity",
     )
     @classmethod
     def _must_be_strictly_positive(cls, v: float, info) -> float:
         if v is None or v <= 0.0:
-            raise ValueError(f"{info.field_name} must be strictly positive, but got {v}")
+            raise ValueError(
+                f"{info.field_name} must be strictly positive, but got {v}"
+            )
         # No casting: keep strict typing
         return v
 
-    @model_validator(mode='after')
-    def _validate_com_within_length(self) -> 'PhysicsConfig':
+    @model_validator(mode="after")
+    def _validate_com_within_length(self) -> "PhysicsConfig":
         if self.pendulum1_com >= self.pendulum1_length:
             raise ValueError(
                 f"pendulum1_com ({self.pendulum1_com}) must be less than pendulum1_length ({self.pendulum1_length})"
@@ -151,18 +168,19 @@ class SimulationConfig(StrictModel):
         if v is None:
             return v
         if not isinstance(v, list) or len(v) == 0:
-            raise ValueError(
-                "initial_state must be a non-empty list of floats"
-            )
+            raise ValueError("initial_state must be a non-empty list of floats")
         # Enforce strict floats (no implicit coercion)
         if not all(isinstance(x, float) for x in v):
-            raise ValueError("initial_state must contain float values (no implicit casts)")
+            raise ValueError(
+                "initial_state must contain float values (no implicit casts)"
+            )
         return v
 
 
 # Module-level fallback namespace for backward compatibility
 try:
     from types import SimpleNamespace
+
     if "config" not in globals():
         config = SimpleNamespace(
             simulation=SimpleNamespace(
@@ -176,7 +194,7 @@ except Exception:
 
 # ---------------- Controllers -------------------#
 class _BaseControllerConfig(BaseModel):
-    model_config = ConfigDict(extra='forbid')
+    model_config = ConfigDict(extra="forbid")
     gains: List[float] = Field(default_factory=list, min_length=1)
 
     def __iter__(self):
@@ -189,16 +207,16 @@ class ControllerConfig(_BaseControllerConfig):
 
 
 class PermissiveControllerConfig(_BaseControllerConfig):
-    model_config = ConfigDict(extra='allow')
+    model_config = ConfigDict(extra="allow")
     unknown_params: Dict[str, Any] = Field(default_factory=dict)
     allow_unknown: bool = False
 
     @model_validator(mode="after")
-    def _collect_unknown_params(self) -> 'PermissiveControllerConfig':
-        extra = getattr(self, 'model_extra', None)
+    def _collect_unknown_params(self) -> "PermissiveControllerConfig":
+        extra = getattr(self, "model_extra", None)
         if extra:
             unknown = dict(extra)
-            object.__setattr__(self, 'unknown_params', unknown)
+            object.__setattr__(self, "unknown_params", unknown)
             if not self.__class__.allow_unknown:
                 unknown_keys = ", ".join(sorted(unknown.keys()))
                 raise ValueError(
@@ -226,9 +244,14 @@ class ControllersConfig(StrictModel):
 
     def keys(self) -> List[str]:
         return [
-            name for name in (
-                "classical_smc", "sta_smc", "adaptive_smc",
-                "swing_up_smc", "hybrid_adaptive_sta_smc", "mpc_controller"
+            name
+            for name in (
+                "classical_smc",
+                "sta_smc",
+                "adaptive_smc",
+                "swing_up_smc",
+                "hybrid_adaptive_sta_smc",
+                "mpc_controller",
             )
             if getattr(self, name) is not None
         ]
@@ -326,7 +349,7 @@ class FDIConfig(StrictModel):
     cusum_enabled: bool = False
     cusum_threshold: float = Field(5.0, gt=0.0)
 
-    @field_validator('residual_states')
+    @field_validator("residual_states")
     @classmethod
     def _validate_residual_states(cls, v: List[int]) -> List[int]:
         if not v:
@@ -340,8 +363,8 @@ class FDIConfig(StrictModel):
         return v
 
     @model_validator(mode="after")
-    def _validate_weights_length(self) -> 'FDIConfig':
-        w = getattr(self, 'residual_weights', None)
+    def _validate_weights_length(self) -> "FDIConfig":
+        w = getattr(self, "residual_weights", None)
         if w is not None:
             if len(w) != len(self.residual_states):
                 raise ValueError(
@@ -355,22 +378,24 @@ class FDIConfig(StrictModel):
 # ---------------- Custom File Source for Settings -------------------#
 class FileSettingsSource(PydanticBaseSettingsSource):
     """Custom settings source for loading from YAML or JSON files."""
-    
-    def __init__(self, settings_cls: Type[BaseSettings], file_path: Optional[Path] = None):
+
+    def __init__(
+        self, settings_cls: Type[BaseSettings], file_path: Optional[Path] = None
+    ):
         super().__init__(settings_cls)
         self.file_path = file_path
-        
+
     def _read_file(self, file_path: Path) -> Dict[str, Any]:
         """Read configuration from YAML or JSON file."""
         if not file_path or not file_path.exists():
             return {}
-            
+
         try:
-            content = file_path.read_text(encoding='utf-8')
-            
-            if file_path.suffix.lower() in ('.yaml', '.yml'):
+            content = file_path.read_text(encoding="utf-8")
+
+            if file_path.suffix.lower() in (".yaml", ".yml"):
                 return yaml.safe_load(content) or {}
-            elif file_path.suffix.lower() == '.json':
+            elif file_path.suffix.lower() == ".json":
                 return json.loads(content) or {}
             else:
                 logger.warning(f"Unknown file type: {file_path.suffix}")
@@ -378,11 +403,13 @@ class FileSettingsSource(PydanticBaseSettingsSource):
         except Exception as e:
             logger.error(f"Failed to read config file {file_path}: {e}")
             return {}
-    
-    def get_field_value(self, field: FieldInfo, field_name: str) -> Tuple[Any, str, bool]:
+
+    def get_field_value(
+        self, field: FieldInfo, field_name: str
+    ) -> Tuple[Any, str, bool]:
         """Get field value from file."""
         return None, field_name, False
-    
+
     def __call__(self) -> Dict[str, Any]:
         """Load the configuration from file."""
         if self.file_path:
@@ -404,7 +431,7 @@ class ConfigSchema(PydanticBaseSettings):
     sensors: SensorsConfig
     hil: HILConfig
     fdi: Optional[FDIConfig] = None
-    
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -416,9 +443,9 @@ class ConfigSchema(PydanticBaseSettings):
         str_strip_whitespace=True,
         json_schema_extra={
             "env_parse_none_str": "null",
-        }
+        },
     )
-    
+
     @classmethod
     def settings_customise_sources(
         cls,
@@ -431,18 +458,18 @@ class ConfigSchema(PydanticBaseSettings):
         """
         Customize settings sources to achieve precedence:
         ENV > .env > FILE > defaults
-        
+
         We inject our custom file source between dotenv and init_settings.
         """
-        file_path = getattr(settings_cls, '_file_path', None)
+        file_path = getattr(settings_cls, "_file_path", None)
         file_source = FileSettingsSource(settings_cls, file_path)
-        
+
         # Order determines precedence (first wins)
         return (
-            env_settings,      # Environment variables (highest)
-            dotenv_settings,   # .env file
-            file_source,       # YAML/JSON file
-            init_settings,     # Defaults (lowest)
+            env_settings,  # Environment variables (highest)
+            dotenv_settings,  # .env file
+            file_source,  # YAML/JSON file
+            init_settings,  # Defaults (lowest)
         )
 
 
@@ -453,13 +480,13 @@ def load_config(
     allow_unknown: bool = False,
 ) -> ConfigSchema:
     """Load, parse, and validate configuration from multiple sources.
-    
+
     Precedence (highest to lowest):
     1. Environment variables (C04__ prefix)
     2. .env file
     3. External file (YAML/JSON) specified by path
     4. Model defaults
-    
+
     Parameters
     ----------
     path : str or Path, optional
@@ -467,12 +494,12 @@ def load_config(
     allow_unknown : bool, optional
         When True, unrecognized keys in controller configs are accepted.
         When False (default), unknown keys raise ValueError.
-        
+
     Returns
     -------
     ConfigSchema
         The validated configuration object.
-        
+
     Raises
     ------
     InvalidConfigurationError
@@ -483,34 +510,36 @@ def load_config(
         previous_allow = PermissiveControllerConfig.allow_unknown
     except Exception:
         previous_allow = False
-    
+
     # Set permissive mode for this call
     PermissiveControllerConfig.allow_unknown = bool(allow_unknown)
-    
+
     try:
         # Convert path to Path object
         file_path = Path(path) if path else None
-        
+
         # Check if file exists (optional - file source handles missing files)
         if file_path and not file_path.exists():
             logger.warning(f"Configuration file not found: {file_path.absolute()}")
             # Continue anyway - will use env/defaults
-        
+
         # Load .env file if it exists
         if Path(".env").exists():
             load_dotenv(".env", override=False)
             logger.debug("Loaded .env file")
-        
+
         # Attach file path to class for source customization
         ConfigSchema._file_path = file_path
-        
+
         try:
             # Create settings instance - this will use all sources
             cfg = ConfigSchema()
-            
+
             # Log configuration sources used
-            logger.info(f"Configuration loaded from sources: ENV > .env > {file_path or 'defaults'}")
-            
+            logger.info(
+                f"Configuration loaded from sources: ENV > .env > {file_path or 'defaults'}"
+            )
+
             # Set global seed if specified
             try:
                 if hasattr(cfg, "global_seed") and cfg.global_seed is not None:
@@ -518,39 +547,41 @@ def load_config(
                     logger.debug(f"Set global seed to {cfg.global_seed}")
             except Exception as e:
                 logger.warning(f"Failed to set global seed: {e}")
-            
+
             return cfg
-            
+
         except Exception as e:
             # Aggregate validation errors
             error_messages = []
-            if hasattr(e, 'errors'):
+            if hasattr(e, "errors"):
                 for err in e.errors():
-                    loc = '.'.join(str(x) for x in err.get('loc', []))
-                    msg = err.get('msg', 'Unknown error')
+                    loc = ".".join(str(x) for x in err.get("loc", []))
+                    msg = err.get("msg", "Unknown error")
                     # Redact sensitive values
-                    if 'input' in err:
-                        err['input'] = redact_value(err['input'])
+                    if "input" in err:
+                        err["input"] = redact_value(err["input"])
                     error_messages.append(f"  - {loc}: {msg}")
                     logger.error(f"Validation error at {loc}: {msg}")
             else:
                 error_messages.append(str(e))
                 logger.error(f"Configuration error: {e}")
-            
+
             # Raise aggregated error
-            error_text = "Configuration validation failed:\n" + "\n".join(error_messages)
+            error_text = "Configuration validation failed:\n" + "\n".join(
+                error_messages
+            )
             raise InvalidConfigurationError(error_text) from e
-            
+
     finally:
         # Restore previous permissive state
         try:
             PermissiveControllerConfig.allow_unknown = bool(previous_allow)
         except Exception:
             pass
-        
+
         # Clean up temporary attribute
-        if hasattr(ConfigSchema, '_file_path'):
-            delattr(ConfigSchema, '_file_path')
+        if hasattr(ConfigSchema, "_file_path"):
+            delattr(ConfigSchema, "_file_path")
 
 
-#====================================================================================\\\
+# ====================================================================================\\\

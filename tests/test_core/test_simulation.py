@@ -23,6 +23,7 @@ class DummyDynamics:
     The state is updated as ``x_{k+1} = x_k + dt * [u, -u]``.  The
     dimension of the state vector is fixed at 2 for simplicity.
     """
+
     state_dim = 2
 
     def step(self, state: np.ndarray, u: float, dt: float) -> np.ndarray:
@@ -68,10 +69,13 @@ def test_run_simulation_shapes() -> None:
 
 def test_simulation_halts_on_nan() -> None:
     """The simulation should halt immediately if the dynamics returns NaN values."""
+
     class NaNDyn:
         state_dim = 2
+
         def step(self, state: np.ndarray, u: float, dt: float) -> np.ndarray:
             return np.array([np.nan, np.nan], dtype=float)
+
     dyn = NaNDyn()
     ctrl = DummyController()
     t, x, u = run_simulation(
@@ -89,10 +93,13 @@ def test_simulation_halts_on_nan() -> None:
 
 def test_simulation_halts_on_exception() -> None:
     """If the dynamics raises an exception the simulation should terminate cleanly."""
+
     class BadDyn:
         state_dim = 2
+
         def step(self, state: np.ndarray, u: float, dt: float) -> np.ndarray:
             raise RuntimeError("boom")
+
     dyn = BadDyn()
     ctrl = DummyController()
     t, x, u = run_simulation(
@@ -107,13 +114,16 @@ def test_simulation_halts_on_exception() -> None:
     assert u.shape[0] == 0
 
 
-@pytest.mark.parametrize("sim_time, dt", [
-    (0.95, 0.1),
-    (1.04, 0.1),
-    (0.3, 0.1),
-    (1.0, 0.3),
-    (0.1, 0.01),
-])
+@pytest.mark.parametrize(
+    "sim_time, dt",
+    [
+        (0.95, 0.1),
+        (1.04, 0.1),
+        (0.3, 0.1),
+        (1.0, 0.3),
+        (0.1, 0.01),
+    ],
+)
 def test_simulation_duration_accuracy(sim_time: float, dt: float) -> None:
     """
     Verify that ``run_simulation`` stops at the largest multiple of ``dt`` that

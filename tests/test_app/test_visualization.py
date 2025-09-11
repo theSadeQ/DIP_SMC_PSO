@@ -7,6 +7,7 @@ Each section is delimited by BEGIN/END markers.
 # BEGIN: test_visualization.py
 import numpy as np
 import matplotlib
+
 matplotlib.use("Agg")
 
 try:
@@ -14,21 +15,23 @@ try:
 except ImportError:
     from visualization import Visualizer
 
+
 class DummyPendulum:
     l1 = 0.5
     l2 = 0.5
     L1 = 0.5
 
+
 def test_visualizer_no_type_or_index_error():
     N = 5
     dt = 0.1
-    t = np.linspace(0.0, N*dt, N+1)
-    x = np.zeros((N+1, 6), dtype=float)
+    t = np.linspace(0.0, N * dt, N + 1)
+    x = np.zeros((N + 1, 6), dtype=float)
     u = np.zeros(N, dtype=float)
 
     vis = Visualizer(DummyPendulum())
     ani = vis.animate(t, x, u, dt=dt)
     assert ani is not None
 
-# END: test_visualization.py
 
+# END: test_visualization.py

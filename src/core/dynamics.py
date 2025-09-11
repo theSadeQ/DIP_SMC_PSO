@@ -49,6 +49,18 @@ from .adaptive_integrator import rk45_step
 # regularise it and ensure it is invertible【634903324123444†L631-L639】.
 
 class NumericalInstabilityError(RuntimeError):
+    r"""Raised when the inertia matrix is too ill‑conditioned to invert.
+
+    This exception is thrown by the dynamics routines when a near‑singular
+    inertia matrix prevents reliable computation of the accelerations.  The
+    simulation runner should catch this exception and handle it by, for
+    example, reducing the integration step size or aborting the simulation.
+    """Raised when the inertia matrix is too ill‑conditioned to invert.
+
+    This exception is thrown by the dynamics routines when a near‑singular
+    inertia matrix prevents reliable computation of the accelerations.  The
+    simulation runner should catch this exception and handle it by, for
+    example, reducing the integration step size or aborting the simulation.
     """Raised when the inertia matrix is too ill‑conditioned to invert.
 
     This exception is thrown by the dynamics routines when a near‑singular
@@ -79,6 +91,38 @@ except Exception:
         pass
 
 class DIPParams(NamedTuple):
+    r"""
+    Lightweight container for the simplified double inverted pendulum physics.
+
+    This named tuple mirrors the fields of ``PhysicsConfig`` so that it can be
+    passed into numba‑compiled kernels.  The final field
+    ``singularity_cond_threshold`` has a default value to permit tests to
+    construct ``DIPParams`` without specifying it explicitly.  When omitted
+    the threshold defaults to ``1e8``, matching the default in
+    ``PhysicsConfig``.  Making this argument optional aligns the signature
+    with test expectations (see ``test_rhs_returns_nan_for_ill_conditioned_matrix``).
+
+    Adaptive regularisation parameters
+    ---------------------------------
+    Numerical inversion of the inertia matrix can fail when the matrix is
+    nearly singular.  A common remedy is Tikhonov regularisation: adding a
+    small positive constant to the diagonal to ensure the matrix remains
+    invertible.  In ridge regression the normal equations are regularised
+    by adding \(\lambda I\), which improves conditioning at the cost of
+    bias【Hoerl1970 p.215, DOI:10.1080/00401706.1970.10488634】.
+
+    * ``regularization_alpha`` scales the diagonal damping by the largest
+      singular value of the inertia matrix.  According to ridge regression
+      theory, adding \(\lambda I\) with \(\lambda>0\) stabilises the inverse and
+      trades bias for variance【Hoerl1970 p.215, DOI:10.1080/00401706.1970.10488634】.
+    * ``max_condition_number`` limits the ratio of the largest to smallest
+      singular values; if the condition number exceeds this bound the
+      regularisation is increased.  This is analogous to the damping factor
+      selection in damped least‑squares methods【Hoerl1970 p.215, DOI:10.1080/00401706.1970.10488634】.
+    * ``min_regularization`` enforces a strictly positive minimum on the
+      diagonal to prevent zero damping.
+    * ``use_fixed_regularization`` bypasses the adaptive scheme and always
+      applies ``min_regularization``.
     """
     Lightweight container for the simplified double inverted pendulum physics.
 
@@ -400,9 +444,21 @@ def total_energy_numba(state: np.ndarray, p: DIPParams) -> float:
     return kinetic_energy_numba(state, p) + potential_energy_numba(state, p)
 
 class DoubleInvertedPendulum:
-    """Double Inverted Pendulum dynamics model with JIT-compiled physics kernels."""
+    r"""Double Inverted Pendulum dynamics model with JIT-compiled physics kernels."""Double Inverted Pendulum dynamics model with JIT-compiled physics kernels."""
 
     def __init__(self, params: Any):
+        r"""
+        Initialize the simplified double inverted pendulum dynamics model.
+
+        Parameters
+        ----------
+        params : Any
+            A physics configuration specifying the system constants.  This
+            must either be an instance of :class:`src.config.PhysicsConfig`
+            or a mapping with the same keys.  Passing a mapping will
+            attempt to construct a :class:`PhysicsConfig` to ensure the
+            values are validated.  Any failure to import or construct
+            the configuration will propagate an exception.
         """
         Initialize the simplified double inverted pendulum dynamics model.
 

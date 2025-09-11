@@ -24,10 +24,12 @@ from typing import Any, Callable, Optional, Tuple
 
 from .simulation_runner import step as _step_fn  # dispatches on config flag
 from .safety_guards import _guard_no_nan, _guard_energy, _guard_bounds
+
 try:
     from src.config import config  # type: ignore
 except Exception:
     from types import SimpleNamespace
+
     config = SimpleNamespace(simulation=SimpleNamespace(safety=None))
 
 
@@ -205,7 +207,6 @@ def simulate(
     return result
 
 
-
 def simulate_system_batch(
     *,
     controller_factory: Callable[[np.ndarray], Any],
@@ -274,7 +275,7 @@ def simulate_system_batch(
     Returns
     -------
     If ``params_list`` is not provided, returns a tuple ``(t, x_b, u_b, sigma_b)``:
-    
+
     - ``t``: ndarray of shape ``(N+1,)`` of time points
     - ``x_b``: ndarray of shape ``(B, N+1, D)`` of states
     - ``u_b``: ndarray of shape ``(B, N)`` of controls
@@ -284,6 +285,7 @@ def simulate_system_batch(
     element in ``params_list``).
     """
     import numpy as _np  # local import to avoid polluting namespace
+
     # Convert particles to array
     part_arr = _np.asarray(particles, dtype=float)
     if part_arr.ndim == 1:
@@ -406,7 +408,15 @@ def simulate_system_batch(
                         except Exception:
                             pass
                 if params_list is not None:
-                    return [(_np.copy(times), _np.copy(x_b), _np.copy(u_b), _np.copy(sigma_b)) for _ in params_list]
+                    return [
+                        (
+                            _np.copy(times),
+                            _np.copy(x_b),
+                            _np.copy(u_b),
+                            _np.copy(sigma_b),
+                        )
+                        for _ in params_list
+                    ]
                 return times, x_b, u_b, sigma_b
             # Saturate and store
             limit = u_limits[j]
@@ -455,7 +465,10 @@ def simulate_system_batch(
                     except Exception:
                         pass
             if params_list is not None:
-                return [(_np.copy(times), _np.copy(x_b), _np.copy(u_b), _np.copy(sigma_b)) for _ in params_list]
+                return [
+                    (_np.copy(times), _np.copy(x_b), _np.copy(u_b), _np.copy(sigma_b))
+                    for _ in params_list
+                ]
             return times, x_b, u_b, sigma_b
         # Early convergence check
         if check_convergence and (i >= grace_steps):
@@ -475,7 +488,15 @@ def simulate_system_batch(
                         except Exception:
                             pass
                 if params_list is not None:
-                    return [(_np.copy(times), _np.copy(x_b), _np.copy(u_b), _np.copy(sigma_b)) for _ in params_list]
+                    return [
+                        (
+                            _np.copy(times),
+                            _np.copy(x_b),
+                            _np.copy(u_b),
+                            _np.copy(sigma_b),
+                        )
+                        for _ in params_list
+                    ]
                 return times, x_b, u_b, sigma_b
     # Finalise times
     times[H] = H * dt
@@ -491,4 +512,7 @@ def simulate_system_batch(
     if params_list is None:
         return result
     # replicate results for each params entry
-    return [(_np.copy(times), _np.copy(x_b), _np.copy(u_b), _np.copy(sigma_b)) for _ in params_list]
+    return [
+        (_np.copy(times), _np.copy(x_b), _np.copy(u_b), _np.copy(sigma_b))
+        for _ in params_list
+    ]

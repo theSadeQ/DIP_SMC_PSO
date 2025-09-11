@@ -101,7 +101,9 @@ def _make_cfg() -> ConfigSchema:
         stability=0.1,
     )
     cost_cfg = CostFunctionConfig(weights=weights, baseline={}, instability_penalty=1.0)
-    verification_cfg = VerificationConfig(test_conditions=[], integrators=["euler"], criteria={})
+    verification_cfg = VerificationConfig(
+        test_conditions=[], integrators=["euler"], criteria={}
+    )
     sensors_cfg = SensorsConfig(
         angle_noise_std=0.0,
         position_noise_std=0.0,
@@ -126,6 +128,7 @@ def _make_cfg() -> ConfigSchema:
 
 class SimpleController:
     """Controller stub providing required attributes."""
+
     n_gains = 1
     max_force = 1.0
 
@@ -135,6 +138,7 @@ class SimpleController:
 
 def controller_factory(gains: np.ndarray) -> SimpleController:
     return SimpleController(gains)
+
 
 controller_factory.n_gains = SimpleController.n_gains  # type: ignore
 
@@ -163,7 +167,9 @@ def dummy_simulate_system_batch_stat(
 def test_statistical_harness_sample_size_and_ci() -> None:
     """run_trials should return n_trials metrics and narrower CIs for larger n."""
     cfg = _make_cfg()
-    with patch('src.core.vector_sim.simulate_system_batch', dummy_simulate_system_batch_stat):
+    with patch(
+        "src.core.vector_sim.simulate_system_batch", dummy_simulate_system_batch_stat
+    ):
         # 30 trials
         metrics30, ci30 = run_trials(
             controller_factory=controller_factory,

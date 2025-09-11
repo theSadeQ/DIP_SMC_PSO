@@ -1,5 +1,4 @@
-﻿import os
-from pathlib import Path
+﻿from pathlib import Path
 import pytest
 
 from src.config import load_config
@@ -24,7 +23,9 @@ def test_env_overrides_file(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.delenv("C04__SIMULATION__DT", raising=False)
 
 
-def test_dotenv_overrides_file_but_not_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+def test_dotenv_overrides_file_but_not_env(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
     """.env should override file, but real ENV must still have highest precedence."""
     repo_root = _repo_root_from_here()
     cfg_path = repo_root / "config.yaml"

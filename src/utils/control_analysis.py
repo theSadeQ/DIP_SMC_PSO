@@ -20,7 +20,9 @@ import numpy as np
 from src.controllers.mpc_controller import _numeric_linearize_continuous
 
 
-def linearize_dip(dyn: callable, x_eq: np.ndarray, u_eq: float) -> Tuple[np.ndarray, np.ndarray]:
+def linearize_dip(
+    dyn: callable, x_eq: np.ndarray, u_eq: float
+) -> Tuple[np.ndarray, np.ndarray]:
     """Linearise the nonlinear dynamics around an equilibrium point.
 
     Parameters
@@ -95,7 +97,9 @@ def observability_matrix(A: np.ndarray, C: np.ndarray) -> np.ndarray:
     return np.vstack(mats)
 
 
-def check_controllability_observability(A: np.ndarray, B: np.ndarray, C: np.ndarray) -> Tuple[bool, bool]:
+def check_controllability_observability(
+    A: np.ndarray, B: np.ndarray, C: np.ndarray
+) -> Tuple[bool, bool]:
     """Check controllability and observability of an LTI system.
 
     Parameters

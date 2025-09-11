@@ -9,7 +9,6 @@ Each section is delimited by BEGIN/END markers.
 #
 import concurrent.futures
 import numpy as np
-import pytest
 
 from src.controllers.factory import create_controller
 from src.core.dynamics import DIPDynamics
@@ -17,7 +16,7 @@ from src.core.simulation_runner import run_simulation
 
 
 def run_deterministic_simulation(seed: int, physics_params: dict) -> np.ndarray:
-    rng = np.random.default_rng(seed)           # thread-local generator
+    rng = np.random.default_rng(seed)  # thread-local generator
     controller = create_controller("classical_smc", gains=[10, 8, 5, 4, 50, 1.0])
     dynamics_model = DIPDynamics(params=physics_params)
 
@@ -26,12 +25,13 @@ def run_deterministic_simulation(seed: int, physics_params: dict) -> np.ndarray:
         dynamics_model=dynamics_model,
         sim_time=0.2,
         dt=0.01,
-        rng=rng,            # if run_simulation accepts it
+        rng=rng,  # if run_simulation accepts it
     )
     return states[-1]
 
     # Return the final state as the result for this run
     return states[-1]
+
 
 def test_simulation_is_thread_safe(physics_params):
     """
@@ -48,14 +48,19 @@ def test_simulation_is_thread_safe(physics_params):
     results = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
         # Each future will run the same deterministic simulation
-        futures = [executor.submit(run_deterministic_simulation, seed, physics_params) for _ in range(num_threads)]
-        
+        futures = [
+            executor.submit(run_deterministic_simulation, seed, physics_params)
+            for _ in range(num_threads)
+        ]
+
         for future in concurrent.futures.as_completed(futures):
             results.append(future.result())
 
     # 3. Verify that all parallel runs produced the exact same result.
     for final_state in results:
-        assert np.allclose(final_state, expected_final_state), \
-            "A parallel simulation produced a different result, indicating a thread-safety issue."
-# END: test_interfaces.py
+        assert np.allclose(
+            final_state, expected_final_state
+        ), "A parallel simulation produced a different result, indicating a thread-safety issue."
 
+
+# END: test_interfaces.py

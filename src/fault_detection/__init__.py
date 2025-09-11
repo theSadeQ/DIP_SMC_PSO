@@ -5,4 +5,4 @@ Fault Detection & Isolation (FDI) package.
 from .fdi import FDIsystem
 
 __all__ = ["FDIsystem"]
-#=========================================\\\
+# =========================================\\\

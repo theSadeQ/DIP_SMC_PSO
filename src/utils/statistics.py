@@ -16,13 +16,17 @@ confidence_interval
     Compute the mean and half‑width of a confidence interval using the
     Student’s t‑distribution.
 """
+
 from __future__ import annotations
 
 import numpy as np
 from scipy.stats import t
 from typing import Tuple
 
-def confidence_interval(data: np.ndarray, confidence: float = 0.95) -> Tuple[float, float]:
+
+def confidence_interval(
+    data: np.ndarray, confidence: float = 0.95
+) -> Tuple[float, float]:
     """Return the mean and half‑width of a Student‑t confidence interval.
 
     Given an array of samples, compute the sample mean and the half‑width
@@ -50,12 +54,13 @@ def confidence_interval(data: np.ndarray, confidence: float = 0.95) -> Tuple[flo
     n = data.size
     mean = float(np.mean(data)) if n > 0 else np.nan
     if n < 2:
-        return mean, float('nan')
+        return mean, float("nan")
     s = float(np.std(data, ddof=1))
     # Two‑sided t‑critical value
     alpha = 1.0 - confidence
     tcrit = float(t.ppf(1.0 - alpha / 2.0, df=n - 1))
     half_width = tcrit * s / np.sqrt(n)
     return mean, half_width
+
 
 __all__ = ["confidence_interval"]

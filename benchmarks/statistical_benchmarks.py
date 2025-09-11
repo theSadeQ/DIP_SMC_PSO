@@ -80,7 +80,7 @@ def compute_metrics(
     time_weights = t[:-1]
     itae = np.sum(np.abs(x[:, :-1, :]) * time_weights[None, :, None], axis=(1, 2))
     # RMS control effort
-    rms_u = np.sqrt(np.mean(u ** 2, axis=1))
+    rms_u = np.sqrt(np.mean(u**2, axis=1))
     # Maximum overshoot for angular states (assumes angles at indices 1 and 2)
     try:
         overshoot = np.max(np.abs(x[:, :, 1:3]), axis=(1, 2))

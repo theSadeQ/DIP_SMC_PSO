@@ -1,6 +1,6 @@
-#======================================================================================\\\  
+# ======================================================================================\\\
 # src/controllers/swing_up_smc.py =====================================================\\\
-#======================================================================================\\\ 
+# ======================================================================================\\\
 from __future__ import annotations
 from typing import Any, Tuple, Dict, Optional, MutableMapping, Literal, TypedDict
 import numpy as np
@@ -8,12 +8,15 @@ import logging
 
 Mode = Literal["swing", "stabilize"]
 
+
 class _History(TypedDict, total=False):
     mode: Mode
     t: float
 
+
 SWING_MODE: Mode = "swing"
 STABILIZE_MODE: Mode = "stabilize"
+
 
 class SwingUpSMC:
     """
@@ -71,15 +74,20 @@ class SwingUpSMC:
         )
         self.dt = float(dt)
         self.max_force = (
-            float(max_force) if max_force is not None
+            float(max_force)
+            if max_force is not None
             else float(getattr(stabilizing_controller, "max_force", np.inf))
         )
 
         # Validate hysteresis band + angle tolerances (aligns with tests)
         if self.exit_energy_factor >= self.switch_energy_factor:
-            raise ValueError("exit_energy_factor must be < switch_energy_factor to create a deadband.")
+            raise ValueError(
+                "exit_energy_factor must be < switch_energy_factor to create a deadband."
+            )
         if self.reentry_angle_tol < self.switch_angle_tol:
-            raise ValueError("reentry_angle_tolerance should be >= switch_angle_tolerance.")
+            raise ValueError(
+                "reentry_angle_tolerance should be >= switch_angle_tolerance."
+            )
 
         # Bottom reference (down-down) energy; model uses 0 at upright, so bottom is positive.
         self._bottom_ref = np.array([0.0, np.pi, np.pi, 0.0, 0.0, 0.0], dtype=float)
@@ -123,9 +131,11 @@ class SwingUpSMC:
 
     # ---------- Transition helpers ----------
 
-    def _should_switch_to_swing(self, E_about_bottom: float, q1: float, q2: float) -> Tuple[bool, bool, bool]:
+    def _should_switch_to_swing(
+        self, E_about_bottom: float, q1: float, q2: float
+    ) -> Tuple[bool, bool, bool]:
         """Determine if the controller should return to swing mode.
-    
+
         Returns a triple ``(should_switch, low_energy, angle_excursion)`` where:
             - ``low_energy`` is True when the energy about the bottom falls below
               the exit threshold (exit_energy_factor * E_bottom).
@@ -134,20 +144,25 @@ class SwingUpSMC:
             - ``should_switch`` is True when **either** low_energy **or**
               angle_excursion is True. This ensures the controller can re-engage
               swing-up mode if the system loses energy or stability.
-    
+
         The change from AND to OR logic prevents the controller from getting
         stuck in stabilize mode when energy is low but angles remain small.
         """
-        low_energy = (E_about_bottom < self.exit_energy_factor * self.E_bottom)
-        angle_excursion = (abs(q1) > self.reentry_angle_tol) or (abs(q2) > self.reentry_angle_tol)
+        low_energy = E_about_bottom < self.exit_energy_factor * self.E_bottom
+        angle_excursion = (abs(q1) > self.reentry_angle_tol) or (
+            abs(q2) > self.reentry_angle_tol
+        )
         should_switch = low_energy or angle_excursion  # Changed from 'and' to 'or'
         return (should_switch, low_energy, angle_excursion)
 
-
-    def _should_switch_to_stabilize(self, E_about_bottom: float, q1: float, q2: float) -> Tuple[bool, bool, bool]:
+    def _should_switch_to_stabilize(
+        self, E_about_bottom: float, q1: float, q2: float
+    ) -> Tuple[bool, bool, bool]:
         """Return (should_switch, high_energy, small_angles)."""
-        high_energy = (E_about_bottom >= self.switch_energy_factor * self.E_bottom)
-        small_angles = (abs(q1) <= self.switch_angle_tol) and (abs(q2) <= self.switch_angle_tol)
+        high_energy = E_about_bottom >= self.switch_energy_factor * self.E_bottom
+        small_angles = (abs(q1) <= self.switch_angle_tol) and (
+            abs(q2) <= self.switch_angle_tol
+        )
         return (high_energy and small_angles, high_energy, small_angles)
 
     def _update_mode(
@@ -160,23 +175,33 @@ class SwingUpSMC:
     ) -> None:
         """Centralized transition logic for both directions with detailed logging."""
         if self._mode == SWING_MODE:
-            should, high_energy, small_angles = self._should_switch_to_stabilize(E_about_bottom, q1, q2)
+            should, high_energy, small_angles = self._should_switch_to_stabilize(
+                E_about_bottom, q1, q2
+            )
             if should:
                 self._mode = STABILIZE_MODE
                 self._switch_time = t  # stamp handoff time (tests check this)
                 history["mode"] = self._mode
                 self.logger.info(
                     "SwingUpSMC: swing -> stabilize at t=%.3fs (E/Eb=%.3f, high_energy=%s, small_angles=%s)",
-                    t, E_about_bottom / self.E_bottom, high_energy, small_angles
+                    t,
+                    E_about_bottom / self.E_bottom,
+                    high_energy,
+                    small_angles,
                 )
         elif self._mode == STABILIZE_MODE:
-            should, low_energy, angle_excursion = self._should_switch_to_swing(E_about_bottom, q1, q2)
+            should, low_energy, angle_excursion = self._should_switch_to_swing(
+                E_about_bottom, q1, q2
+            )
             if should:
                 self._mode = SWING_MODE
                 history["mode"] = self._mode
                 self.logger.info(
                     "SwingUpSMC: stabilize -> swing at t=%.3fs (E/Eb=%.3f, low_energy=%s, angle_excursion=%s)",
-                    t, E_about_bottom / self.E_bottom, low_energy, angle_excursion
+                    t,
+                    E_about_bottom / self.E_bottom,
+                    low_energy,
+                    angle_excursion,
                 )
 
     # ---------- Main control ----------
@@ -232,4 +257,6 @@ class SwingUpSMC:
     @property
     def switch_time(self) -> Optional[float]:
         return self._switch_time
-#=======================================================================================================\\\
+
+
+# =======================================================================================================\\\

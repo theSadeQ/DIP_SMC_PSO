@@ -3,11 +3,13 @@ import numpy as np
 
 from src.core.simulation_runner import run_simulation
 
+
 class SimpleStatefulController:
     """
     Minimal stateful controller used only for testing the runner.
     Tracks a scalar 'K' that evolves over time and records it in history.
     """
+
     def __init__(self, k0: float = 1.0, gain_step: float = 0.1):
         self.k0 = float(k0)
         self.gain_step = float(gain_step)
@@ -42,6 +44,7 @@ class SimpleDynamics:
     """
     Minimal dynamics with 1D state: x_{k+1} = x_k + dt * u
     """
+
     state_dim = 1
 
     def step(self, x, u, dt):
@@ -67,12 +70,18 @@ def test_stateful_controller_persists_state_and_history_is_exposed():
 
     # The runner stores final history on the controller (non-breaking API)
     history = getattr(ctrl, "_last_history", None)
-    assert isinstance(history, dict), "Runner should attach _last_history dict to controller."
-    assert "K" in history and len(history["K"]) > 1, "Adaptive gain history 'K' should be tracked."
+    assert isinstance(
+        history, dict
+    ), "Runner should attach _last_history dict to controller."
+    assert (
+        "K" in history and len(history["K"]) > 1
+    ), "Adaptive gain history 'K' should be tracked."
 
     k_initial, k_final = history["K"][0], history["K"][-1]
     assert not np.isclose(k_initial, k_final), (
         f"Adaptive gain K did not change (initial={k_initial}, final={k_final}). "
         "State propagation failed."
     )
-#===================================================================================================\\\
+
+
+# ===================================================================================================\\\

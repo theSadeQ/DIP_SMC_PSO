@@ -27,11 +27,13 @@ try:
 except Exception:
     # Define a minimal stand‑in config object with the expected structure.
     from types import SimpleNamespace
+
     config = SimpleNamespace(simulation=SimpleNamespace(use_full_dynamics=False))
 
 # Module path for the full dynamics.  This constant is monkeypatched in
 # tests to simulate a missing module.  Do not rename without updating tests.
 DYNAMICS_FULL_MODULE = "src.core.dynamics_full"
+
 
 def _load_full_step():
     """
@@ -56,6 +58,7 @@ def _load_full_step():
             "Full dynamics unavailable: module 'dynamics_full' not found. Set config.simulation.use_full_dynamics=false or provide src/core/dynamics_full.py"
         )
 
+
 def _load_lowrank_step():
     """
     Load the low‑rank dynamics ``step`` function.
@@ -66,7 +69,9 @@ def _load_lowrank_step():
         The low‑rank ``step(x, u, dt)`` function.
     """
     from .dynamics_lowrank import step as step_fn
+
     return step_fn
+
 
 def get_step_fn():
     """
@@ -79,6 +84,7 @@ def get_step_fn():
     """
     use_full = getattr(getattr(config, "simulation", None), "use_full_dynamics", False)
     return _load_full_step() if use_full else _load_lowrank_step()
+
 
 def step(x, u, dt):
     """
@@ -99,7 +105,6 @@ def step(x, u, dt):
         Next state computed by the selected dynamics implementation.
     """
     return get_step_fn()(x, u, dt)
-
 
 
 def run_simulation(
@@ -269,7 +274,7 @@ def run_simulation(
             # Terminate on control exception
             t_arr = t_arr[: i + 1]
             x_arr = x_arr[: i + 1]
-            u_arr = u_arr[: i]
+            u_arr = u_arr[:i]
             if history is not None:
                 try:
                     setattr(controller, "_last_history", history)
@@ -277,7 +282,11 @@ def run_simulation(
                     pass
             return t_arr, x_arr, u_arr
         end_time = time.perf_counter()
-        if (not use_fallback) and (fallback_controller is not None) and ((end_time - start_time) > dt):
+        if (
+            (not use_fallback)
+            and (fallback_controller is not None)
+            and ((end_time - start_time) > dt)
+        ):
             use_fallback = True
         # Saturate control
         if u_lim is not None:
@@ -292,7 +301,7 @@ def run_simulation(
         except Exception:
             t_arr = t_arr[: i + 1]
             x_arr = x_arr[: i + 1]
-            u_arr = u_arr[: i]
+            u_arr = u_arr[:i]
             if history is not None:
                 try:
                     setattr(controller, "_last_history", history)
@@ -303,7 +312,7 @@ def run_simulation(
         if not np.all(np.isfinite(x_next)):
             t_arr = t_arr[: i + 1]
             x_arr = x_arr[: i + 1]
-            u_arr = u_arr[: i]
+            u_arr = u_arr[:i]
             if history is not None:
                 try:
                     setattr(controller, "_last_history", history)

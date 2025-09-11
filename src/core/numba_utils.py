@@ -23,7 +23,9 @@ import os
 from typing import Optional
 
 
-def configure_numba(cache_dir: Optional[str] = None, threading_layer: Optional[str] = None) -> None:
+def configure_numba(
+    cache_dir: Optional[str] = None, threading_layer: Optional[str] = None
+) -> None:
     """Configure Numba's cache directory and threading layer.
 
     Parameters

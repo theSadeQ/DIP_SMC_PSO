@@ -10,6 +10,7 @@ import pytest
 import numpy as np
 from unittest.mock import MagicMock, patch
 
+
 # This is a simplified version of the fake streamlit object from another test file.
 @pytest.fixture
 def mock_st():
@@ -17,13 +18,15 @@ def mock_st():
     st.warning = MagicMock()
     return st
 
+
 # Assuming _parse_initial_state is in streamlit_app.py
 from streamlit_app import _parse_initial_state
+
 
 def test_parse_initial_state_raises_on_unexpected_error(mock_st):
     """
     Verify that _parse_initial_state propagates unexpected exceptions instead of catching them.
-    
+
     Why: This ensures that only expected user-input errors are handled gracefully,
     while system-level errors (which indicate bugs or environment issues) are
     allowed to fail fast.
@@ -31,28 +34,32 @@ def test_parse_initial_state_raises_on_unexpected_error(mock_st):
     text = "1,2,3"
     default = np.zeros(6)
     state_dim = 6
-    
+
     # Mock an unexpected error during numpy array creation
-    with patch('numpy.array', side_effect=AttributeError("Unexpected numpy issue")):
+    with patch("numpy.array", side_effect=AttributeError("Unexpected numpy issue")):
         with pytest.raises(AttributeError):
             _parse_initial_state(text, default, state_dim)
-    
+
     # The warning should NOT be called for unexpected errors
     mock_st.warning.assert_not_called()
+
 
 def test_parse_initial_state_handles_empty_input(mock_st):
     """Test that empty input is handled gracefully with appropriate warning."""
     text = ""
     default = np.array([1, 2, 3, 4, 5, 6])
     state_dim = 6
-    
+
     # We need to inject our mock `st` object into the function's global scope
     # for the test to work, since the function calls `st.warning` directly.
-    with patch('streamlit_app.st', mock_st):
+    with patch("streamlit_app.st", mock_st):
         result = _parse_initial_state(text, default, state_dim)
-    
-    assert np.array_equal(result, default)
-    mock_st.warning.assert_called_once_with("Empty initial state; using defaults from config.")
-#================================================================================================\\\	
-# END: test_ui_warnings.py
 
+    assert np.array_equal(result, default)
+    mock_st.warning.assert_called_once_with(
+        "Empty initial state; using defaults from config."
+    )
+
+
+# ================================================================================================\\\
+# END: test_ui_warnings.py

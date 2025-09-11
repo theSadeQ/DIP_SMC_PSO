@@ -1,16 +1,16 @@
 # merge_config.py
-#for diffrent physic pararmeters
+# for diffrent physic pararmeters
 import sys
 from typing import Mapping, MutableMapping
 
 try:
     import yaml  # PyYAML
-except Exception as e:
+except Exception:
     sys.stderr.write(
-        "This script requires PyYAML.\n"
-        "Install with:  pip install pyyaml\n"
+        "This script requires PyYAML.\n" "Install with:  pip install pyyaml\n"
     )
     raise
+
 
 def deep_update(base: MutableMapping, overlay: Mapping) -> MutableMapping:
     """
@@ -24,6 +24,7 @@ def deep_update(base: MutableMapping, overlay: Mapping) -> MutableMapping:
         else:
             base[k] = v
     return base
+
 
 def main():
     if len(sys.argv) != 4:
@@ -46,6 +47,7 @@ def main():
     with open(out_path, "w", encoding="utf-8") as f:
         yaml.safe_dump(merged, f, sort_keys=False)
     print(f"✅ Wrote merged config to {out_path}")
+
 
 if __name__ == "__main__":
     main()

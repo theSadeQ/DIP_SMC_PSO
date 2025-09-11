@@ -13,7 +13,6 @@ from __future__ import annotations
 
 from typing import Any
 import numpy as np
-import pytest
 from unittest.mock import patch
 
 from src.optimizer.pso_optimizer import PSOTuner
@@ -33,7 +32,9 @@ from src.config import (
 )
 
 
-def _make_minimal_config(*, w_schedule: Any = None, velocity_clamp: Any = None) -> ConfigSchema:
+def _make_minimal_config(
+    *, w_schedule: Any = None, velocity_clamp: Any = None
+) -> ConfigSchema:
     """Construct a minimal configuration object with optional PSO parameters."""
     hil_cfg = HILConfig(
         plant_ip="127.0.0.1",
@@ -104,7 +105,9 @@ def _make_minimal_config(*, w_schedule: Any = None, velocity_clamp: Any = None) 
         stability=0.1,
     )
     cost_cfg = CostFunctionConfig(weights=weights, baseline={}, instability_penalty=1.0)
-    verification_cfg = VerificationConfig(test_conditions=[], integrators=["euler"], criteria={})
+    verification_cfg = VerificationConfig(
+        test_conditions=[], integrators=["euler"], criteria={}
+    )
     sensors_cfg = SensorsConfig(
         angle_noise_std=0.0,
         position_noise_std=0.0,
@@ -129,6 +132,7 @@ def _make_minimal_config(*, w_schedule: Any = None, velocity_clamp: Any = None) 
 
 class DummyController:
     """Simple controller stub used for PSO tests."""
+
     n_gains = 1
     max_force = 1.0
 
@@ -142,6 +146,7 @@ class DummyController:
 
 def dummy_controller_factory(gains: np.ndarray) -> DummyController:
     return DummyController(gains)
+
 
 dummy_controller_factory.n_gains = DummyController.n_gains  # type: ignore
 
@@ -178,22 +183,24 @@ def test_pso_velocity_clamp_passed() -> None:
 
     class FakePSO:
         def __init__(self, *args: Any, **kwargs: Any) -> None:
-            captured['velocity_clamp'] = kwargs.get('velocity_clamp')
+            captured["velocity_clamp"] = kwargs.get("velocity_clamp")
             # Record options
-            captured['options'] = kwargs.get('options')
-            self.options = kwargs.get('options')
-            self.swarm = type('Swarm', (), {'best_cost': 0.0, 'best_pos': np.zeros(1)})
+            captured["options"] = kwargs.get("options")
+            self.options = kwargs.get("options")
+            self.swarm = type("Swarm", (), {"best_cost": 0.0, "best_pos": np.zeros(1)})
 
         def optimize(self, fitness, iters: int):
             return 0.0, np.zeros(1)
 
-    with patch('src.core.vector_sim.simulate_system_batch', dummy_simulate_system_batch):
-        with patch('pyswarms.single.GlobalBestPSO', new=FakePSO):
+    with patch(
+        "src.core.vector_sim.simulate_system_batch", dummy_simulate_system_batch
+    ):
+        with patch("pyswarms.single.GlobalBestPSO", new=FakePSO):
             tuner = PSOTuner(controller_factory=dummy_controller_factory, config=cfg)
             res = tuner.optimise()
     # Check that velocity clamp was computed correctly
-    assert 'velocity_clamp' in captured
-    vmin, vmax = captured['velocity_clamp']
+    assert "velocity_clamp" in captured
+    vmin, vmax = captured["velocity_clamp"]
     assert np.allclose(vmin, expected_vclamp[0])
     assert np.allclose(vmax, expected_vclamp[1])
 
@@ -205,19 +212,21 @@ def test_pso_w_schedule_updates_inertia() -> None:
 
     class FakePSO:
         def __init__(self, *args: Any, **kwargs: Any) -> None:
-            self.options = kwargs.get('options').copy()
-            self.swarm = type('Swarm', (), {'best_cost': 0.0, 'best_pos': np.zeros(1)})
+            self.options = kwargs.get("options").copy()
+            self.swarm = type("Swarm", (), {"best_cost": 0.0, "best_pos": np.zeros(1)})
 
         def step(self, fitness):
             # Record current inertia weight
-            w_history.append(float(self.options['w']))
+            w_history.append(float(self.options["w"]))
             return 0.0, np.zeros(1)
 
         def optimize(self, fitness, iters: int):
             return 0.0, np.zeros(1)
 
-    with patch('src.core.vector_sim.simulate_system_batch', dummy_simulate_system_batch):
-        with patch('pyswarms.single.GlobalBestPSO', new=FakePSO):
+    with patch(
+        "src.core.vector_sim.simulate_system_batch", dummy_simulate_system_batch
+    ):
+        with patch("pyswarms.single.GlobalBestPSO", new=FakePSO):
             tuner = PSOTuner(controller_factory=dummy_controller_factory, config=cfg)
             _ = tuner.optimise()
     # Inertia weight should decrease linearly from 0.9 to 0.4 over 3 iterations

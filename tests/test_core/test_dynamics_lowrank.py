@@ -35,7 +35,9 @@ class TestSafety:
         """
         # Make energy explode deterministically: total energy = 100 per row
         big = np.array([[10.0, 0.0], [0.0, 10.0]], dtype=float)
-        with pytest.raises(RuntimeError, match="Energy check failed: total_energy=<val> exceeds <max>"):
+        with pytest.raises(
+            RuntimeError, match="Energy check failed: total_energy=<val> exceeds <max>"
+        ):
             _guard_energy(big, limits={"max": 1.0})
 
     def test_state_bounds_guard_raises(self):

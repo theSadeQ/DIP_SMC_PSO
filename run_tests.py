@@ -10,14 +10,13 @@ import logging
 import os
 import subprocess
 import sys
-import locale
 import types
 import yaml
 
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
+
 
 def main():
     """Run the pytest test suite and propagate the exit code."""
@@ -31,7 +30,6 @@ def main():
     # short simulation.  This ensures CI environments without pytest can
     # still validate basic functionality.
     try:
-        import pytest  # type: ignore
         have_pytest = True
     except Exception:
         have_pytest = False
@@ -50,13 +48,13 @@ def main():
         universal_newlines=False,
     )
     if process.stdout is not None:
-        for raw_line in iter(process.stdout.readline, b''):
+        for raw_line in iter(process.stdout.readline, b""):
             if not raw_line:
                 break
             try:
-                decoded = raw_line.decode('utf-8')
+                decoded = raw_line.decode("utf-8")
             except UnicodeDecodeError:
-                decoded = raw_line.decode('utf-8', errors='replace')
+                decoded = raw_line.decode("utf-8", errors="replace")
             print(decoded.rstrip(), flush=True)
     process.wait()
     if process.returncode != 0:
@@ -101,8 +99,10 @@ def run_smoke_tests() -> int:
     sim_cfg = raw_cfg.get("simulation", {}) or {}
     sim_dt = float(sim_cfg.get("dt", 0.01))
     sim_time = 2.0
+
     class _SimpleConfig:
         pass
+
     simple_config = _SimpleConfig()
     simple_config.controllers = controllers_cfg
     simple_config.controller_defaults = controller_defaults
@@ -112,6 +112,7 @@ def run_smoke_tests() -> int:
     try:
         if physics_cfg:
             from src.core.dynamics import DoubleInvertedPendulum
+
             dyn_model = DoubleInvertedPendulum(physics_cfg)
     except Exception as exc:
         logging.warning("Unable to instantiate dynamics model for smoke tests: %s", exc)
@@ -127,17 +128,33 @@ def run_smoke_tests() -> int:
         key = str(name)
         logging.info("Smoke test: building controller '%s'", key)
         try:
-            dt_override = float(ctrl_cfg.get("dt", sim_dt)) if isinstance(ctrl_cfg, dict) else sim_dt
+            dt_override = (
+                float(ctrl_cfg.get("dt", sim_dt))
+                if isinstance(ctrl_cfg, dict)
+                else sim_dt
+            )
         except Exception:
             dt_override = sim_dt
         try:
-            max_force_override = float(ctrl_cfg.get("max_force", 20.0)) if isinstance(ctrl_cfg, dict) else 20.0
+            max_force_override = (
+                float(ctrl_cfg.get("max_force", 20.0))
+                if isinstance(ctrl_cfg, dict)
+                else 20.0
+            )
         except Exception:
             max_force_override = 20.0
         try:
-            ctrl = create_controller(key, config=simple_config, dt=dt_override, max_force=max_force_override)
+            ctrl = create_controller(
+                key, config=simple_config, dt=dt_override, max_force=max_force_override
+            )
             if dyn_model is not None:
-                run_simulation(ctrl, dyn_model, sim_time=sim_time, dt=dt_override, raise_on_warning=True)
+                run_simulation(
+                    ctrl,
+                    dyn_model,
+                    sim_time=sim_time,
+                    dt=dt_override,
+                    raise_on_warning=True,
+                )
         except Exception as exc:
             logging.error("Smoke test failed for controller '%s': %s", key, exc)
             all_ok = False
@@ -149,6 +166,7 @@ def run_smoke_tests() -> int:
         logging.error("One or more smoke tests failed.")
         return 1
 
+
 if __name__ == "__main__":
     sys.exit(main())
-#=================================================================================================================\\\
+# =================================================================================================================\\\

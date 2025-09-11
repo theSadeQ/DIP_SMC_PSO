@@ -1,4 +1,4 @@
-#benchmarks/integration_comparison.py============================================\\\
+# benchmarks/integration_comparison.py============================================\\\
 #
 """
 Compares the performance and accuracy of different numerical integration methods
@@ -7,7 +7,6 @@ for the double inverted pendulum dynamics, specifically Euler, RK4, and RK45.
 
 import sys
 import time
-from pathlib import Path
 from typing import Any, Dict
 
 import numpy as np
@@ -20,8 +19,12 @@ sys.path.append("..")
 
 from src.config import load_config
 from src.controllers.classic_smc import ClassicSMC
-from src.core.dynamics import (DIPDynamics, DoubleInvertedPendulum,
-                               step_euler_numba, step_rk4_numba)
+from src.core.dynamics import (
+    DIPDynamics,
+    DoubleInvertedPendulum,
+    step_euler_numba,
+    step_rk4_numba,
+)
 
 
 class IntegrationBenchmark:
@@ -31,6 +34,7 @@ class IntegrationBenchmark:
     This class sets up a standard simulation scenario and provides methods
     to run it using different fixed-step and adaptive-step integrators.
     """
+
     # Define default gains as a constant for clarity
     DEFAULT_GAINS = np.array([10.0, 5.0, 3.0, 2.0, 50.0])
 
@@ -44,7 +48,9 @@ class IntegrationBenchmark:
         self.controller = ClassicSMC(self.DEFAULT_GAINS, max_force=150.0)
         self.x0 = np.array([0.0, 0.1, 0.1, 0.0, 0.0, 0.0])
 
-    def euler_integrate(self, sim_time: float, dt: float, use_controller: bool = True) -> Dict[str, Any]:
+    def euler_integrate(
+        self, sim_time: float, dt: float, use_controller: bool = True
+    ) -> Dict[str, Any]:
         """
         Runs a simulation using the fast, Numba-based Euler method.
 
@@ -65,24 +71,34 @@ class IntegrationBenchmark:
 
         # --- Initialize Controller (if needed) ---
         if use_controller:
-            last_u, = self.controller.initialize_state()
+            (last_u,) = self.controller.initialize_state()
             history = self.controller.initialize_history()
-        
+
         start_time = time.time()
 
         # --- Simulation Loop ---
         for i in range(n_steps - 1):
             if use_controller:
-                u, last_u, history = self.controller.compute_control(states[i], last_u, history)
+                u, last_u, history = self.controller.compute_control(
+                    states[i], last_u, history
+                )
             else:
                 u = 0.0
             controls[i] = u
             states[i + 1] = step_euler_numba(states[i], u, dt, self.dynamics.params)
 
         elapsed = time.time() - start_time
-        return {'t': t, 'states': states, 'controls': controls, 'time': elapsed, 'method': 'Euler'}
+        return {
+            "t": t,
+            "states": states,
+            "controls": controls,
+            "time": elapsed,
+            "method": "Euler",
+        }
 
-    def rk4_integrate(self, sim_time: float, dt: float, use_controller: bool = True) -> Dict[str, Any]:
+    def rk4_integrate(
+        self, sim_time: float, dt: float, use_controller: bool = True
+    ) -> Dict[str, Any]:
         """
         Runs a simulation using the fast, Numba-based RK4 method.
 
@@ -102,22 +118,30 @@ class IntegrationBenchmark:
 
         # --- Initialize Controller (if needed) ---
         if use_controller:
-            last_u, = self.controller.initialize_state()
+            (last_u,) = self.controller.initialize_state()
             history = self.controller.initialize_history()
-            
+
         start_time = time.time()
 
         # --- Simulation Loop ---
         for i in range(n_steps - 1):
             if use_controller:
-                u, last_u, history = self.controller.compute_control(states[i], last_u, history)
+                u, last_u, history = self.controller.compute_control(
+                    states[i], last_u, history
+                )
             else:
                 u = 0.0
             controls[i] = u
             states[i + 1] = step_rk4_numba(states[i], u, dt, self.dynamics.params)
 
         elapsed = time.time() - start_time
-        return {'t': t, 'states': states, 'controls': controls, 'time': elapsed, 'method': 'RK4'}
+        return {
+            "t": t,
+            "states": states,
+            "controls": controls,
+            "time": elapsed,
+            "method": "RK4",
+        }
 
     def rk45_integrate(self, sim_time: float, rtol: float = 1e-8) -> Dict[str, Any]:
         """
@@ -140,16 +164,24 @@ class IntegrationBenchmark:
 
         sol = solve_ivp(
             fun=open_loop_rhs,
-            t_span=(0, sim_time), y0=self.x0, method='RK45',
-            rtol=rtol, atol=1e-10, dense_output=True
+            t_span=(0, sim_time),
+            y0=self.x0,
+            method="RK45",
+            rtol=rtol,
+            atol=1e-10,
+            dense_output=True,
         )
 
         elapsed = time.time() - start_time
-        controls = np.zeros(sol.y.shape[1]) # Controls are zero since it's open-loop
+        controls = np.zeros(sol.y.shape[1])  # Controls are zero since it's open-loop
 
         return {
-            't': sol.t, 'states': sol.y.T, 'controls': controls, 'time': elapsed,
-            'method': 'RK45', 'nfev': sol.nfev
+            "t": sol.t,
+            "states": sol.y.T,
+            "controls": controls,
+            "time": elapsed,
+            "method": "RK45",
+            "nfev": sol.nfev,
         }
 
     def calculate_energy_drift(self, result: Dict[str, Any]) -> np.ndarray:
@@ -157,10 +189,12 @@ class IntegrationBenchmark:
         Calculates the cumulative drift in the system's total mechanical energy.
         """
         dynamics = DoubleInvertedPendulum(self.physics)
-        energies = np.array([
-            dynamics.kinetic_energy(state) + dynamics.potential_energy(state)
-            for state in result['states']
-        ])
+        energies = np.array(
+            [
+                dynamics.kinetic_energy(state) + dynamics.potential_energy(state)
+                for state in result["states"]
+            ]
+        )
         return energies - energies[0]
 
 
@@ -184,26 +218,30 @@ def test_rk4_reduces_euler_drift(benchmark: IntegrationBenchmark):
     mean_drift_euler = np.mean(np.abs(drift_euler))
     mean_drift_rk4 = np.mean(np.abs(drift_rk4))
 
-    assert mean_drift_rk4 < mean_drift_euler, (
-        f"RK4 mean drift ({mean_drift_rk4:.4f}) was not lower than Euler drift ({mean_drift_euler:.4f})"
-    )
+    assert (
+        mean_drift_rk4 < mean_drift_euler
+    ), f"RK4 mean drift ({mean_drift_rk4:.4f}) was not lower than Euler drift ({mean_drift_euler:.4f})"
 
 
 def test_rk45_executes_and_counts_evals(benchmark: IntegrationBenchmark):
     """Verify that the SciPy RK45 solver runs and reports its function evaluations."""
     res_rk45 = benchmark.rk45_integrate(sim_time=5.0, rtol=1e-8)
-    assert "nfev" in res_rk45 and isinstance(res_rk45["nfev"], int), \
-        "RK45 result dictionary is missing an integer 'nfev' field"
-    assert res_rk45["nfev"] > 0, "RK45 performed no function evaluations, which is unexpected."
+    assert "nfev" in res_rk45 and isinstance(
+        res_rk45["nfev"], int
+    ), "RK45 result dictionary is missing an integer 'nfev' field"
+    assert (
+        res_rk45["nfev"] > 0
+    ), "RK45 performed no function evaluations, which is unexpected."
+
 
 def test_energy_conservation_bound(benchmark: IntegrationBenchmark):
     """
     Verify that the RK4 integrator conserves energy within a bound in a frictionless, open-loop simulation.
     """
     # Override friction to zero to create a Hamiltonian system
-    benchmark.physics['cart_friction'] = 0.0
-    benchmark.physics['joint1_friction'] = 0.0
-    benchmark.physics['joint2_friction'] = 0.0
+    benchmark.physics["cart_friction"] = 0.0
+    benchmark.physics["joint1_friction"] = 0.0
+    benchmark.physics["joint2_friction"] = 0.0
 
     # Reinitialize dynamics with updated physics
     benchmark.dynamics = DIPDynamics(benchmark.physics)
@@ -212,7 +250,9 @@ def test_energy_conservation_bound(benchmark: IntegrationBenchmark):
     res_rk4 = benchmark.rk4_integrate(sim_time=10.0, dt=0.01, use_controller=False)
 
     # Calculate total energies using the model's total_energy method
-    energies = np.array([benchmark.dynamics.total_energy(state) for state in res_rk4['states']])
+    energies = np.array(
+        [benchmark.dynamics.total_energy(state) for state in res_rk4["states"]]
+    )
 
     initial_energy = energies[0]
     drift = np.abs(energies - initial_energy)
@@ -220,5 +260,9 @@ def test_energy_conservation_bound(benchmark: IntegrationBenchmark):
 
     # Assert max drift < 1% of initial energy
     tolerance = 0.01 * initial_energy
-    assert max_drift < tolerance, f"Max energy drift {max_drift:.6f} exceeds tolerance {tolerance:.6f}"
-#===========================================================================================================\\\
+    assert (
+        max_drift < tolerance
+    ), f"Max energy drift {max_drift:.6f} exceeds tolerance {tolerance:.6f}"
+
+
+# ===========================================================================================================\\\

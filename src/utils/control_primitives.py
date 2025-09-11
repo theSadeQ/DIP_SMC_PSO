@@ -7,7 +7,10 @@ from typing import Literal
 # Positivity utilities
 # --------------------------------------------------------------------------
 
-def require_positive(value: float | int | None, name: str, *, allow_zero: bool = False) -> float:
+
+def require_positive(
+    value: float | int | None, name: str, *, allow_zero: bool = False
+) -> float:
     """Validate that a numeric value is positive (or non‑negative).
 
     Parameters
@@ -51,11 +54,20 @@ def require_positive(value: float | int | None, name: str, *, allow_zero: bool =
             raise ValueError(f"{name} must be > 0; got {val}")
     return val
 
+
 # --------------------------------------------------------------------------
 # Range validation utilities
 # --------------------------------------------------------------------------
 
-def require_in_range(value: float | int | None, name: str, *, minimum: float, maximum: float, allow_equal: bool = True) -> float:
+
+def require_in_range(
+    value: float | int | None,
+    name: str,
+    *,
+    minimum: float,
+    maximum: float,
+    allow_equal: bool = True,
+) -> float:
     """Validate that a numeric value lies within a closed or open interval.
 
     Parameters
@@ -97,11 +109,16 @@ def require_in_range(value: float | int | None, name: str, *, minimum: float, ma
     val = float(value)
     if allow_equal:
         if val < minimum or val > maximum:
-            raise ValueError(f"{name} must be in the interval [{minimum}, {maximum}]; got {val}")
+            raise ValueError(
+                f"{name} must be in the interval [{minimum}, {maximum}]; got {val}"
+            )
     else:
         if val <= minimum or val >= maximum:
-            raise ValueError(f"{name} must satisfy {minimum} < {name} < {maximum}; got {val}")
+            raise ValueError(
+                f"{name} must satisfy {minimum} < {name} < {maximum}; got {val}"
+            )
     return val
+
 
 def saturate(
     sigma: float | np.ndarray,
@@ -109,7 +126,7 @@ def saturate(
     method: Literal["tanh", "linear"] = "tanh",
 ) -> float | np.ndarray:
     """Continuous approximation of sign(sigma) within a boundary layer.
-    
+
     Args:
         sigma: Sliding surface value(s).
         epsilon: Boundary-layer half-width in σ-space (must be > 0).  # ε is the half-width in σ-space.
@@ -142,6 +159,7 @@ def saturate(
         # Sliding‑mode control theory recommends smooth approximations such
         # as tanh to mitigate chattering【676964782857750†L146-L149】.
         import warnings
+
         warnings.warn(
             "The 'linear' switching method implements a piecewise‑linear saturation, "
             "which approximates the sign function poorly near zero and can degrade "

@@ -1,6 +1,6 @@
-#=================================================================================\\\
+# =================================================================================\\\
 # src/core/simulation_context.py =================================================\\\
-#=================================================================================\\\
+# =================================================================================\\\
 """
 Manages the simulation setup, including configuration loading and
 dynamic selection of the physics model.
@@ -31,6 +31,7 @@ class SimulationContext:
     This class centralizes the setup logic by loading the configuration
     and selecting the appropriate dynamics model based on that config.
     """
+
     def __init__(self, config_path: str = "config.yaml"):
         """
         Initialize the simulation context by loading the configuration.
@@ -46,7 +47,7 @@ class SimulationContext:
         """
         # The use_full_dynamics flag in config.yaml controls this selection
         use_full = self.config.simulation.use_full_dynamics
-        
+
         # Always pass the validated PhysicsConfig object directly to the dynamics
         # constructors.  Passing a raw dict causes attribute errors inside the
         # dynamics classes when they attempt to call `model_dump()` again.  The
@@ -71,7 +72,9 @@ class SimulationContext:
         """
         return self.config
 
-    def create_controller(self, name: Optional[str] = None, gains: Optional[List[float]] = None) -> Any:
+    def create_controller(
+        self, name: Optional[str] = None, gains: Optional[List[float]] = None
+    ) -> Any:
         """
         Create a controller using the shared, validated config and the project factory.
         If no name is provided, default to 'classical_smc'.
@@ -88,13 +91,21 @@ class SimulationContext:
         if not fdi_cfg or not getattr(fdi_cfg, "enabled", False):
             return None
         if FDIsystem is None:
-            logging.warning("FDIsystem is enabled but not importable; continuing without FDI.")
+            logging.warning(
+                "FDIsystem is enabled but not importable; continuing without FDI."
+            )
             return None
         kwargs = fdi_cfg.model_dump(exclude={"enabled"}, exclude_unset=True)
         try:
             return FDIsystem(**kwargs)
         except Exception as e:
             # Keep parity with prior behavior: warn and continue without FDI
-            logging.warning("Failed to instantiate FDIsystem (%s); continuing without FDI.", e, exc_info=True)
+            logging.warning(
+                "Failed to instantiate FDIsystem (%s); continuing without FDI.",
+                e,
+                exc_info=True,
+            )
             return None
-#=================================================================================\\\
+
+
+# =================================================================================\\\

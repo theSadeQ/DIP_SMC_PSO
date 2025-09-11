@@ -32,11 +32,14 @@ class OffDiagonalDynamics:
 
     def _compute_physics_matrices(self, state: np.ndarray):
         # Lower‑triangular M with off‑diagonal entry; invertible and modestly conditioned.
-        M = np.array([
-            [1.0, 0.0, 0.0],
-            [1.0, 1.0, 0.0],
-            [0.0, 0.0, 1.0],
-        ], dtype=float)
+        M = np.array(
+            [
+                [1.0, 0.0, 0.0],
+                [1.0, 1.0, 0.0],
+                [0.0, 0.0, 1.0],
+            ],
+            dtype=float,
+        )
         # Damping affects only the second joint; scales the first element of q_dot
         C = np.zeros((3, 3), dtype=float)
         C[1, 0] = 0.1

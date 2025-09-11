@@ -11,17 +11,17 @@ try:
     from src.utils.control_primitives import saturate  # when repo root on sys.path
 except Exception:
     try:
-        from ..utils.control_primitives import saturate  # when importing as src.controllers.*
+        from src.utils.control_primitives import saturate  # when importing as src.controllers.*
     except Exception:
-        from utils.control_primitives import saturate    # when src itself on sys.path
+        from src.utils.control_primitives import saturate    # when src itself on sys.path
 
 try:
     from src.utils.control_outputs import ClassicalSMCOutput  # when repo root on sys.path
 except Exception:
     try:
-        from ..utils.control_outputs import ClassicalSMCOutput  # when importing as src.controllers.*
+        from src.utils.control_outputs import ClassicalSMCOutput  # when importing as src.controllers.*
     except Exception:
-        from utils.control_outputs import ClassicalSMCOutput    # when src itself on sys.path
+        from src.utils.control_outputs import ClassicalSMCOutput    # when src itself on sys.path
 from typing import TYPE_CHECKING, List, Tuple, Dict, Optional, Union, Sequence, Any
 
 # Avoid circular import at runtime
@@ -30,6 +30,74 @@ if TYPE_CHECKING:
     from src.core.dynamics import DoubleInvertedPendulum
 
 class ClassicalSMC:
+    r"""
+    Classical Sliding‑Mode Controller for a double‑inverted pendulum.
+
+    This controller implements the conventional first‑order sliding‑mode law
+    consisting of a model‑based equivalent control ``u_eq`` and a robust
+    discontinuous term.  The robust term uses a continuous approximation to
+    the sign function (either a hyperbolic tangent or a piecewise‑linear
+    saturation) within a boundary layer of width ``epsilon`` to attenuate
+    chattering.  Introducing a boundary layer around the switching surface
+    replaces the discontinuous signum control with a continuous function,
+    thereby reducing high‑frequency oscillations.  A number of authors
+    note that the boundary‑layer approximation attenuates chattering at
+    the cost of introducing a finite steady‑state tracking error; for
+    example, a discussion of chattering reduction methods emphasises
+    that the boundary‑layer method "reduces chattering but leads to a finite
+    steady state error".  The user should therefore
+    select ``epsilon`` to balance chattering reduction against steady‑state
+    accuracy.
+
+    Two switching functions are available: ``tanh`` (smooth hyperbolic
+    tangent) and ``linear`` (piecewise‑linear saturation).  The ``linear``
+    switch approximates the sign function more harshly by clipping the
+    sliding surface directly, which can degrade robustness near the origin
+    because the control gain effectively drops to zero for small errors.
+    In contrast, the ``tanh`` switch retains smoothness and maintains a
+    nonzero slope through the origin, preserving control authority in a
+    neighbourhood of the sliding surface.  Users should prefer
+    ``tanh`` unless there is a compelling reason to adopt the linear
+    saturation and should be aware that linear saturation may cause
+    increased steady‑state error and slower convergence near the origin.
+
+    A small diagonal ``regularization`` is added to the inertia matrix during
+    inversion to ensure positive definiteness and numerical robustness.
+    Adding a tiny constant to the diagonal of a symmetric matrix is a
+    well‑known regularisation technique: in the context of covariance
+    matrices, Leung and colleagues recommend “adding a small, positive
+    constant to the diagonal” to ensure the matrix is invertible.
+
+    Parameters are typically supplied by a factory that reads a central
+    configuration.  Each gain vector must contain exactly six elements in the
+    order ``[k1, k2, lam1, lam2, K, kd]``.  The maximum force ``max_force``
+    sets the saturation limit for the final control command.
+
+    The optional ``controllability_threshold`` parameter decouples
+    controllability from the boundary layer ``epsilon``.  Earlier
+    implementations compared the magnitude of ``L·M^{-1}·B`` against
+    ``epsilon`` to decide whether to compute the equivalent control.  This
+    conflation of chattering mitigation with controllability made it
+    difficult to tune each effect separately.  ``controllability_threshold``
+    defines a lower bound on ``|L·M^{-1}·B|`` below which the equivalent
+    control is suppressed.  If unspecified, a default of ``1e‑4`` is used
+    based on matrix conditioning guidelines.  The
+    boundary layer width ``epsilon`` should therefore be chosen solely to
+    trade off between chattering and steady‑state error, while
+    ``controllability_threshold`` governs when the model‑based feedforward
+    term is applied.
+
+    **Gain positivity (F‑4.SMCDesign.2 / RC‑04)** – Sliding‑mode theory
+    requires that the sliding‑surface gains ``k1``, ``k2`` and the slope
+    coefficients ``lam1``, ``lam2`` be strictly positive.  Utkin and
+    Levant note that the discontinuous control gain ``k`` must be a
+    positive constant【Rhif2012†L563-L564】, and the slope ``λ`` of the
+    sliding function must be chosen positive to ensure Hurwitz
+    stability【ModelFreeSMC2018†L340-L345】.  The switching gain ``K`` must
+    also be strictly positive to drive the system to the sliding surface,
+    while the derivative gain ``kd`` should be non‑negative to provide
+    damping.  The constructor validates these constraints and raises
+    ``ValueError`` when violated.
     """
     Classical Sliding‑Mode Controller for a double‑inverted pendulum.
 
@@ -150,9 +218,9 @@ class ClassicalSMC:
             from src.utils.control_primitives import require_positive  # when repo root on sys.path
         except Exception:
             try:
-                from ..utils.control_primitives import require_positive  # when importing as src.controllers.*
+                from src.utils.control_primitives import require_positive  # when importing as src.controllers.*
             except Exception:
-                from utils.control_primitives import require_positive    # when src itself on sys.path
+                from src.utils.control_primitives import require_positive    # when src itself on sys.path
         self.max_force = require_positive(max_force, "max_force")
         # Use helpers for the adaptive boundary layer.  The nominal
         # thickness ``epsilon0`` must be strictly positive, while

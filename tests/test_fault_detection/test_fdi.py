@@ -59,9 +59,13 @@ def test_fdi_trips_after_persistence() -> None:
         t = (i + 1) * 0.1
         status, resid = fdi.check(t, np.array([2.0]), 0.0, 0.1, dyn)
         if i < 2:
-            assert status == "OK", "FDI should not trip before persistence counter is reached"
+            assert (
+                status == "OK"
+            ), "FDI should not trip before persistence counter is reached"
         else:
-            assert status == "FAULT", "FDI should trip on the third consecutive violation"
+            assert (
+                status == "FAULT"
+            ), "FDI should trip on the third consecutive violation"
 
     # The trip time should be recorded and be >= 0.1 (first violation time)
     assert fdi.tripped_at is not None
@@ -109,6 +113,7 @@ def test_fdi_dt_validation() -> None:
     # Initialise last state
     fdi.check(0.0, np.array([0.0]), 0.0, 0.1, dyn)
     import pytest
+
     # Zero dt
     with pytest.raises(ValueError):
         fdi.check(0.1, np.array([0.1]), 0.0, 0.0, dyn)

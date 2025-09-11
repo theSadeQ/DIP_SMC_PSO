@@ -7,13 +7,13 @@ logging infrastructure attaches commit, configuration hash and seed
 metadata to log records.  Only lightweight dummy dynamics and
 controllers are used so that the tests execute quickly.
 """
+
 from __future__ import annotations
 
 import time
 from typing import List
 
 import numpy as np
-import pytest
 import logging
 
 from src.core.simulation_runner import run_simulation
@@ -27,6 +27,7 @@ class DummyDyn:
     vector is fixed at 1 for simplicity.  Using such a trivial model
     decouples latency tests from the dynamics implementation.
     """
+
     state_dim = 1
 
     def step(self, state: np.ndarray, u: float, dt: float) -> np.ndarray:
@@ -68,7 +69,7 @@ def test_latency_monitor_fallback_engaged() -> None:
         return 42.0
 
     sim_time = 0.005  # 5 ms total
-    dt = 0.001       # 1 ms period
+    dt = 0.001  # 1 ms period
     # Run simulation with a small horizon to induce one overrun.  The
     # latency monitor should detect the first iteration's overrun and
     # engage the fallback controller on subsequent steps.

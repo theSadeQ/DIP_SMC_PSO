@@ -2,6 +2,7 @@
 Script-level test for scripts/reoptimize_controllers.py.
 Skips gracefully if the script isn't present.
 """
+
 import json
 import pytest
 from pathlib import Path
@@ -12,13 +13,29 @@ try:
 except Exception:
     rc = None  # allow graceful skip
 
+
 @pytest.mark.skipif(rc is None, reason="scripts/reoptimize_controllers.py not present")
 def test_main_script_flow(monkeypatch, tmp_path: Path):
     # Fake optimizer results
     fake_results = {
-        "classical_smc": {"best_gains": [1, 2, 3], "best_cost": 0.1, "mean_cost": 0.2, "std_cost": 0.01},
-        "sta_smc":       {"best_gains": [4, 5, 6], "best_cost": 0.2, "mean_cost": 0.3, "std_cost": 0.02},
-        "adaptive_smc":  {"best_gains": [7, 8, 9], "best_cost": 0.3, "mean_cost": 0.4, "std_cost": 0.03},
+        "classical_smc": {
+            "best_gains": [1, 2, 3],
+            "best_cost": 0.1,
+            "mean_cost": 0.2,
+            "std_cost": 0.01,
+        },
+        "sta_smc": {
+            "best_gains": [4, 5, 6],
+            "best_cost": 0.2,
+            "mean_cost": 0.3,
+            "std_cost": 0.02,
+        },
+        "adaptive_smc": {
+            "best_gains": [7, 8, 9],
+            "best_cost": 0.3,
+            "mean_cost": 0.4,
+            "std_cost": 0.03,
+        },
     }
 
     # Mock ControllerReoptimizer

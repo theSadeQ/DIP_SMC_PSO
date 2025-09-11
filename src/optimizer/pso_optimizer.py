@@ -158,8 +158,12 @@ class PSOTuner:
 
         # Local PRNG.  Use provided rng or create a new one seeded from
         # ``seed`` or ``global_seed``.  Avoid modifying global RNGs.
-        default_seed = seed if seed is not None else getattr(self.cfg, "global_seed", None)
-        self.seed: Optional[int] = int(default_seed) if default_seed is not None else None
+        default_seed = (
+            seed if seed is not None else getattr(self.cfg, "global_seed", None)
+        )
+        self.seed: Optional[int] = (
+            int(default_seed) if default_seed is not None else None
+        )
         self.rng: np.random.Generator = rng or create_rng(self.seed)
 
         # Factor used to compute instability penalty when no explicit penalty is given
@@ -220,10 +224,12 @@ class PSOTuner:
 
         # Compute penalty if not explicitly provided
         if self.instability_penalty is None:
-            denom_sum = (self.norm_ise + self.norm_u + self.norm_du + self.norm_sigma)
+            denom_sum = self.norm_ise + self.norm_u + self.norm_du + self.norm_sigma
             if not np.isfinite(denom_sum) or denom_sum <= 0.0:
                 denom_sum = 1.0
-            self.instability_penalty = float(self.instability_penalty_factor * denom_sum)
+            self.instability_penalty = float(
+                self.instability_penalty_factor * denom_sum
+            )
 
         # Automatic baseline normalisation
         try:
@@ -234,9 +240,14 @@ class PSOTuner:
                     gains_list = baseline.get("gains")
                 else:
                     gains_list = getattr(baseline, "gains", None)
-            if gains_list is not None and isinstance(gains_list, (list, tuple)) and len(gains_list) > 0:
+            if (
+                gains_list is not None
+                and isinstance(gains_list, (list, tuple))
+                and len(gains_list) > 0
+            ):
                 # Local import to avoid circular dependency
                 import numpy as _np
+
                 baseline_particles = _np.asarray(gains_list, dtype=float).reshape(1, -1)
                 try:
                     baseline_ctrl = controller_factory(baseline_particles[0])
@@ -263,12 +274,18 @@ class PSOTuner:
                 N = dt_arr.shape[1]
                 time_mask = _np.ones((1, N), dtype=bool)
                 ise_base = float(
-                    _np.sum((x_b[:, :-1, :3] ** 2 * dt_arr[:, :, None]) * time_mask[:, :, None], axis=(1, 2))[0]
+                    _np.sum(
+                        (x_b[:, :-1, :3] ** 2 * dt_arr[:, :, None])
+                        * time_mask[:, :, None],
+                        axis=(1, 2),
+                    )[0]
                 )
-                u_sq_base = float(_np.sum((u_b ** 2 * dt_arr) * time_mask, axis=1)[0])
+                u_sq_base = float(_np.sum((u_b**2 * dt_arr) * time_mask, axis=1)[0])
                 du = _np.diff(u_b, axis=1, prepend=u_b[:, 0:1])
-                du_sq_base = float(_np.sum((du ** 2 * dt_arr) * time_mask, axis=1)[0])
-                sigma_sq_base = float(_np.sum((sigma_b ** 2 * dt_arr) * time_mask, axis=1)[0])
+                du_sq_base = float(_np.sum((du**2 * dt_arr) * time_mask, axis=1)[0])
+                sigma_sq_base = float(
+                    _np.sum((sigma_b**2 * dt_arr) * time_mask, axis=1)[0]
+                )
                 self.norm_ise = max(ise_base, 1e-12)
                 self.norm_u = max(u_sq_base, 1e-12)
                 self.norm_du = max(du_sq_base, 1e-12)
@@ -320,7 +337,12 @@ class PSOTuner:
         deprecated: list[str] = []
         try:
             pcfg = self.cfg.pso
-            for attr in ("n_processes", "hyper_trials", "hyper_search", "study_timeout"):
+            for attr in (
+                "n_processes",
+                "hyper_trials",
+                "hyper_search",
+                "study_timeout",
+            ):
                 val = getattr(pcfg, attr, None)
                 if val not in (None, 0, {}, []):
                     deprecated.append(attr)
@@ -331,7 +353,6 @@ class PSOTuner:
                 )
         except Exception:
             pass
-
 
     # ---------- Robust sampling ----------
     def _iter_perturbed_physics(self) -> Iterable[DIPParams]:
@@ -345,7 +366,9 @@ class PSOTuner:
         yield DIPParams(**self.physics_cfg.model_dump())
         if not self.uncertainty_cfg or self.uncertainty_cfg.n_evals <= 1:
             return
-        rng_local = np.random.default_rng(self.seed) if self.seed is not None else self.rng
+        rng_local = (
+            np.random.default_rng(self.seed) if self.seed is not None else self.rng
+        )
         base_params = self.physics_cfg.model_dump()
         pu = self.uncertainty_cfg.model_dump()
         for _ in range(self.uncertainty_cfg.n_evals - 1):
@@ -358,12 +381,28 @@ class PSOTuner:
                 eps = rng_local.uniform(-delta, +delta)
                 perturbed_params[key] = float(nominal) + float(eps)
             # Safety: ensure centre of mass does not exceed pendulum length
-            if "pendulum1_com" in perturbed_params and "pendulum1_length" in perturbed_params:
-                if perturbed_params["pendulum1_com"] >= perturbed_params["pendulum1_length"]:
-                    perturbed_params["pendulum1_com"] = 0.99 * perturbed_params["pendulum1_length"]
-            if "pendulum2_com" in perturbed_params and "pendulum2_length" in perturbed_params:
-                if perturbed_params["pendulum2_com"] >= perturbed_params["pendulum2_length"]:
-                    perturbed_params["pendulum2_com"] = 0.99 * perturbed_params["pendulum2_length"]
+            if (
+                "pendulum1_com" in perturbed_params
+                and "pendulum1_length" in perturbed_params
+            ):
+                if (
+                    perturbed_params["pendulum1_com"]
+                    >= perturbed_params["pendulum1_length"]
+                ):
+                    perturbed_params["pendulum1_com"] = (
+                        0.99 * perturbed_params["pendulum1_length"]
+                    )
+            if (
+                "pendulum2_com" in perturbed_params
+                and "pendulum2_length" in perturbed_params
+            ):
+                if (
+                    perturbed_params["pendulum2_com"]
+                    >= perturbed_params["pendulum2_length"]
+                ):
+                    perturbed_params["pendulum2_com"] = (
+                        0.99 * perturbed_params["pendulum2_length"]
+                    )
             yield DIPParams(**perturbed_params)
 
     # ---------- Cost computation ----------
@@ -379,7 +418,11 @@ class PSOTuner:
         penalty is applied when trajectories fail early.
         """
         # Flag trajectories with any non‑finite state entry
-        nan_traj_mask = ~np.all(np.isfinite(x_b), axis=(1, 2)) if x_b.size else np.zeros(0, dtype=bool)
+        nan_traj_mask = (
+            ~np.all(np.isfinite(x_b), axis=(1, 2))
+            if x_b.size
+            else np.zeros(0, dtype=bool)
+        )
         dt = np.diff(t)
         dt_b = dt[None, :]
         dt_const = dt[0] if dt.size else self.sim_cfg.dt
@@ -394,23 +437,30 @@ class PSOTuner:
         temp = np.full((B, N + 1), N + 1)
         temp[unstable_mask] = np.tile(np.arange(N + 1), (B, 1))[unstable_mask]
         failure_steps = np.min(temp, axis=1)
-        time_mask = (np.arange(N)[None, :] < (failure_steps - 1)[:, None])
+        time_mask = np.arange(N)[None, :] < (failure_steps - 1)[:, None]
         # State error: integrate squared error across all state variables
-        ise = np.sum((x_b[:, :-1, :] ** 2 * dt_b[:, :, None]) * time_mask[:, :, None], axis=(1, 2))
+        ise = np.sum(
+            (x_b[:, :-1, :] ** 2 * dt_b[:, :, None]) * time_mask[:, :, None],
+            axis=(1, 2),
+        )
         ise_n = self._normalise(ise, self.norm_ise)
         # Control effort
-        u_sq = np.sum((u_b ** 2 * dt_b) * time_mask, axis=1)
+        u_sq = np.sum((u_b**2 * dt_b) * time_mask, axis=1)
         u_n = self._normalise(u_sq, self.norm_u)
         # Control slew
         du = np.diff(u_b, axis=1, prepend=u_b[:, 0:1])
-        du_sq = np.sum((du ** 2 * dt_b) * time_mask, axis=1)
+        du_sq = np.sum((du**2 * dt_b) * time_mask, axis=1)
         du_n = self._normalise(du_sq, self.norm_du)
         # Sliding variable
-        sigma_sq = np.sum((sigma_b ** 2 * dt_b) * time_mask, axis=1)
+        sigma_sq = np.sum((sigma_b**2 * dt_b) * time_mask, axis=1)
         sigma_n = self._normalise(sigma_sq, self.norm_sigma)
         # Graded penalty for early failure
         failure_t = np.clip((failure_steps - 1) * dt_const, 0, self.sim_cfg.duration)
-        penalty = self.weights.stability * ((self.sim_cfg.duration - failure_t) / self.sim_cfg.duration) * self.instability_penalty
+        penalty = (
+            self.weights.stability
+            * ((self.sim_cfg.duration - failure_t) / self.sim_cfg.duration)
+            * self.instability_penalty
+        )
         J = (
             self.weights.state_error * ise_n
             + self.weights.control_effort * u_n
@@ -493,7 +543,9 @@ class PSOTuner:
         valid_mask = ~violation_mask
         valid_particles = particles
         # Pre‑filter particles using validate_gains if available
-        if hasattr(ref_ctrl, "validate_gains") and callable(getattr(ref_ctrl, "validate_gains")):
+        if hasattr(ref_ctrl, "validate_gains") and callable(
+            getattr(ref_ctrl, "validate_gains")
+        ):
             try:
                 valid_mask_arr = ref_ctrl.validate_gains(particles)
                 valid_mask_arr = valid_mask_arr.astype(bool).reshape(-1)
@@ -628,6 +680,7 @@ class PSOTuner:
             directly from the underlying PSO optimiser.
         """
         from pyswarms.single import GlobalBestPSO
+
         pso_cfg = self.cfg.pso
         min_list = list(pso_cfg.bounds.min)
         max_list = list(pso_cfg.bounds.max)
@@ -645,21 +698,23 @@ class PSOTuner:
                 f"PSO bounds underspecified: controller expects {expected_dims} gains, but bounds provide only {len(min_list)}."
             )
         pso_options = {
-            'c1': pso_cfg.c1,
-            'c2': pso_cfg.c2,
-            'w': pso_cfg.w,
+            "c1": pso_cfg.c1,
+            "c2": pso_cfg.c2,
+            "w": pso_cfg.w,
         }
         # Warn the user if PSO hyperparameters are outside recommended ranges.
         try:
             # Recommended swarm sizes are 10–30 and balanced c1≈c2【360839346985391†L34-L39】【360839346985391†L94-L100】.
             if not (10 <= int(pso_cfg.n_particles) <= 50):
                 logging.getLogger(__name__).warning(
-                    "n_particles=%s is outside the recommended range [10,50] for PSO", pso_cfg.n_particles
+                    "n_particles=%s is outside the recommended range [10,50] for PSO",
+                    pso_cfg.n_particles,
                 )
             if abs(float(pso_cfg.c1) - float(pso_cfg.c2)) > 0.5:
                 logging.getLogger(__name__).warning(
                     "PSO acceleration coefficients are unbalanced (c1=%s, c2=%s); set c1≈c2 to avoid divergence",
-                    pso_cfg.c1, pso_cfg.c2
+                    pso_cfg.c1,
+                    pso_cfg.c2,
                 )
         except Exception:
             # Ignore warnings if parameters are missing or cannot be cast.
@@ -673,8 +728,14 @@ class PSOTuner:
         bmin = np.array(min_list[:expected_dims], dtype=float)
         bmax = np.array(max_list[:expected_dims], dtype=float)
         bounds = (bmin, bmax)
-        n_particles = int(n_particles_override) if n_particles_override is not None else int(pso_cfg.n_particles)
-        iters = int(iters_override) if iters_override is not None else int(pso_cfg.iters)
+        n_particles = (
+            int(n_particles_override)
+            if n_particles_override is not None
+            else int(pso_cfg.n_particles)
+        )
+        iters = (
+            int(iters_override) if iters_override is not None else int(pso_cfg.iters)
+        )
         if n_particles <= 0 or iters <= 0:
             raise ValueError("n_particles and iters must be positive")
         # Reinitialise the local RNG when a fixed seed is provided.  Using a
@@ -684,7 +745,9 @@ class PSOTuner:
         # Initialise swarm positions using the local RNG to avoid
         # invoking the global NumPy RNG.  Without specifying init_pos
         # the underlying PSO implementation seeds the global RNG.
-        init_pos = self.rng.uniform(low=bmin, high=bmax, size=(n_particles, expected_dims))
+        init_pos = self.rng.uniform(
+            low=bmin, high=bmax, size=(n_particles, expected_dims)
+        )
         # Derive a seed for the PSO library from the local RNG.  Passing a
         # deterministic seed ensures that the PSO optimiser does not rely on
         # NumPy's global RNG and produces reproducible results across runs.
@@ -734,7 +797,7 @@ class PSOTuner:
             pos_hist: list[np.ndarray] = []
             for w_val in w_values:
                 # Update inertia weight for this iteration
-                optimizer.options['w'] = float(w_val)
+                optimizer.options["w"] = float(w_val)
                 # Execute a single PSO step; returns current best cost and position
                 step_cost, step_pos = optimizer.step(self._fitness)
                 cost_hist.append(float(step_cost))

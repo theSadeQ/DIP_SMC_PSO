@@ -1,6 +1,6 @@
-#///===================================================================\\\
-#///============== tests/test_core/test_determinism.py ================\\\
-#///===================================================================\\\
+# ///===================================================================\\\
+# ///============== tests/test_core/test_determinism.py ================\\\
+# ///===================================================================\\\
 """
 Verifies PSO determinism when launched from the CLI entrypoint (app.py).
 
@@ -32,35 +32,36 @@ def _create_fast_pso_config(tmp_path: Path) -> Path:
     Create a modified config that forces very fast PSO runs.
     """
     src_cfg = _find_repo_config()
-    
+
     # Load and modify the config
     # On Windows the default text encoding may be cp1252, which can fail
     # when parsing UTF‑8 YAML files.  Explicitly specify UTF‑8 to
     # ensure deterministic cross‑platform behaviour.
-    with open(src_cfg, 'r', encoding='utf-8') as f:
+    with open(src_cfg, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
-    
+
     # Force minimal PSO parameters
-    config['pso']['n_particles'] = 5
-    config['pso']['iters'] = 3
-    
+    config["pso"]["n_particles"] = 5
+    config["pso"]["iters"] = 3
+
     # Reduce simulation duration
-    config['simulation']['duration'] = 1.0
-    
+    config["simulation"]["duration"] = 1.0
+
     # Reduce uncertainty evaluations
-    if 'physics_uncertainty' in config:
-        config['physics_uncertainty']['n_evals'] = 2
-    
+    if "physics_uncertainty" in config:
+        config["physics_uncertainty"]["n_evals"] = 2
+
     # Write modified config
     dst_cfg = tmp_path / "config.yaml"
-    with open(dst_cfg, 'w') as f:
+    with open(dst_cfg, "w") as f:
         yaml.safe_dump(config, f)
-    
+
     return dst_cfg
 
 
 # The seeding logic is now handled inside app.py.  The wrapper script is no longer
 # required; instead, we run app.py directly with a seed argument.
+
 
 def _create_seeded_wrapper(*args, **kwargs):
     raise RuntimeError("_create_seeded_wrapper is unused in the updated test suite")
@@ -93,9 +94,12 @@ def _run_cli(config: Path, seed: int = 42) -> str:
         sys.executable,
         str(app_path),
         "--run-pso",
-        "--controller", "classical_smc",
-        "--config", str(config),
-        "--seed", str(seed),
+        "--controller",
+        "classical_smc",
+        "--config",
+        str(config),
+        "--seed",
+        str(seed),
     ]
     proc = subprocess.run(
         cmd,
@@ -118,16 +122,20 @@ def _extract_final_lines(stdout: str) -> str:
     """Extract the final report lines from stdout."""
     best_cost_line = None
     best_gains_line = None
-    
+
     for line in stdout.splitlines():
         if best_cost_line is None and BEST_COST_RE.match(line):
             best_cost_line = line.strip()
         if best_gains_line is None and BEST_GAINS_RE.match(line):
             best_gains_line = line.strip()
-    
-    assert best_cost_line is not None, f"Could not find 'Best Cost' in stdout:\n{stdout}"
-    assert best_gains_line is not None, f"Could not find 'Best Gains' in stdout:\n{stdout}"
-    
+
+    assert (
+        best_cost_line is not None
+    ), f"Could not find 'Best Cost' in stdout:\n{stdout}"
+    assert (
+        best_gains_line is not None
+    ), f"Could not find 'Best Gains' in stdout:\n{stdout}"
+
     return best_cost_line + "\n" + best_gains_line
 
 
@@ -148,4 +156,5 @@ def test_cli_stdout_is_deterministic(tmp_path: Path):
         f"Run #2:\n{summary2}"
     )
 
-#========================================================================================================\\\
+
+# ========================================================================================================\\\

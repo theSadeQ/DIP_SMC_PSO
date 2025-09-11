@@ -1,10 +1,11 @@
-#========================================================================================\\\
+# ========================================================================================\\\
 # src/core/dynamics_full.py =============================================================\\\
-#========================================================================================\\\
+# ========================================================================================\\\
 
 from __future__ import annotations
 
 import numpy as np
+
 # ---------------------------------------------------------------------------
 # Optional numba import
 #
@@ -14,11 +15,15 @@ import numpy as np
 try:
     from numba import njit  # type: ignore
 except Exception:  # pragma: no cover
+
     def njit(*_args, **_kwargs):  # type: ignore
         def deco(fn):
             return fn
+
         return deco
-from typing import NamedTuple, Tuple, Any, Optional
+
+
+from typing import NamedTuple, Tuple, Any
 
 # Import the custom exception from the simplified dynamics module.  The
 # exception is defined in ``src/core/dynamics.py`` and reused here to
@@ -28,8 +33,11 @@ from typing import NamedTuple, Tuple, Any, Optional
 try:
     from src.core.dynamics import NumericalInstabilityError  # type: ignore
 except Exception:
+
     class NumericalInstabilityError(RuntimeError):  # pragma: no cover
         pass
+
+
 """
 The high‑fidelity dynamics module depends on the PhysicsConfig model from
 ``src.config`` for validation of the physical parameters.  In some test
@@ -58,6 +66,7 @@ except Exception:
     # behavior on the class.
     class PhysicsConfig:  # type: ignore
         pass
+
 
 class FullDIPParams(NamedTuple):
     """
@@ -89,6 +98,7 @@ class FullDIPParams(NamedTuple):
         Determinant threshold below which the matrix is considered
         singular.  Defaults to ``1e-12``.
     """
+
     cart_mass: float
     pendulum1_mass: float
     pendulum2_mass: float
@@ -106,6 +116,7 @@ class FullDIPParams(NamedTuple):
     regularization: float = 1e-10
     det_threshold: float = 1e-12
 
+
 # -----------------------------------------------------------------------------
 # Provide a simple ``step`` function to mirror the low‑rank interface.
 #
@@ -113,6 +124,7 @@ class FullDIPParams(NamedTuple):
 # For the purposes of the acceptance tests this stub implementation returns
 # the state unchanged.  When ``use_full_dynamics`` is set to True the router
 # will call this function.
+
 
 def step(x, u, dt):
     """Placeholder full dynamics step.
@@ -134,6 +146,7 @@ def step(x, u, dt):
     """
     return np.asarray(x, dtype=float)
 
+
 @njit(cache=True, nogil=True, fastmath=False)
 def compute_inertia_numba(q1: float, q2: float, p: FullDIPParams) -> np.ndarray:
     c1, s1 = np.cos(q1), np.sin(q1)
@@ -141,26 +154,44 @@ def compute_inertia_numba(q1: float, q2: float, p: FullDIPParams) -> np.ndarray:
     c12 = np.cos(q1 - q2)
 
     h11 = p.cart_mass + p.pendulum1_mass + p.pendulum2_mass
-    h12 = (p.pendulum1_mass * p.pendulum1_com + p.pendulum2_mass * p.pendulum1_length) * c1
+    h12 = (
+        p.pendulum1_mass * p.pendulum1_com + p.pendulum2_mass * p.pendulum1_length
+    ) * c1
     h13 = p.pendulum2_mass * p.pendulum2_com * c2
-    h22 = (p.pendulum1_mass * p.pendulum1_com**2 + p.pendulum2_mass * p.pendulum1_length**2 + p.pendulum1_inertia)
+    h22 = (
+        p.pendulum1_mass * p.pendulum1_com**2
+        + p.pendulum2_mass * p.pendulum1_length**2
+        + p.pendulum1_inertia
+    )
     h23 = p.pendulum2_mass * p.pendulum1_length * p.pendulum2_com * c12
     h33 = p.pendulum2_mass * p.pendulum2_com**2 + p.pendulum2_inertia
 
-    return np.array([[h11, h12, h13], [h12, h22, h23], [h13, h23, h33]], dtype=np.float64)
+    return np.array(
+        [[h11, h12, h13], [h12, h22, h23], [h13, h23, h33]], dtype=np.float64
+    )
+
 
 @njit(cache=True, nogil=True, fastmath=False)
 def compute_gravity_numba(q1: float, q2: float, p: FullDIPParams) -> np.ndarray:
-    g1 = (p.pendulum1_mass * p.pendulum1_com + p.pendulum2_mass * p.pendulum1_length) * p.gravity * np.sin(q1)
+    g1 = (
+        (p.pendulum1_mass * p.pendulum1_com + p.pendulum2_mass * p.pendulum1_length)
+        * p.gravity
+        * np.sin(q1)
+    )
     g2 = p.pendulum2_mass * p.pendulum2_com * p.gravity * np.sin(q2)
     return np.array([0.0, g1, g2], dtype=np.float64)
 
+
 @njit(cache=True, nogil=True, fastmath=False)
-def compute_centrifugal_coriolis_vector_numba(state: np.ndarray, p: FullDIPParams) -> np.ndarray:
+def compute_centrifugal_coriolis_vector_numba(
+    state: np.ndarray, p: FullDIPParams
+) -> np.ndarray:
     _, q1, q2, xdot, q1dot, q2dot = state
     s1, s2, s12 = np.sin(q1), np.sin(q2), np.sin(q1 - q2)
 
-    h2_coeff = p.pendulum1_mass * p.pendulum1_com + p.pendulum2_mass * p.pendulum1_length
+    h2_coeff = (
+        p.pendulum1_mass * p.pendulum1_com + p.pendulum2_mass * p.pendulum1_length
+    )
     h3_coeff = p.pendulum2_mass * p.pendulum2_com
     h5_coeff = p.pendulum2_mass * p.pendulum1_length * p.pendulum2_com
 
@@ -180,10 +211,19 @@ def compute_centrifugal_coriolis_vector_numba(state: np.ndarray, p: FullDIPParam
     #   zero input.  Reversing these signs aligns the two models and yields
     #   consistent trajectories.  See ``tests/test_core/test_dynamics_extra.py``
     #   for the corresponding invariant test.
-    c1 = h2_coeff * s1 * xdot * q1dot - h5_coeff * s12 * q2dot**2 + p.joint1_friction * q1dot
-    c2 = h3_coeff * s2 * xdot * q2dot + h5_coeff * s12 * q1dot**2 + p.joint2_friction * q2dot
+    c1 = (
+        h2_coeff * s1 * xdot * q1dot
+        - h5_coeff * s12 * q2dot**2
+        + p.joint1_friction * q1dot
+    )
+    c2 = (
+        h3_coeff * s2 * xdot * q2dot
+        + h5_coeff * s12 * q1dot**2
+        + p.joint2_friction * q2dot
+    )
 
     return np.array([c0, c1, c2], dtype=np.float64)
+
 
 @njit(cache=True, nogil=True, fastmath=False)
 def rhs_numba(state: np.ndarray, u: float, p: FullDIPParams) -> np.ndarray:
@@ -239,8 +279,11 @@ def rhs_numba(state: np.ndarray, u: float, p: FullDIPParams) -> np.ndarray:
     qdot = np.array([xdot, q1dot, q2dot], dtype=np.float64)
     return np.concatenate((qdot, qddot))
 
+
 @njit(cache=True, nogil=True, fastmath=False)
-def step_rk4_numba(state: np.ndarray, u: float, dt: float, p: FullDIPParams) -> np.ndarray:
+def step_rk4_numba(
+    state: np.ndarray, u: float, dt: float, p: FullDIPParams
+) -> np.ndarray:
     k1 = rhs_numba(state, u, p)
     if not np.all(np.isfinite(k1)):
         return np.full_like(state, np.nan)
@@ -259,24 +302,37 @@ def step_rk4_numba(state: np.ndarray, u: float, dt: float, p: FullDIPParams) -> 
 
     return state + (dt / 6.0) * (k1 + 2 * k2 + 2 * k3 + k4)
 
+
 @njit(cache=True, nogil=True, fastmath=False)
 def total_energy_numba(state: np.ndarray, p: FullDIPParams) -> float:
     x, q1, q2, xdot, q1dot, q2dot = state
     T_cart = 0.5 * p.cart_mass * xdot**2
     v1x = xdot - p.pendulum1_com * q1dot * np.sin(q1)
     v1y = p.pendulum1_com * q1dot * np.cos(q1)
-    T_p1 = 0.5 * p.pendulum1_mass * (v1x**2 + v1y**2) + 0.5 * p.pendulum1_inertia * q1dot**2
-    v2x = xdot - p.pendulum1_length * q1dot * np.sin(q1) - p.pendulum2_com * q2dot * np.sin(q2)
+    T_p1 = (
+        0.5 * p.pendulum1_mass * (v1x**2 + v1y**2)
+        + 0.5 * p.pendulum1_inertia * q1dot**2
+    )
+    v2x = (
+        xdot
+        - p.pendulum1_length * q1dot * np.sin(q1)
+        - p.pendulum2_com * q2dot * np.sin(q2)
+    )
     v2y = p.pendulum1_length * q1dot * np.cos(q1) + p.pendulum2_com * q2dot * np.cos(q2)
-    T_p2 = 0.5 * p.pendulum2_mass * (v2x**2 + v2y**2) + 0.5 * p.pendulum2_inertia * q2dot**2
+    T_p2 = (
+        0.5 * p.pendulum2_mass * (v2x**2 + v2y**2)
+        + 0.5 * p.pendulum2_inertia * q2dot**2
+    )
     T = T_cart + T_p1 + T_p2
     h1 = p.pendulum1_com * (1 - np.cos(q1))
     h2 = p.pendulum1_length * (1 - np.cos(q1)) + p.pendulum2_com * (1 - np.cos(q2))
     V = p.pendulum1_mass * p.gravity * h1 + p.pendulum2_mass * p.gravity * h2
     return T + V
 
+
 class FullDIPDynamics:
     """High-fidelity double inverted pendulum dynamics model."""
+
     def __init__(self, params: Any):
         """
         Initialize the high‑fidelity double inverted pendulum dynamics model.
@@ -387,10 +443,14 @@ class FullDIPDynamics:
     def total_energy(self, state: np.ndarray) -> float:
         return total_energy_numba(state.astype(np.float64), self.params)
 
-    def _compute_physics_matrices(self, state: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def _compute_physics_matrices(
+        self, state: np.ndarray
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         _, q1, q2, _, _, _ = state
         H = compute_inertia_numba(q1, q2, self.params)
         c_vec = compute_centrifugal_coriolis_vector_numba(state, self.params)
         G = compute_gravity_numba(q1, q2, self.params)
         return H, c_vec, G
-#===================================================================================================================\\\
+
+
+# ===================================================================================================================\\\

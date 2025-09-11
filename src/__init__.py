@@ -1,6 +1,6 @@
-#==================================================================================\\\
+# ==================================================================================\\\
 # src/__init__.py =================================================================\\\
-#==================================================================================\\\
+# ==================================================================================\\\
 """
 Expose the top‑level ``src`` package and provide convenient access
 to its submodules.
@@ -25,6 +25,7 @@ needed.
 """
 
 from importlib import import_module
+
 # -----------------------------------------------------------------------------
 # Warning filters
 #
@@ -59,7 +60,7 @@ warnings.filterwarnings(
 # operates on the correct module.  See tests that call
 # ``monkeypatch.setattr('src.config.load_config', ...)``.
 try:
-    config = import_module('.config', __package__)
+    config = import_module(".config", __package__)
 except Exception:
     # If the configuration module fails to import (e.g., due to
     # intentionally missing dependencies in a test environment), define a
@@ -89,6 +90,7 @@ except Exception:
     # placeholder.  ``exc_info()`` is not available here so reuse
     # Exception from except.
     import sys
+
     # Capture the current exception info.  sys.exc_info()[1] holds the
     # exception instance that was raised when attempting to import
     # src.config.  If no exception is available (should not happen
@@ -99,5 +101,5 @@ except Exception:
 
 # Export only the explicitly exposed names from this package.  Keeping
 # ``__all__`` small avoids accidentally re‑exporting every submodule.
-__all__ = ['config']
-#====================================================================================\
+__all__ = ["config"]
+# ====================================================================================\

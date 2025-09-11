@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Callable, Optional, Tuple
 
 import numpy as np
+
 # cvxpy is an optional dependency.  Attempt to import it, but allow
 # the module to be imported even when cvxpy is unavailable.  When
 # ``cp`` is ``None`` the controller falls back to a simple linear
@@ -35,7 +36,9 @@ except Exception:
 logger = logging.getLogger(__name__)
 
 
-def _call_f(dyn: DoubleInvertedPendulum, x: np.ndarray, u: float | np.ndarray) -> np.ndarray:
+def _call_f(
+    dyn: DoubleInvertedPendulum, x: np.ndarray, u: float | np.ndarray
+) -> np.ndarray:
     """
     Robustly call continuous‑time dynamics: xdot = f(x,u)
     Supports several common method names; last‑resort: finite‑difference via step(., dt).
@@ -121,7 +124,9 @@ def _numeric_linearize_continuous(
     return A, B
 
 
-def _discretize_forward_euler(Ac: np.ndarray, Bc: np.ndarray, dt: float) -> Tuple[np.ndarray, np.ndarray]:
+def _discretize_forward_euler(
+    Ac: np.ndarray, Bc: np.ndarray, dt: float
+) -> Tuple[np.ndarray, np.ndarray]:
     """Simple forward‑Euler discretization (stable for small dt)."""
     n = Ac.shape[0]
     Ad = np.eye(n) + Ac * dt
@@ -129,7 +134,9 @@ def _discretize_forward_euler(Ac: np.ndarray, Bc: np.ndarray, dt: float) -> Tupl
     return Ad, Bd
 
 
-def _discretize_exact(Ac: np.ndarray, Bc: np.ndarray, dt: float) -> Tuple[np.ndarray, np.ndarray]:
+def _discretize_exact(
+    Ac: np.ndarray, Bc: np.ndarray, dt: float
+) -> Tuple[np.ndarray, np.ndarray]:
     """
     Zero‑order hold (exact) discretization using matrix exponential.
     """
@@ -145,11 +152,11 @@ def _discretize_exact(Ac: np.ndarray, Bc: np.ndarray, dt: float) -> Tuple[np.nda
 
 @dataclass
 class MPCWeights:
-    q_x: float = 1.0            # position
-    q_theta: float = 10.0       # angles (each)
-    q_xdot: float = 0.1         # cart velocity
-    q_thetadot: float = 0.5     # angle rates (each)
-    r_u: float = 1e-2           # input effort
+    q_x: float = 1.0  # position
+    q_theta: float = 10.0  # angles (each)
+    q_xdot: float = 0.1  # cart velocity
+    q_thetadot: float = 0.5  # angle rates (each)
+    r_u: float = 1e-2  # input effort
 
 
 class MPCController:
@@ -263,8 +270,9 @@ class MPCController:
                 self._fallback = None
 
         # Choose discretization method
-        self._discretize = _discretize_exact if use_exact_discretization else _discretize_forward_euler
-
+        self._discretize = (
+            _discretize_exact if use_exact_discretization else _discretize_forward_euler
+        )
 
     # -- Public API --------------------------------------------------------------------------
 
@@ -285,7 +293,9 @@ class MPCController:
         On solver failure/infeasibility, return a safe, angle-aware fallback control.
         """
         x0 = np.asarray(x0, dtype=float).reshape(-1)
-        assert x0.shape[0] == 6, "Expected state dimension 6: [x, th1, th2, xdot, th1dot, th2dot]"
+        assert (
+            x0.shape[0] == 6
+        ), "Expected state dimension 6: [x, th1, th2, xdot, th1dot, th2dot]"
 
         # If cvxpy is unavailable, skip the optimization and compute a
         # simple linear feedback control.  Use proportional gains derived
@@ -387,7 +397,9 @@ class MPCController:
             prob.solve(warm_start=True, verbose=False)
 
         if prob.status not in (cp.OPTIMAL, cp.OPTIMAL_INACCURATE):
-            logger.warning("MPC solve failed with status %s; using safe fallback.", prob.status)
+            logger.warning(
+                "MPC solve failed with status %s; using safe fallback.", prob.status
+            )
             return self._safe_fallback(x0)
 
         # Extract first control and cache warm start
@@ -446,4 +458,4 @@ if __name__ == "__main__":
         logger.info("Demo skipped: %s", e)
 
 
-#===================================================================================\\\
+# ===================================================================================\\\

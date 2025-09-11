@@ -18,11 +18,15 @@ from src.controllers.swing_up_smc import SwingUpSMC
 
 class DummyStabilizer:
     """A trivial stabilizing controller used to test mode handoff."""
+
     max_force = 10.0
+
     def initialize_state(self):  # type: ignore[override]
         return ()
+
     def initialize_history(self):  # type: ignore[override]
         return {}
+
     def compute_control(self, state, svars, hist):  # type: ignore[override]
         return 0.0, svars, hist
 
@@ -35,6 +39,7 @@ class DummyDyn:
     ensuring that the controller's energy threshold comparisons depend
     only on the configured ``switch_energy_factor`` and ``exit_energy_factor``.
     """
+
     def total_energy(self, state: np.ndarray) -> float:
         return 0.0
 
@@ -52,7 +57,9 @@ def test_initial_mode_and_control() -> None:
     assert ctrl._mode == "swing"
     # Hanging configuration with angular velocity produces non‑zero control
     state = np.array([0.0, np.pi - 0.1, np.pi - 0.1, 0.0, 0.5, 0.0], dtype=float)
-    u, _, _ = ctrl.compute_control(state, ctrl.initialize_state(), ctrl.initialize_history())
+    u, _, _ = ctrl.compute_control(
+        state, ctrl.initialize_state(), ctrl.initialize_history()
+    )
     assert isinstance(u, float)
     assert u != 0.0
 
@@ -104,11 +111,13 @@ def test_hysteresis_transition() -> None:
     state1 = np.array([0.0, 0.1, -0.1, 0.0, 0.0, 0.0], dtype=float)
     u, svars, hist = ctrl.compute_control(state1, svars, hist)
     assert ctrl._mode == "stabilize"
+
     # Case 2: artificially reduce E_about_bottom by overriding dyn to increase total energy
     class HighEnergyDyn:
         def total_energy(self, state: np.ndarray) -> float:
             # Return a value larger than ctrl.E_bottom so E_about_bottom < 0
             return ctrl.E_bottom * 2.0
+
     ctrl.dyn = HighEnergyDyn()
     state2 = np.array([0.0, 0.2, -0.2, 0.0, 0.0, 0.0], dtype=float)
     u, svars, hist = ctrl.compute_control(state2, svars, hist)

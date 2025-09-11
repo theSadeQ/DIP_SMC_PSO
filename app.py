@@ -1,6 +1,6 @@
-#==========================================================================================\\\
-#========================================= app.py =========================================\\\
-#==========================================================================================\\\
+# ==========================================================================================\\\
+# ========================================= app.py =========================================\\\
+# ==========================================================================================\\\
 """
 CLI for 
 PSO-tuned Sliding-Mode Control and HIL for a double-inverted pendulum.
@@ -16,10 +16,9 @@ import os
 import subprocess
 import sys
 from dataclasses import dataclass
-import time
 import threading
 from pathlib import Path
-from typing import List, Optional, Any, Dict, Sequence, Tuple
+from typing import Optional, Any, Dict, Sequence
 
 # --------------------------------------------------------------------------------------
 # Repo path (so local modules and src/* are importable when launched from repo root)
@@ -53,6 +52,7 @@ from src.core.simulation_context import SimulationContext
 # messages【985132039892507†L364-L377】.
 from src.logging_config import configure_provenance_logging  # type: ignore
 
+
 # --------------------------------------------------------------------------------------
 # Lightweight config IO (kept here to avoid tight coupling to project schemas)
 # --------------------------------------------------------------------------------------
@@ -61,6 +61,7 @@ def load_config_dict(cfg_path: Path) -> Dict[str, Any]:
         raise RuntimeError("PyYAML required to read config.yaml")
     with open(cfg_path, "r") as f:
         return yaml.safe_load(f) or {}
+
 
 def dget(d: Dict[str, Any], dotted: str, default=None):
     cur: Any = d
@@ -71,12 +72,14 @@ def dget(d: Dict[str, Any], dotted: str, default=None):
             return default
     return cur
 
+
 def _get_run_simulation():
     """
     Always import the canonical simulation runner. No local fallback.
     """
     try:
         from src.core.simulation_runner import run_simulation
+
         return run_simulation
     except (ModuleNotFoundError, ImportError) as e:
         logging.error(
@@ -84,7 +87,8 @@ def _get_run_simulation():
             exc_info=True,
         )
         raise RuntimeError("Core simulation component is missing.") from e
- 
+
+
 # ----------------------------------------------------------------------
 # Optional import helper
 # ----------------------------------------------------------------------
@@ -164,6 +168,7 @@ def _build_dynamics(cfg: Dict[str, Any]) -> Any:
         # module forces Python to consult the meta path when resolving the
         # import below.
         import sys as _sys  # local alias to avoid confusion with outer imports
+
         _sys.modules.pop(module_name, None)
 
         # Always consult find_spec first to trigger meta‑path hooks even if the
@@ -188,6 +193,7 @@ def _build_dynamics(cfg: Dict[str, Any]) -> Any:
         raise RuntimeError(
             f"Double inverted pendulum dynamics model not found {context}"
         ) from e
+
 
 def _build_controller(cfg: Dict[str, Any], ctrl_name: str) -> Any:
     """
@@ -222,6 +228,7 @@ def _build_controller(cfg: Dict[str, Any], ctrl_name: str) -> Any:
     # the factory (such as invalid controller names) propagate naturally.
     return create_controller(ctrl_name, config=None)
 
+
 # --------------------------------------------------------------------------------------
 # Plotting helpers
 # --------------------------------------------------------------------------------------
@@ -240,6 +247,7 @@ def _plot_results(t, x, u) -> None:
         fig.tight_layout()
         plt.show()
 
+
 def _plot_residuals(fdi) -> None:
     if plt is None:
         logging.warning("Matplotlib not found; skipping plots.")
@@ -252,7 +260,12 @@ def _plot_residuals(fdi) -> None:
     ax.plot(fdi.times, fdi.residuals, label="Residual Norm", color="orange")
     ax.axhline(fdi.residual_threshold, color="r", linestyle="--", label="Threshold")
     if fdi.tripped_at is not None:
-        ax.axvline(fdi.tripped_at, color="k", linestyle=":", label=f"Fault Tripped at {fdi.tripped_at:.2f}s")
+        ax.axvline(
+            fdi.tripped_at,
+            color="k",
+            linestyle=":",
+            label=f"Fault Tripped at {fdi.tripped_at:.2f}s",
+        )
     ax.set_title("FDI Residual History")
     ax.set_xlabel("Time (s)")
     ax.set_ylabel("Residual Norm")
@@ -260,6 +273,7 @@ def _plot_residuals(fdi) -> None:
     ax.legend()
     fig.tight_layout()
     plt.show()
+
 
 # --------------------------------------------------------------------------------------
 # CLI Actions
@@ -278,6 +292,7 @@ class Args:
     run_hil: bool
     run_pso: bool
     seed: Optional[int]
+
 
 # app.py - Update the _run_pso function (around line 288)
 def _run_pso(args: Args) -> int:
@@ -312,7 +327,9 @@ def _run_pso(args: Args) -> int:
     # Determine the seed: command‑line flag overrides config, otherwise
     # fall back to ``None``.  A ``None`` seed results in non‑deterministic
     # behaviour.
-    seed_to_use = args.seed if args.seed is not None else getattr(cfg, "global_seed", None)
+    seed_to_use = (
+        args.seed if args.seed is not None else getattr(cfg, "global_seed", None)
+    )
 
     # ----------------------------------------------------------------------
     # Deterministic seeding
@@ -327,6 +344,7 @@ def _run_pso(args: Args) -> int:
     if seed_to_use is not None:
         import numpy as _np  # local import to avoid polluting module namespace
         import random as _random
+
         _seed = int(seed_to_use)
         # Seed global NumPy and Python random generators
         _np.random.seed(_seed)
@@ -397,22 +415,61 @@ def _run_pso(args: Args) -> int:
     return 0
 
 
-
 def _parse_cli_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--config", type=Path, default=REPO_ROOT / "config.yaml")
-    p.add_argument("--controller", type=str, default=None, help="Controller to use/optimize.")
-    p.add_argument("--save-gains", type=str, default=None, metavar="PATH", help="Save optimized gains to this JSON file.")
-    p.add_argument("--load-gains", type=str, default=None, metavar="PATH", help="Load pre-tuned gains from a JSON file for simulation.")
-    p.add_argument("--duration", type=float, default=None, help="Override simulation duration (s)")
-    p.add_argument("--dt", type=float, default=None, help="Override simulation timestep (s)")
-    p.add_argument("--plot", action="store_true", help="Show result plots on completion.")
-    p.add_argument("--print-config", action="store_true", help="Pretty-print the loaded configuration and exit.")
-    p.add_argument("--plot-fdi", action="store_true", help="Show FDI residual plots on completion (requires FDI enabled in config).")
-    p.add_argument("--run-hil", action="store_true", help="Run HIL: spawn plant server and controller client.")
-    p.add_argument("--run-pso", action="store_true", help="Run PSO to optimize controller gains.")
-    p.add_argument("--seed",type=int,default=None,help="Random seed for PSO/simulation determinism (CLI overrides config/global).")
+    p.add_argument(
+        "--controller", type=str, default=None, help="Controller to use/optimize."
+    )
+    p.add_argument(
+        "--save-gains",
+        type=str,
+        default=None,
+        metavar="PATH",
+        help="Save optimized gains to this JSON file.",
+    )
+    p.add_argument(
+        "--load-gains",
+        type=str,
+        default=None,
+        metavar="PATH",
+        help="Load pre-tuned gains from a JSON file for simulation.",
+    )
+    p.add_argument(
+        "--duration", type=float, default=None, help="Override simulation duration (s)"
+    )
+    p.add_argument(
+        "--dt", type=float, default=None, help="Override simulation timestep (s)"
+    )
+    p.add_argument(
+        "--plot", action="store_true", help="Show result plots on completion."
+    )
+    p.add_argument(
+        "--print-config",
+        action="store_true",
+        help="Pretty-print the loaded configuration and exit.",
+    )
+    p.add_argument(
+        "--plot-fdi",
+        action="store_true",
+        help="Show FDI residual plots on completion (requires FDI enabled in config).",
+    )
+    p.add_argument(
+        "--run-hil",
+        action="store_true",
+        help="Run HIL: spawn plant server and controller client.",
+    )
+    p.add_argument(
+        "--run-pso", action="store_true", help="Run PSO to optimize controller gains."
+    )
+    p.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Random seed for PSO/simulation determinism (CLI overrides config/global).",
+    )
     return p.parse_args(argv)
+
 
 def _run_simulation_and_plot(args: argparse.Namespace) -> int:
     """Default action: run a single simulation and optionally plot."""
@@ -431,7 +488,9 @@ def _run_simulation_and_plot(args: argparse.Namespace) -> int:
         if yaml is None:
             logging.error("PyYAML not available to pretty-print config.")
             return 1
-        print(yaml.safe_dump(ctx.get_config().model_dump(mode="python"), sort_keys=False))
+        print(
+            yaml.safe_dump(ctx.get_config().model_dump(mode="python"), sort_keys=False)
+        )
         return 0
 
     # Use the centralized context to construct components
@@ -440,7 +499,11 @@ def _run_simulation_and_plot(args: argparse.Namespace) -> int:
     fdi = ctx.create_fdi()
 
     # CLI overrides take precedence
-    duration = float(args.duration if args.duration is not None else ctx.get_config().simulation.duration)
+    duration = float(
+        args.duration
+        if args.duration is not None
+        else ctx.get_config().simulation.duration
+    )
     dt = float(args.dt if args.dt is not None else ctx.get_config().simulation.dt)
 
     init = ctx.get_config().simulation.initial_state
@@ -478,6 +541,7 @@ def _run_simulation_and_plot(args: argparse.Namespace) -> int:
 
     return 0
 
+
 def _run_hil(cfg_path: Path, do_plot: bool) -> int:
     """
     Spawns the plant server and controller client, ensuring robust resource
@@ -500,7 +564,9 @@ def _run_hil(cfg_path: Path, do_plot: bool) -> int:
     # precondition the code proceeds to load the config and fails later
     # with an AttributeError, which obscures the true cause of the error.
     if not Path(cfg_path).is_file():
-        raise FileNotFoundError(f"Configuration file not found: {Path(cfg_path).absolute()}")
+        raise FileNotFoundError(
+            f"Configuration file not found: {Path(cfg_path).absolute()}"
+        )
     try:
         # 1) Load HIL‑specific modules and a validated config. Let import
         # errors propagate to the caller; they will be caught by ``main`` if
@@ -516,9 +582,7 @@ def _run_hil(cfg_path: Path, do_plot: bool) -> int:
             # failure in the configuration should cause the application to
             # terminate with a non‑zero exit code, so we log each error and
             # then re‑raise.
-            logging.error(
-                "Config validation failed for HIL run. See details below:"
-            )
+            logging.error("Config validation failed for HIL run. See details below:")
             for err in e.errors():
                 loc = ".".join(map(str, err.get("loc", [])))
                 msg = err.get("msg", "invalid value")
@@ -610,6 +674,7 @@ def _run_hil(cfg_path: Path, do_plot: bool) -> int:
         if do_plot and plt is not None:
             try:
                 import numpy as _np  # type: ignore
+
                 out_path = REPO_ROOT / "out" / "hil_results.npz"
                 data = _np.load(out_path)
                 th, xh, uh = data["t"], data["x"], data["u"]
@@ -674,6 +739,7 @@ def _run_hil(cfg_path: Path, do_plot: bool) -> int:
 
     return int(retcode)
 
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
     """Main entry point that enforces fail‑fast behavior."""
     try:
@@ -715,11 +781,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         # failures (such as those injected in tests) are not silently
         # swallowed but instead cause the process to crash with a non‑zero
         # exit code.
-        logging.error(
-            "Application failed with a critical error: %s", e, exc_info=True
-        )
+        logging.error("Application failed with a critical error: %s", e, exc_info=True)
         return 1
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
-#==========================================================================================\\\
+# ==========================================================================================\\\

@@ -12,8 +12,6 @@ under ``src`` the project’s ``DIP_SMC_PSO/src`` directory is added to
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
 import numpy as np
 import pytest
 

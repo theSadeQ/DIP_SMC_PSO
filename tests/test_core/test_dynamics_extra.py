@@ -31,12 +31,15 @@ def test_inertia_shape_and_symmetry(full_dynamics, state):
 def test_passivity_energy_conservation_short_step(physics_cfg):
     """In the absence of friction the total energy should not increase under zero input."""
     from src.core.dynamics_full import FullDIPDynamics
+
     # Create a copy of the physics config with zero frictions
-    p = physics_cfg.model_copy(update=dict(
-        cart_friction=0.0,
-        joint1_friction=0.0,
-        joint2_friction=0.0,
-    ))
+    p = physics_cfg.model_copy(
+        update=dict(
+            cart_friction=0.0,
+            joint1_friction=0.0,
+            joint2_friction=0.0,
+        )
+    )
     dyn = FullDIPDynamics(params=p)
     x = np.array([0.0, 0.1, 0.05, 0.1, 0.2, 0.3], dtype=float)
     E0 = dyn.total_energy(x)
@@ -59,6 +62,7 @@ def test_simplified_vs_full_zero_input_close(physics_cfg):
     """Under zero input the simplified and full models should remain close for a short horizon."""
     from src.core.dynamics import DoubleInvertedPendulum
     from src.core.dynamics_full import FullDIPDynamics
+
     simple = DoubleInvertedPendulum(params=physics_cfg)
     full = FullDIPDynamics(params=physics_cfg)
     x0 = np.array([0.0, np.pi / 6.0, np.pi / 6.0, 0.0, 0.0, 0.0], dtype=float)

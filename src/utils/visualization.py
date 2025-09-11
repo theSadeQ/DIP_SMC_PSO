@@ -9,7 +9,7 @@ or a Jupyter notebook) can decide how to display or save it.
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
-from typing import List, Tuple
+from typing import Tuple
 
 
 class Visualizer:
@@ -21,22 +21,20 @@ class Visualizer:
 
         # Live text read-outs
         self.time_text = self.ax.text(
-            0.05, 0.95, "", transform=self.ax.transAxes,
-            va="top", fontsize=12
+            0.05, 0.95, "", transform=self.ax.transAxes, va="top", fontsize=12
         )
         self.angle_text = self.ax.text(
-            0.05, 0.90, "", transform=self.ax.transAxes,
-            va="top", fontsize=12
+            0.05, 0.90, "", transform=self.ax.transAxes, va="top", fontsize=12
         )
 
         # Pre-create a single FancyArrowPatch for reuse (so set_positions works)
         from matplotlib.patches import FancyArrowPatch
-        self.force_arrow = FancyArrowPatch((0, 0), (0, 0),
-                                          arrowstyle='->',
-                                          mutation_scale=10)
+
+        self.force_arrow = FancyArrowPatch(
+            (0, 0), (0, 0), arrowstyle="->", mutation_scale=10
+        )
         self.ax.add_patch(self.force_arrow)
         self.force_arrow.set_visible(False)
-
 
     # ------------------------------------------------------------------ #
     # Helpers                                                            #
@@ -100,8 +98,8 @@ class Visualizer:
 
         # -- Patches & line artists (no explicit colours) --------------
         cart = self.ax.add_patch(plt.Rectangle((0, 0), cart_w, cart_h))
-        link1, = self.ax.plot([], [], "o-", lw=3, markersize=8)
-        link2, = self.ax.plot([], [], "o-", lw=3, markersize=8)
+        (link1,) = self.ax.plot([], [], "o-", lw=3, markersize=8)
+        (link2,) = self.ax.plot([], [], "o-", lw=3, markersize=8)
 
         # -- Frame update ----------------------------------------------
         def _update(i: int):
@@ -124,7 +122,7 @@ class Visualizer:
             force = float(control_history[i]) if i < len(control_history) else 0.0
             if abs(force) > 0.1:
                 a_start = cart_x - np.sign(force) * (cart_w / 2 + 0.05)
-                a_len   = np.sign(force) * (0.3 * np.log1p(abs(force)))
+                a_len = np.sign(force) * (0.3 * np.log1p(abs(force)))
                 # Update arrow endpoints
                 self.force_arrow.set_positions((a_start, 0), (a_start + a_len, 0))
                 self.force_arrow.set_visible(True)

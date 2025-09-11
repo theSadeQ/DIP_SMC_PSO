@@ -126,7 +126,9 @@ def _write_config(tmp_path: Path, plant_port: int, controller_port: int) -> Path
     includes all required fields for the project’s ConfigSchema and is small
     enough to run in under a second.
     """
-    content = CONFIG_TEMPLATE.format(plant_port=plant_port, controller_port=controller_port)
+    content = CONFIG_TEMPLATE.format(
+        plant_port=plant_port, controller_port=controller_port
+    )
     cfg_path = tmp_path / "config.yaml"
     cfg_path.write_text(content, encoding="utf-8")
     return cfg_path
@@ -233,7 +235,9 @@ def test_hil_udp_roundtrip(tmp_path: Path) -> None:
 
         # Run the client for a matching number of steps and save results in tmp_path
         results_path = tmp_path / "hil_results.npz"
-        outp = run_client(cfg_path=str(cfg_path), steps=steps, results_path=str(results_path))
+        outp = run_client(
+            cfg_path=str(cfg_path), steps=steps, results_path=str(results_path)
+        )
         # The run_client helper returns a pathlib.Path; ensure it exists
         assert outp.exists(), "HILControllerClient should create the results file"
 
@@ -246,9 +250,9 @@ def test_hil_udp_roundtrip(tmp_path: Path) -> None:
         assert len(u) == steps
         assert x.shape[0] == steps + 1
         # We expect at least one measurement or control command to be non-zero
-        assert np.any(np.abs(x) > 0) or np.any(np.abs(u) > 0), (
-            "States or controls should not all be zero during a HIL roundtrip"
-        )
+        assert np.any(np.abs(x) > 0) or np.any(
+            np.abs(u) > 0
+        ), "States or controls should not all be zero during a HIL roundtrip"
     finally:
         # Stop the server and ensure the thread terminates
         try:
@@ -324,6 +328,7 @@ def test_missing_config_path_raises(tmp_path: Path) -> None:
     is expected to be a FileNotFoundError.
     """
     from app import _run_hil  # imported here to avoid circular import at module level
+
     missing_path = tmp_path / "does_not_exist.yaml"
     with pytest.raises(FileNotFoundError):
         _run_hil(missing_path, do_plot=False)

@@ -1,22 +1,29 @@
-﻿#================================================================================================\\\
+﻿# ================================================================================================\\\
 # src/config.py =================================================================================\\\
-#================================================================================================\\\
-                                                                                               
+# ================================================================================================\\\
+
 from __future__ import annotations
 
 # --- stdlib
 import json
 import logging
-import os
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Dict, List, Optional, Tuple, Type
 
 # --- third-party
 import yaml
-from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    SecretStr,
+    field_validator,
+    model_validator,
+)
 from pydantic.fields import FieldInfo
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
+from src.utils.deprecation import warn_deprecated
 from dotenv import load_dotenv
 
 # --- local
@@ -28,12 +35,15 @@ from src.utils.seed import set_global_seed
 logger = logging.getLogger("project.config")
 logger.setLevel(logging.INFO)
 
+
 # ------------------------------------------------------------------------------
 # Errors
 # ------------------------------------------------------------------------------
 class InvalidConfigurationError(Exception):
     """Raised when configuration validation fails with aggregated error messages."""
+
     pass
+
 
 # ------------------------------------------------------------------------------
 # Helpers
@@ -43,10 +53,12 @@ def redact_value(value: Any) -> str:
     if isinstance(value, SecretStr):
         return "***"
     if isinstance(value, str) and any(
-        keyword in str(value).lower() for keyword in ["password", "secret", "token", "key"]
+        keyword in str(value).lower()
+        for keyword in ["password", "secret", "token", "key"]
     ):
         return "***"
     return str(value)
+
 
 # ------------------------------------------------------------------------------
 # Base strict model
@@ -59,6 +71,7 @@ class StrictModel(BaseModel):
         validate_default=True,
         validate_assignment=True,
     )
+
 
 # ------------------------------------------------------------------------------
 # Physics
@@ -82,16 +95,23 @@ class PhysicsConfig(StrictModel):
     det_threshold: float = Field(1e-12, ge=0.0, le=1e-3)
 
     @field_validator(
-        "cart_mass", "pendulum1_mass", "pendulum2_mass",
-        "pendulum1_length", "pendulum2_length",
-        "pendulum1_inertia", "pendulum2_inertia",
-        "pendulum1_com", "pendulum2_com",
-        "gravity"
+        "cart_mass",
+        "pendulum1_mass",
+        "pendulum2_mass",
+        "pendulum1_length",
+        "pendulum2_length",
+        "pendulum1_inertia",
+        "pendulum2_inertia",
+        "pendulum1_com",
+        "pendulum2_com",
+        "gravity",
     )
     @classmethod
     def _must_be_strictly_positive(cls, v: float, info) -> float:
         if v is None or v <= 0.0:
-            raise ValueError(f"{info.field_name} must be strictly positive, but got {v}")
+            raise ValueError(
+                f"{info.field_name} must be strictly positive, but got {v}"
+            )
         return v
 
     @model_validator(mode="after")
@@ -105,6 +125,7 @@ class PhysicsConfig(StrictModel):
                 f"pendulum2_com ({self.pendulum2_com}) must be less than pendulum2_length ({self.pendulum2_length})"
             )
         return self
+
 
 class PhysicsUncertaintySchema(StrictModel):
     n_evals: int
@@ -121,6 +142,7 @@ class PhysicsUncertaintySchema(StrictModel):
     cart_friction: float
     joint1_friction: float
     joint2_friction: float
+
 
 # ------------------------------------------------------------------------------
 # Simulation
@@ -156,8 +178,11 @@ class SimulationConfig(StrictModel):
         if not isinstance(v, list) or len(v) == 0:
             raise ValueError("initial_state must be a non-empty list of floats")
         if not all(isinstance(x, float) for x in v):
-            raise ValueError("initial_state must contain float values (no implicit casts)")
+            raise ValueError(
+                "initial_state must contain float values (no implicit casts)"
+            )
         return v
+
 
 # ------------------------------------------------------------------------------
 # Legacy module-level namespace (best-effort)
@@ -173,6 +198,7 @@ try:
 except Exception:
     pass
 
+
 # ------------------------------------------------------------------------------
 # Controllers
 # ------------------------------------------------------------------------------
@@ -184,8 +210,10 @@ class _BaseControllerConfig(BaseModel):
         for k, v in self.model_dump(exclude_unset=True).items():
             yield k, v
 
+
 class ControllerConfig(_BaseControllerConfig):
     pass
+
 
 class PermissiveControllerConfig(_BaseControllerConfig):
     model_config = ConfigDict(extra="allow")
@@ -206,11 +234,13 @@ class PermissiveControllerConfig(_BaseControllerConfig):
                 )
         return self
 
+
 def set_allow_unknown_config(_: bool) -> None:
     """Deprecated - use load_config(..., allow_unknown=True) instead."""
     raise RuntimeError(
         "set_allow_unknown_config() is deprecated; use load_config(..., allow_unknown=True) instead."
     )
+
 
 class ControllersConfig(StrictModel):
     classical_smc: Optional[PermissiveControllerConfig] = None
@@ -222,10 +252,16 @@ class ControllersConfig(StrictModel):
 
     def keys(self) -> List[str]:
         return [
-            name for name in (
-                "classical_smc", "sta_smc", "adaptive_smc",
-                "swing_up_smc", "hybrid_adaptive_sta_smc", "mpc_controller",
-            ) if getattr(self, name) is not None
+            name
+            for name in (
+                "classical_smc",
+                "sta_smc",
+                "adaptive_smc",
+                "swing_up_smc",
+                "hybrid_adaptive_sta_smc",
+                "mpc_controller",
+            )
+            if getattr(self, name) is not None
         ]
 
     def __iter__(self):
@@ -245,12 +281,14 @@ class ControllersConfig(StrictModel):
             return val
         raise KeyError(key)
 
+
 # ------------------------------------------------------------------------------
 # PSO
 # ------------------------------------------------------------------------------
 class PSOBounds(StrictModel):
     min: List[float]
     max: List[float]
+
 
 class PSOConfig(StrictModel):
     n_particles: int = Field(100, ge=1)
@@ -268,6 +306,7 @@ class PSOConfig(StrictModel):
     seed: Optional[int] = None
     tune: Dict[str, Dict[str, float]] = Field(default_factory=dict)
 
+
 # ------------------------------------------------------------------------------
 # Cost Function
 # ------------------------------------------------------------------------------
@@ -277,10 +316,12 @@ class CostFunctionWeights(StrictModel):
     control_rate: float = Field(0.1, ge=0.0)
     stability: float = Field(0.1, ge=0.0)
 
+
 class CostFunctionConfig(StrictModel):
     weights: CostFunctionWeights
     baseline: Dict[str, Any]
     instability_penalty: float = Field(1000.0, ge=0.0)
+
 
 # ------------------------------------------------------------------------------
 # Verification
@@ -290,6 +331,7 @@ class VerificationConfig(StrictModel):
     integrators: List[str]
     criteria: Dict[str, float]
 
+
 # ------------------------------------------------------------------------------
 # Sensors
 # ------------------------------------------------------------------------------
@@ -298,6 +340,7 @@ class SensorsConfig(StrictModel):
     position_noise_std: float = 0.0
     quantization_angle: float = 0.0
     quantization_position: float = 0.0
+
 
 # ------------------------------------------------------------------------------
 # HIL
@@ -309,6 +352,7 @@ class HILConfig(StrictModel):
     controller_port: int
     extra_latency_ms: float = 0.0
     sensor_noise_std: float = 0.0
+
 
 # ------------------------------------------------------------------------------
 # FDI
@@ -350,13 +394,16 @@ class FDIConfig(StrictModel):
                 raise ValueError("residual_weights must contain non-negative numbers")
         return self
 
+
 # ------------------------------------------------------------------------------
 # Settings source: file (YAML/JSON)
 # ------------------------------------------------------------------------------
 class FileSettingsSource(PydanticBaseSettingsSource):
     """Custom settings source for loading from YAML or JSON files."""
 
-    def __init__(self, settings_cls: Type[BaseSettings], file_path: Optional[Path] = None):
+    def __init__(
+        self, settings_cls: Type[BaseSettings], file_path: Optional[Path] = None
+    ):
         super().__init__(settings_cls)
         self.file_path = file_path
 
@@ -376,7 +423,9 @@ class FileSettingsSource(PydanticBaseSettingsSource):
             logger.error(f"Failed to read config file {file_path}: {e}")
             return {}
 
-    def get_field_value(self, field: FieldInfo, field_name: str) -> Tuple[Any, str, bool]:
+    def get_field_value(
+        self, field: FieldInfo, field_name: str
+    ) -> Tuple[Any, str, bool]:
         """Return (value, field_name, found) for a single field. We use __call__ to load all."""
         return None, field_name, False
 
@@ -385,6 +434,7 @@ class FileSettingsSource(PydanticBaseSettingsSource):
         if self.file_path:
             return self._read_file(self.file_path)
         return {}
+
 
 # ------------------------------------------------------------------------------
 # Root settings
@@ -431,6 +481,7 @@ class ConfigSchema(BaseSettings):
         file_source = FileSettingsSource(settings_cls, file_path)
         return (env_settings, dotenv_settings, file_source, init_settings)
 
+
 # ------------------------------------------------------------------------------
 # Loader
 # ------------------------------------------------------------------------------
@@ -475,7 +526,9 @@ def load_config(
 
         try:
             cfg = ConfigSchema()
-            logger.info(f"Configuration loaded from sources: ENV > .env > {file_path or 'defaults'}")
+            logger.info(
+                f"Configuration loaded from sources: ENV > .env > {file_path or 'defaults'}"
+            )
 
             # Global seeding
             try:
@@ -513,4 +566,5 @@ def load_config(
         if hasattr(ConfigSchema, "_file_path"):
             delattr(ConfigSchema, "_file_path")
 
-#=====================================================================================================\\\
+
+# =====================================================================================================\\\

@@ -1,6 +1,6 @@
-#========================================================================================\\\
+# ========================================================================================\\\
 # src/controllers/adaptive_smc.py =======================================================\\\
-#========================================================================================\\\
+# ========================================================================================\\\
 """
 Adaptive sliding‑mode controller with online gain adaptation.
 
@@ -59,7 +59,7 @@ alpha : float, optional
 """
 
 import numpy as np
-from typing import Dict, Tuple, Optional, List
+from typing import Dict, Tuple, List
 
 # ---------------------------------------------------------------------------
 # Structured output type
@@ -70,23 +70,31 @@ from typing import Dict, Tuple, Optional, List
 # regarding explicit interfaces and return contracts【738473614585036†L239-L256】.
 # robust import for utils.* to support both import styles
 try:
-    from src.utils.control_outputs import AdaptiveSMCOutput  # when repo root on sys.path
+    from src.utils.control_outputs import (
+        AdaptiveSMCOutput,
+    )  # when repo root on sys.path
 except Exception:
     try:
-        from ..utils.control_outputs import AdaptiveSMCOutput  # when importing as src.controllers.*
+        from src.utils.control_outputs import (
+            AdaptiveSMCOutput,
+        )  # when importing as src.controllers.*
     except Exception:
-        from utils.control_outputs import AdaptiveSMCOutput    # when src itself on sys.path
+        from src.utils.control_outputs import (
+            AdaptiveSMCOutput,
+        )  # when src itself on sys.path
 
 
 class AdaptiveSMC:
     """
     Adaptive Sliding Mode Controller that adjusts gain K online.
-    
+
     The controller prevents gain wind-up by using a dead zone around the sliding surface.
     When |σ| ≤ dead_zone, the gain K only decreases via the leak term, preventing
     uncontrolled growth during chattering.
     """
-    n_gains = 5  
+
+    n_gains = 5
+
     def __init__(
         self,
         gains: List[float],
@@ -101,11 +109,11 @@ class AdaptiveSMC:
         dead_zone: float,
         K_init: float = 10.0,
         alpha: float = 0.5,
-        **kwargs
+        **kwargs,
     ):
         """
         Initialize Adaptive SMC controller.
-        
+
         Args:
             gains: Five gains in the order ``[k1, k2, lam1, lam2, gamma]``.
             dt: Integration timestep (s); must be strictly positive.
@@ -151,12 +159,18 @@ class AdaptiveSMC:
         # provides consistent error messages across controllers【675644021986605†L385-L388】.
         # robust import for utils.* to support both import styles
         try:
-            from src.utils.control_primitives import require_positive  # when repo root on sys.path
+            from src.utils.control_primitives import (
+                require_positive,
+            )  # when repo root on sys.path
         except Exception:
             try:
-                from ..utils.control_primitives import require_positive  # when importing as src.controllers.*
+                from src.utils.control_primitives import (
+                    require_positive,
+                )  # when importing as src.controllers.*
             except Exception:
-                from utils.control_primitives import require_positive    # when src itself on sys.path
+                from src.utils.control_primitives import (
+                    require_positive,
+                )  # when src itself on sys.path
         self.dt = require_positive(dt, "dt")
         self.max_force = require_positive(max_force, "max_force")
         # Remove rate_weight.  The adaptive SMC controller adapts its gain
@@ -168,18 +182,26 @@ class AdaptiveSMC:
         # surface【462167782799487†L186-L195】.
         # robust import for utils.* to support both import styles
         try:
-            from src.utils.control_primitives import require_positive  # when repo root on sys.path
+            from src.utils.control_primitives import (
+                require_positive,
+            )  # when repo root on sys.path
         except Exception:
             try:
-                from ..utils.control_primitives import require_positive  # when importing as src.controllers.*
+                from src.utils.control_primitives import (
+                    require_positive,
+                )  # when importing as src.controllers.*
             except Exception:
-                from utils.control_primitives import require_positive    # when src itself on sys.path
+                from src.utils.control_primitives import (
+                    require_positive,
+                )  # when src itself on sys.path
         # Use central positivity checks.  leak_rate and adapt_rate_limit may be zero
         # according to design review but must not be negative.  Gains K_min and
         # K_max must be strictly positive to ensure Lyapunov stability【462167782799487†L186-L195】.
         self.leak_rate = require_positive(leak_rate, "leak_rate", allow_zero=True)
         self.K_init = float(K_init)
-        self.adapt_rate_limit = require_positive(adapt_rate_limit, "adapt_rate_limit", allow_zero=True)
+        self.adapt_rate_limit = require_positive(
+            adapt_rate_limit, "adapt_rate_limit", allow_zero=True
+        )
         self.K_min = require_positive(K_min, "K_min")
         self.K_max = require_positive(K_max, "K_max")
         self.smooth_switch = smooth_switch
@@ -207,7 +229,7 @@ class AdaptiveSMC:
         internal gain storage.  Tests use this property to verify that
         custom gains are accepted and stored correctly.
         """
-        return list(self._gains)        
+        return list(self._gains)
 
     @staticmethod
     def validate_gains(gains: List[float]) -> None:
@@ -235,29 +257,32 @@ class AdaptiveSMC:
         # conditions for sliding‑mode stability【462167782799487†L186-L195】.
         # robust import for utils.* to support both import styles
         try:
-            from src.utils.control_primitives import require_positive  # when repo root on sys.path
+            from src.utils.control_primitives import (
+                require_positive,
+            )  # when repo root on sys.path
         except Exception:
             try:
-                from ..utils.control_primitives import require_positive  # when importing as src.controllers.*
+                from src.utils.control_primitives import (
+                    require_positive,
+                )  # when importing as src.controllers.*
             except Exception:
-                from utils.control_primitives import require_positive    # when src itself on sys.path
+                from src.utils.control_primitives import (
+                    require_positive,
+                )  # when src itself on sys.path
         k1, k2, lam1, lam2, gamma = gains[:5]
-        for name, val in zip(("k1", "k2", "lam1", "lam2", "gamma"), (k1, k2, lam1, lam2, gamma)):
+        for name, val in zip(
+            ("k1", "k2", "lam1", "lam2", "gamma"), (k1, k2, lam1, lam2, gamma)
+        ):
             require_positive(val, f"AdaptiveSMC gain {name}")
+
     def initialize_state(self) -> Tuple[float, float, float]:
         """Initialize internal state: (K, last_u, time_in_sliding)."""
         return (self.K_init, 0.0, 0.0)
-        
+
     def initialize_history(self) -> Dict:
         """Initialize history dictionary."""
-        return {
-            'K': [],
-            'sigma': [],
-            'u_sw': [],
-            'dK': [],
-            'time_in_sliding': []
-        }
-        
+        return {"K": [], "sigma": [], "u_sw": [], "dK": [], "time_in_sliding": []}
+
     def compute_control(
         self,
         state: np.ndarray,
@@ -323,54 +348,76 @@ class AdaptiveSMC:
                 if len(state_vars) == 0:
                     prev_K, last_u, time_in_sliding = self.K_init, 0.0, 0.0
                 elif len(state_vars) == 1:
-                    prev_K = float(state_vars[0]) if state_vars[0] is not None else self.K_init
+                    prev_K = (
+                        float(state_vars[0])
+                        if state_vars[0] is not None
+                        else self.K_init
+                    )
                     last_u, time_in_sliding = 0.0, 0.0
                 elif len(state_vars) == 2:
-                    prev_K = float(state_vars[0]) if state_vars[0] is not None else self.K_init
+                    prev_K = (
+                        float(state_vars[0])
+                        if state_vars[0] is not None
+                        else self.K_init
+                    )
                     last_u = float(state_vars[1]) if state_vars[1] is not None else 0.0
                     time_in_sliding = 0.0
                 else:
                     # More than 3 values: use the first three
-                    prev_K = float(state_vars[0]) if state_vars[0] is not None else self.K_init
+                    prev_K = (
+                        float(state_vars[0])
+                        if state_vars[0] is not None
+                        else self.K_init
+                    )
                     last_u = float(state_vars[1]) if state_vars[1] is not None else 0.0
-                    time_in_sliding = float(state_vars[2]) if state_vars[2] is not None else 0.0
+                    time_in_sliding = (
+                        float(state_vars[2]) if state_vars[2] is not None else 0.0
+                    )
             else:
                 # Scalar or None: treat as K and initialize others to zero
                 prev_K = float(state_vars) if state_vars is not None else self.K_init
                 last_u, time_in_sliding = 0.0, 0.0
         x, theta1, theta2, x_dot, theta1_dot, theta2_dot = state
-        
+
         # Compute sliding surface (consistent with classical SMC formulation)
-        sigma = self.k1 * (theta1_dot + self.lam1 * theta1) + self.k2 * (theta2_dot + self.lam2 * theta2)
-        
+        sigma = self.k1 * (theta1_dot + self.lam1 * theta1) + self.k2 * (
+            theta2_dot + self.lam2 * theta2
+        )
+
         # Compute switching control with current adaptive gain.  Use the
         # shared ``saturate`` helper to unify boundary layer behaviour
         # across controllers.  ``saturate`` divides by epsilon internally.
         # robust import for utils.* to support both import styles
         try:
-            from src.utils.control_primitives import saturate  # when repo root on sys.path
+            from src.utils.control_primitives import (
+                saturate,
+            )  # when repo root on sys.path
         except Exception:
             try:
-                from ..utils.control_primitives import saturate  # when importing as src.controllers.*
+                from src.utils.control_primitives import (
+                    saturate,
+                )  # when importing as src.controllers.*
             except Exception:
-                from utils.control_primitives import saturate    # when src itself on sys.path
+                from src.utils.control_primitives import (
+                    saturate,
+                )  # when src itself on sys.path
         if self.smooth_switch:
             switching = saturate(sigma, self.boundary_layer, method="tanh")
         else:
             switching = saturate(sigma, self.boundary_layer, method="linear")
-            
+
         u_sw = -prev_K * switching
-        
+
         # Total control with proportional term for improved convergence
         u = u_sw - self.alpha * sigma
         u = np.clip(u, -self.max_force, self.max_force)
-        
+
         # Update time in sliding mode
         if abs(sigma) <= self.boundary_layer:
             new_time_in_sliding = time_in_sliding + self.dt
         else:
             new_time_in_sliding = 0.0
-        
+
         # Adaptive law with unified anti‑windup logic.
         #
         # The adaptive sliding–mode controller adjusts the switching gain based
@@ -397,14 +444,14 @@ class AdaptiveSMC:
             # term prevents unbounded growth once disturbances subside.
             growth = self.gamma * abs(sigma)
             dK = growth - self.leak_rate * (prev_K - self.K_init)
-        
+
         # Apply rate limit to prevent sudden jumps
         dK = np.clip(dK, -self.adapt_rate_limit, self.adapt_rate_limit)
-        
+
         # Update gain with saturation
         new_K = prev_K + dK * self.dt
         new_K = np.clip(new_K, self.K_min, self.K_max)
-        
+
         # Update history in place.  Avoid allocating a new dictionary
         # on every call; simply append to existing lists.  Initialize
         # lists if they are missing to support callers passing in a
@@ -412,17 +459,19 @@ class AdaptiveSMC:
         # disabled by passing in an empty dict, though the lists
         # will be created on demand if needed.
         hist = history
-        hist.setdefault('K', []).append(new_K)
-        hist.setdefault('sigma', []).append(sigma)
-        hist.setdefault('u_sw', []).append(u_sw)
-        hist.setdefault('dK', []).append(dK)
-        hist.setdefault('time_in_sliding', []).append(new_time_in_sliding)
+        hist.setdefault("K", []).append(new_K)
+        hist.setdefault("sigma", []).append(sigma)
+        hist.setdefault("u_sw", []).append(u_sw)
+        hist.setdefault("dK", []).append(dK)
+        hist.setdefault("time_in_sliding", []).append(new_time_in_sliding)
         # Construct a structured return value.  Returning a named tuple
         # clarifies the meaning of each element while preserving
         # tuple‑like behaviour【738473614585036†L239-L256】.
         return AdaptiveSMCOutput(u, (new_K, u, new_time_in_sliding), hist, sigma)
-        
+
     def set_dynamics(self, dynamics_model) -> None:
         """Set dynamics model (for compatibility, not used in this implementation)."""
         pass
-#===========================================================================================================\\\
+
+
+# ===========================================================================================================\\\

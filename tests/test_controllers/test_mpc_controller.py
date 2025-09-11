@@ -24,6 +24,7 @@ class LinearModel:
     finite differencing when required.  The state dimension is fixed at
     six to match the MPC expectation.
     """
+
     def step(self, state: np.ndarray, u: float, dt: float) -> np.ndarray:
         x = np.asarray(state, dtype=float)
         return x + dt * np.ones_like(x) * float(u)
@@ -47,6 +48,7 @@ def test_mpc_controller_instantiation_and_control() -> None:
 
 def test_simulation_helper_shapes() -> None:
     """A simple integrator loop should produce arrays of the expected shape."""
+
     # Local simulation helper using forward Euler
     def _simulate(controller, model, x0, T=0.1, dt=0.02):
         x = np.array(x0, dtype=float)

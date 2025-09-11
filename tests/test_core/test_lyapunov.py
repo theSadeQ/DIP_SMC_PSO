@@ -5,7 +5,7 @@ Each section is delimited by BEGIN/END markers.
 """
 
 # BEGIN: test_lyapunov_stability.py
-#test_lyapunov_stability==============================================================================================================================
+# test_lyapunov_stability==============================================================================================================================
 
 import numpy as np
 import pytest
@@ -14,6 +14,7 @@ from src.controllers.sta_smc import SuperTwistingSMC
 from src.core.dynamics import DoubleInvertedPendulum
 from src.core.vector_sim import simulate_system_batch
 
+
 @pytest.fixture
 def dynamics(physics_params):
     """
@@ -21,6 +22,7 @@ def dynamics(physics_params):
     This is consistent with other tests, using physics_params from conftest.py.
     """
     return DoubleInvertedPendulum(physics_params)
+
 
 @pytest.mark.usefixtures("long_simulation_config")
 def test_lyapunov_decrease_sta(dynamics, tolerance=1e-5, sim_steps=1000, dt=0.001):
@@ -56,7 +58,7 @@ def test_lyapunov_decrease_sta(dynamics, tolerance=1e-5, sim_steps=1000, dt=0.00
         particles=particle_gains,
         initial_state=initial_states,
         sim_time=sim_time,
-        dt=dt
+        dt=dt,
     )
 
     # --- Calculate Lyapunov function history for all batches ---
@@ -80,8 +82,11 @@ def test_lyapunov_decrease_sta(dynamics, tolerance=1e-5, sim_steps=1000, dt=0.00
     )
 
     # Optional: Print for debugging during test runs
-    print(f"\n[Lyapunov Test] Max Initial V = {np.max(V_history[:, 0]):.2e}, "
-          f"Max Final V = {np.max(V_history[:, -1]):.2e} ... PASSED")
- #===========================================================================================================================================         
-# END: test_lyapunov_stability.py
+    print(
+        f"\n[Lyapunov Test] Max Initial V = {np.max(V_history[:, 0]):.2e}, "
+        f"Max Final V = {np.max(V_history[:, -1]):.2e} ... PASSED"
+    )
 
+
+# ===========================================================================================================================================
+# END: test_lyapunov_stability.py

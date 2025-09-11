@@ -1,15 +1,17 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git checkout:*)",
+      "Bash(git stash:*)",
       "Bash(git pull:*)",
-      "Bash(python:*)",
-      "Bash(pip install:*)",
-      "Bash(py:*)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(git push:*)",
-      "Bash(gh pr create:*)"
+      "Read(//c/Users/sadeg/AppData/Local/Microsoft/WindowsApps/**)",
+      "Bash(/c/Users/sadeg/AppData/Local/Microsoft/WindowsApps/python.exe --version)",
+      "Read(//d/**)",
+      "Bash(/c/ProgramData/anaconda3/python.exe --version)",
+      "Bash(/c/ProgramData/anaconda3/python.exe -m pip install black ruff)",
+      "Bash(/dev/null)",
+      "Bash(/c/ProgramData/anaconda3/Scripts/ruff.exe check --fix)",
+      "Bash(/c/ProgramData/anaconda3/python.exe -m ruff check --fix)",
+      "Bash(/c/ProgramData/anaconda3/python.exe -m black -q .)"
     ],
     "deny": [],
     "ask": []

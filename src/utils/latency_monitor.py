@@ -11,6 +11,7 @@ median and 95th percentile latency can be logged at the end of a run.
 No citations are required for this utility because it contains no
 algorithmic control logic.
 """
+
 from __future__ import annotations
 
 import time
@@ -107,5 +108,6 @@ class LatencyMonitor:
         window = self.samples[-k:]
         miss_count = sum(1 for s in window if s > self.dt)
         return miss_count <= m
+
 
 __all__ = ["LatencyMonitor"]

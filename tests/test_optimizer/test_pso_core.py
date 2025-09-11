@@ -17,7 +17,6 @@ test suite from a different working directory.
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from src.optimizer.pso_optimizer import _normalise, PSOTuner
 from src.config import (
@@ -105,7 +104,9 @@ def _create_config(n_evals: int) -> ConfigSchema:
         stability=0.1,
     )
     cost_cfg = CostFunctionConfig(weights=weights, baseline={}, instability_penalty=1.0)
-    verification_cfg = VerificationConfig(test_conditions=[], integrators=["euler"], criteria={})
+    verification_cfg = VerificationConfig(
+        test_conditions=[], integrators=["euler"], criteria={}
+    )
     sensors_cfg = SensorsConfig(
         angle_noise_std=0.0,
         position_noise_std=0.0,

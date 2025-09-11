@@ -14,6 +14,7 @@ import numpy as np
 # Prefer the project’s validated loader; fall back to YAML only if unavailable.
 try:
     from src.config import load_config as _validated_load_config  # type: ignore
+
     _HAS_VALIDATED = True
 except Exception:  # pragma: no cover
     _HAS_VALIDATED = False
@@ -32,6 +33,7 @@ def _load_config(cfg_path: Path) -> dict:
         raise RuntimeError("Neither validated loader nor PyYAML is available.")
     with open(cfg_path, "r") as f:
         return yaml.safe_load(f) or {}
+
 
 def _get(cfg: dict, dotted: str, default=None):
     cur = cfg
@@ -83,11 +85,14 @@ def _build_controller(cfg: dict):
     unintended controller.
     """
     from src.controllers.factory import create_controller  # type: ignore
+
     ctrl_name = _get(cfg, "simulation.controller", "classical_smc")
     try:
         return create_controller(ctrl_name)
     except Exception as e:
-        raise RuntimeError(f"Failed to instantiate controller '{ctrl_name}': {e}") from e
+        raise RuntimeError(
+            f"Failed to instantiate controller '{ctrl_name}': {e}"
+        ) from e
 
 
 class HILControllerClient:
@@ -124,7 +129,7 @@ class HILControllerClient:
 
         self.controller = _build_controller(cfg)
         # Estimator: for now, identity (just use latest measurement)
-        init_state = _get(cfg, "simulation.initial_state", [0,0,0,0,0,0])
+        init_state = _get(cfg, "simulation.initial_state", [0, 0, 0, 0, 0, 0])
         self.xhat = np.asarray(init_state, dtype=float).reshape(6)
 
         self.sock: Optional[socket.socket] = None
@@ -187,7 +192,9 @@ class HILControllerClient:
                 meas_data = None
             if meas_data and len(meas_data) >= self.STATE_SIZE:
                 try:
-                    seq, *vals = struct.unpack(self.STATE_FMT, meas_data[: self.STATE_SIZE])
+                    seq, *vals = struct.unpack(
+                        self.STATE_FMT, meas_data[: self.STATE_SIZE]
+                    )
                 except Exception:
                     vals = []
                 if vals:
@@ -239,7 +246,11 @@ class HILControllerClient:
             pass
 
 
-def run_client(cfg_path: str = "config.yaml", steps: Optional[int] = None, results_path: Optional[str] = None) -> Path:
+def run_client(
+    cfg_path: str = "config.yaml",
+    steps: Optional[int] = None,
+    results_path: Optional[str] = None,
+) -> Path:
     cfg_path_p = Path(cfg_path)
     cfg = _load_config(cfg_path_p)
 
@@ -268,9 +279,21 @@ def run_client(cfg_path: str = "config.yaml", steps: Optional[int] = None, resul
 
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description="HIL Controller Client (UDP)")
-    p.add_argument("--config", type=str, default="config.yaml", help="Path to config.yaml")
-    p.add_argument("--steps", type=int, default=None, help="Override step count (otherwise uses duration/dt)")
-    p.add_argument("--results", type=str, default=None, help="Output path for results .npz (default: out/hil_results.npz)")
+    p.add_argument(
+        "--config", type=str, default="config.yaml", help="Path to config.yaml"
+    )
+    p.add_argument(
+        "--steps",
+        type=int,
+        default=None,
+        help="Override step count (otherwise uses duration/dt)",
+    )
+    p.add_argument(
+        "--results",
+        type=str,
+        default=None,
+        help="Output path for results .npz (default: out/hil_results.npz)",
+    )
     args = p.parse_args(argv)
 
     outp = run_client(cfg_path=args.config, steps=args.steps, results_path=args.results)
@@ -280,4 +303,4 @@ def main(argv=None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-#===========================================================================================================================\\\    
+# ===========================================================================================================================\\\

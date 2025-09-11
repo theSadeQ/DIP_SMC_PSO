@@ -5,7 +5,7 @@ Each section is delimited by BEGIN/END markers.
 """
 
 # BEGIN: test_full_dynamics.py
-#tests/test_full_dynamics====================================================================\\\
+# tests/test_full_dynamics====================================================================\\\
 
 import numpy as np
 import pytest
@@ -14,6 +14,7 @@ import pytest
 # PSOBounds are not available in src.config, so they are no longer imported here.
 from src.config import load_config, PhysicsConfig
 from src.core.dynamics_full import FullDIPDynamics, FullDIPParams, step_rk4_numba
+
 
 @pytest.fixture(scope="module")
 def full_dynamics_model():
@@ -30,7 +31,10 @@ def test_full_inertia_matrix_shape_and_symmetry(full_dynamics_model):
     state = np.array([0.0, np.pi / 4, np.pi / 6, 0, 0, 0])  # A non-trivial state
     H, _, _ = full_dynamics_model._compute_physics_matrices(state)
 
-    assert H.shape == (3, 3), f"Expected inertia matrix H to have shape 3x3, but got {H.shape}"
+    assert H.shape == (
+        3,
+        3,
+    ), f"Expected inertia matrix H to have shape 3x3, but got {H.shape}"
     assert np.allclose(H, H.T), "Inertia matrix H must be symmetric"
 
 
@@ -43,8 +47,12 @@ def test_full_dynamics_computation(full_dynamics_model):
 
     derivative = full_dynamics_model.dynamics(t=0, state=state, u=control_input)
 
-    assert derivative.shape == (6,), f"Expected derivative shape (6,), but got {derivative.shape}"
-    assert np.all(np.isfinite(derivative)), "Derivative contains non-finite (NaN or Inf) values"
+    assert derivative.shape == (
+        6,
+    ), f"Expected derivative shape (6,), but got {derivative.shape}"
+    assert np.all(
+        np.isfinite(derivative)
+    ), "Derivative contains non-finite (NaN or Inf) values"
 
 
 def test_passivity_verification(full_dynamics_model):
@@ -56,24 +64,24 @@ def test_passivity_verification(full_dynamics_model):
     """
     # Create a frictionless version of the model for a pure energy conservation test
     params_dict = full_dynamics_model.p_model.model_dump()
-    params_dict['cart_friction'] = 0.0
-    params_dict['joint1_friction'] = 0.0
-    params_dict['joint2_friction'] = 0.0
+    params_dict["cart_friction"] = 0.0
+    params_dict["joint1_friction"] = 0.0
+    params_dict["joint2_friction"] = 0.0
     model_no_friction = FullDIPDynamics(PhysicsConfig(**params_dict))
 
     state = np.array([0.0, 0.1, 0.05, 0.1, 0.2, 0.3])
     initial_energy = model_no_friction.total_energy(state)
-    
+
     # Take one step with zero input force
     next_state = model_no_friction.step(state, u=0.0, dt=0.01)
     final_energy = model_no_friction.total_energy(next_state)
-    
+
     # Energy should not increase (within a small tolerance for numerical error)
     # Allow a small tolerance due to numerical integration error.  A tolerance of
     # 1e-6 is more realistic for the RK4 integration used in the model.
-    assert final_energy <= initial_energy + 1e-6, (
-        "Passivity check failed: The model's energy increased without input."
-    )
+    assert (
+        final_energy <= initial_energy + 1e-6
+    ), "Passivity check failed: The model's energy increased without input."
 
 
 def test_singularity_check(full_dynamics_model):
@@ -82,43 +90,55 @@ def test_singularity_check(full_dynamics_model):
     numerically induced singular case by checking the determinant of the inertia matrix.
     """
     # 1. A standard configuration should not be singular.
-    H, _, _ = full_dynamics_model._compute_physics_matrices(np.array([0, 0, np.pi, 0, 0, 0]))
-    assert np.linalg.det(H) != 0, "A standard configuration was incorrectly flagged as singular."
+    H, _, _ = full_dynamics_model._compute_physics_matrices(
+        np.array([0, 0, np.pi, 0, 0, 0])
+    )
+    assert (
+        np.linalg.det(H) != 0
+    ), "A standard configuration was incorrectly flagged as singular."
 
     # 2. Induce a singularity by creating a model where the second pendulum has
     #    near-zero mass and inertia. This makes the inertia matrix ill-conditioned
     #    (numerically singular) without violating model parameter validation.
     singular_params_dict = full_dynamics_model.p_model.model_dump()
-    singular_params_dict['pendulum2_mass'] = 1e-12
-    singular_params_dict['pendulum2_inertia'] = 1e-12
+    singular_params_dict["pendulum2_mass"] = 1e-12
+    singular_params_dict["pendulum2_inertia"] = 1e-12
     model_singular = FullDIPDynamics(PhysicsConfig(**singular_params_dict))
-    
-    H_singular, _, _ = model_singular._compute_physics_matrices(np.array([0, 0, np.pi, 0, 0, 0]))
-    assert abs(np.linalg.det(H_singular)) < 1e-9, "A known singular configuration was not detected."
+
+    H_singular, _, _ = model_singular._compute_physics_matrices(
+        np.array([0, 0, np.pi, 0, 0, 0])
+    )
+    assert (
+        abs(np.linalg.det(H_singular)) < 1e-9
+    ), "A known singular configuration was not detected."
+
 
 def test_step_returns_nan_on_singular_params():
     p = FullDIPParams(
         cart_mass=1.0,
         pendulum1_mass=1.0,
-        pendulum2_mass=1e-12,     # force singularity
+        pendulum2_mass=1e-12,  # force singularity
         pendulum1_length=1.0,
         pendulum2_length=1.0,
         pendulum1_com=0.5,
         pendulum2_com=0.5,
         pendulum1_inertia=0.1,
-        pendulum2_inertia=1e-12,    # force singularity
+        pendulum2_inertia=1e-12,  # force singularity
         gravity=9.81,
         cart_friction=0.1,
         joint1_friction=0.1,
         joint2_friction=0.1,
     )
-    x = np.zeros(6); u = 0.0; dt = 0.01
+    x = np.zeros(6)
+    u = 0.0
+    dt = 0.01
     x_next = step_rk4_numba(x, u, dt, p)
     assert np.any(np.isnan(x_next))
 
+
 def test_pso_fitness_penalises_nan(monkeypatch):
     import src.optimizer.pso_optimizer as pso_mod
-    
+
     def fake_simulate_system_batch(controller_factory, particles, sim_time, u_max=None):
         """
         Lightweight stand‑in for the real ``simulate_system_batch`` function used in
@@ -162,7 +182,9 @@ def test_pso_fitness_penalises_nan(monkeypatch):
         x_b[0, 2, 0] = np.nan
         return t, x_b, u_b, sigma_b
 
-    monkeypatch.setattr(pso_mod, "simulate_system_batch", fake_simulate_system_batch, raising=True)
+    monkeypatch.setattr(
+        pso_mod, "simulate_system_batch", fake_simulate_system_batch, raising=True
+    )
 
     # Create a minimal dummy configuration object for the PSO tuner.  The PSOTuner
     # only accesses the ``physics``, ``simulation``, ``cost_function``, and
@@ -172,18 +194,24 @@ def test_pso_fitness_penalises_nan(monkeypatch):
 
     class DummyCost:
         """Simple cost configuration with required fields."""
+
         def __init__(self):
             # The weights object must have attributes used in PSOTuner
-            self.weights = type("W", (), {
-                "state_error": 1.0,
-                "control_effort": 1.0,
-                "control_rate": 1.0,
-                "stability": 1.0,
-            })()
+            self.weights = type(
+                "W",
+                (),
+                {
+                    "state_error": 1.0,
+                    "control_effort": 1.0,
+                    "control_rate": 1.0,
+                    "stability": 1.0,
+                },
+            )()
             self.instability_penalty = 1e6
 
     class DummySim:
         """Simulation configuration exposing duration and dt."""
+
         duration = 1.0
         dt = 0.01
 
@@ -214,7 +242,7 @@ def test_pso_fitness_penalises_nan(monkeypatch):
 
     tuner = pso_mod.PSOTuner(
         controller_factory=lambda gains: type("C", (), {"max_force": 150.0})(),
-        config=dummy_cfg
+        config=dummy_cfg,
     )
 
     # Manually set normalization factors as they are set inside `optimise` normally
@@ -224,10 +252,12 @@ def test_pso_fitness_penalises_nan(monkeypatch):
     tuner.norm_sigma = 1.0
 
     J = tuner._fitness(np.array([[1, 2, 3], [4, 5, 6]], float))
-    
+
     assert J[0] == pytest.approx(tuner.instability_penalty)
     assert np.isfinite(J[1])
-#=========================================================================================================================\\\
+
+
+# =========================================================================================================================\\\
 # END: test_full_dynamics.py
 
 # BEGIN: test_model_comparison.py
@@ -236,9 +266,8 @@ def test_pso_fitness_penalises_nan(monkeypatch):
 Test simplified vs. full dynamics model trajectories using shared fixtures.
 """
 
-import numpy as np
 import pytest
-from typing import Callable
+
 
 # The test uses the shared 'dynamics' and 'full_dynamics' fixtures from conftest.py.
 def test_simplified_vs_full_model_error(dynamics, full_dynamics):
@@ -265,17 +294,19 @@ def test_simplified_vs_full_model_error(dynamics, full_dynamics):
     # Compute the norm of the difference between trajectories
     error_norm = np.linalg.norm(states_full - states_simple, axis=1)
     final_error = error_norm[-1]
-    assert final_error < 5.0, (
-        f"Final trajectory error norm is too large: {final_error:.4f}"
-    )
- #   
+    assert (
+        final_error < 5.0
+    ), f"Final trajectory error norm is too large: {final_error:.4f}"
+
+
+#
 # END: test_model_comparison.py
 
 # BEGIN: test_dynamics_ill_conditioned.py
 # tests/test_dynamics_ill_conditioned.py ==============================================================\\\
 # A new test to verify that the dynamics model correctly handles ill-conditioned inertia matrices.
-import numpy as np
 from src.core.dynamics import rhs_numba, DIPParams
+
 
 def test_rhs_returns_nan_for_ill_conditioned_matrix():
     # Tiny m2/I2 -> near-singular inertia in certain poses
@@ -297,15 +328,16 @@ def test_rhs_returns_nan_for_ill_conditioned_matrix():
     state = np.array([0.0, 0.1, -0.1, 0.0, 0.0, 0.0], dtype=np.float64)
     out = rhs_numba(state, 0.0, p)
     assert np.all(np.isnan(out)), "Expected NaNs for ill-conditioned inertia matrix"
-#===================================================================================\\\    
+
+
+# ===================================================================================\\\
 # END: test_dynamics_ill_conditioned.py
 
 # BEGIN: test_linalg_fix.py
 # tests/test_linalg_fix.py ====================================================\\\
 
-import numpy as np
 import pytest
-from src.core.dynamics import rhs_numba, DIPParams
+
 
 def test_rhs_handles_singularity_gracefully():
     """
@@ -324,7 +356,7 @@ def test_rhs_handles_singularity_gracefully():
         pendulum1_com=0.5,
         pendulum2_com=0.5,
         pendulum1_inertia=0.1,
-        pendulum2_inertia=1e-12, # Effectively no inertia
+        pendulum2_inertia=1e-12,  # Effectively no inertia
         gravity=9.81,
         cart_friction=0.1,
         joint1_friction=0.01,
@@ -339,28 +371,36 @@ def test_rhs_handles_singularity_gracefully():
     xdot = rhs_numba(state, u, singular_params)
 
     # Assert that the output contains NaN values (the correct behavior)
-    assert np.any(np.isnan(xdot)), "rhs_numba should return NaN values when the inertia matrix is singular"
+    assert np.any(
+        np.isnan(xdot)
+    ), "rhs_numba should return NaN values when the inertia matrix is singular"
     assert xdot.shape == (6,), "The output of rhs_numba has an incorrect shape"
 
     # Verify all elements are NaN (comprehensive failure signal)
-    assert np.all(np.isnan(xdot)), "All elements should be NaN to clearly signal the failure"
-#===========================================================================================================\\\   
+    assert np.all(
+        np.isnan(xdot)
+    ), "All elements should be NaN to clearly signal the failure"
+
+
+# ===========================================================================================================\\\
 # END: test_linalg_fix.py
+
 
 # BEGIN: test_disturbance_boundary.py
 # tests/test_disturbance_boundary.py =====================================================================\\\
 def test_pulse_clamped_to_sim_end():
     sim_duration = 5.0
     d_start, d_dur, d_mag = 4.5, 1.0, 10.0
+
     def disturbance_function(time_now: float) -> float:
         window_end = min(d_start + d_dur, float(sim_duration))
         return float(d_mag) if (d_start <= time_now < window_end) else 0.0
 
-    assert disturbance_function(4.49) == 0.0   # before start
+    assert disturbance_function(4.49) == 0.0  # before start
     assert disturbance_function(4.50) == 10.0  # inside
     assert disturbance_function(4.99) == 10.0  # still inside
-    assert disturbance_function(5.00) == 0.0   # at sim end → clamped off
+    assert disturbance_function(5.00) == 0.0  # at sim end → clamped off
 
- #========================================================================================================================================\\\   
+
+# ========================================================================================================================================\\\
 # END: test_disturbance_boundary.py
-

@@ -40,15 +40,21 @@ def lane_c102() -> None:
             sys.path.insert(0, repo_root)
         cfg_mod = importlib.import_module("src.config")
         # Ensure config has the expected structure
-        cfg = getattr(cfg_mod, "config", SimpleNamespace(simulation=SimpleNamespace(use_full_dynamics=False)))
+        cfg = getattr(
+            cfg_mod,
+            "config",
+            SimpleNamespace(simulation=SimpleNamespace(use_full_dynamics=False)),
+        )
         runner = importlib.import_module("src.core.simulation_runner")
 
         # --- Low‑rank path ---
         cfg.simulation.use_full_dynamics = False
         # Patch low‑rank step to make path observable
         lowrank = importlib.import_module("src.core.dynamics_lowrank")
+
         def low_stub(x, u, dt):
             return ("lowrank", x, u, dt)
+
         orig_low = lowrank.step
         lowrank.step = low_stub
         try:
@@ -64,8 +70,10 @@ def lane_c102() -> None:
         cfg.simulation.use_full_dynamics = True
         # Ensure a full dynamics module is importable
         fullmod = importlib.import_module("src.core.dynamics_full")
+
         def full_stub(x, u, dt):
             return ("full", x, u, dt)
+
         orig_full = getattr(fullmod, "step")
         fullmod.step = full_stub  # type: ignore
         try:
@@ -87,16 +95,14 @@ def lane_c102() -> None:
                 runner.step(0, 0, 0.0)
                 fail("Expected missing full dynamics error")
             except Exception as e:  # noqa: BLE001
-                exp = (
-                    "Full dynamics unavailable: module 'dynamics_full' not found. Set config.simulation.use_full_dynamics=false or provide src/core/dynamics_full.py"
-                )
+                exp = "Full dynamics unavailable: module 'dynamics_full' not found. Set config.simulation.use_full_dynamics=false or provide src/core/dynamics_full.py"
                 if str(e) == exp:
                     ok("Exact missing full dynamics error message")
                 else:
                     fail("Missing full dynamics message mismatch", str(e))
         finally:
             runner.DYNAMICS_FULL_MODULE = orig_name
-    except Exception as e:  # noqa: BLE001
+    except Exception:  # noqa: BLE001
         fail("c1-02 lane setup failed", traceback.format_exc())
 
 
@@ -113,6 +119,7 @@ def lane_c103() -> None:
             sys.path.insert(0, repo_root)
         guards = importlib.import_module("src.core.safety_guards")
         import numpy as np
+
         # NaN/Inf guard
         try:
             bad = np.array([[1.0, np.nan], [0.0, 1.0]], dtype=float)
@@ -146,7 +153,7 @@ def lane_c103() -> None:
                 ok("Bounds guard substring matches")
             else:
                 fail("Bounds guard message mismatch", str(e))
-    except Exception as e:  # noqa: BLE001
+    except Exception:  # noqa: BLE001
         fail("c1-03 lane setup failed", traceback.format_exc())
 
 

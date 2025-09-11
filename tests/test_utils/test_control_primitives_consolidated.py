@@ -1,6 +1,8 @@
-import sys, pathlib, numpy as np, pytest
+import numpy as np
+import pytest
 
 from src.utils.control_primitives import saturate
+
 
 def test_control_primitives_core_behaviors():
     # scalar tanh + linear basic
@@ -18,7 +20,7 @@ def test_control_primitives_core_behaviors():
         saturate(1.0, -1.0)
 
     # vector shape + bounds (linear clips to [-1,1])
-    x = np.array([-10., -1., 0., 0.5, 2.0])
+    x = np.array([-10.0, -1.0, 0.0, 0.5, 2.0])
     y = saturate(x, 1.0, method="linear")
     assert y.shape == x.shape
     assert np.all(y >= -1.0) and np.all(y <= 1.0)

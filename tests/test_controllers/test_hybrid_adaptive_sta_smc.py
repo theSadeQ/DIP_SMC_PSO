@@ -61,14 +61,14 @@ def test_stabilization_and_adaptation(hybrid_controller, dynamics) -> None:
     )
 
     final_state = x1[-1]
-    assert np.all(np.abs(final_state[:3]) < 0.02), (
-        f"System did not stabilise. Final state: {final_state[:3]}"
-    )
+    assert np.all(
+        np.abs(final_state[:3]) < 0.02
+    ), f"System did not stabilise. Final state: {final_state[:3]}"
 
     max_abs_u = float(np.max(np.abs(u1))) if len(u1) else 0.0
-    assert max_abs_u <= hybrid_controller.max_force, (
-        f"Control output exceeded saturation limit. Max |u|: {max_abs_u}"
-    )
+    assert (
+        max_abs_u <= hybrid_controller.max_force
+    ), f"Control output exceeded saturation limit. Max |u|: {max_abs_u}"
 
     rms_error_pos = float(np.sqrt(np.mean(x1[:, 0] ** 2)))
     rms_error_ang1 = float(np.sqrt(np.mean(x1[:, 1] ** 2)))
@@ -109,7 +109,9 @@ def test_stabilization_and_adaptation(hybrid_controller, dynamics) -> None:
         dt=dt,
         initial_state=initial_state,
     )
-    np.testing.assert_allclose(x1, x2, err_msg="Simulation results are not reproducible.")
+    np.testing.assert_allclose(
+        x1, x2, err_msg="Simulation results are not reproducible."
+    )
 
     # Adaptation: gains increase, then slow
     state_vars = hybrid_controller.initialize_state()

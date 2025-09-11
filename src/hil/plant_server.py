@@ -18,11 +18,13 @@ try:
 except Exception:
     yaml = None
 
+
 def _load_config(cfg_path: Path) -> dict:
     if yaml is None:
         raise RuntimeError("PyYAML must be available to read config.yaml")
     with open(cfg_path, "r") as f:
         return yaml.safe_load(f) or {}
+
 
 def _get(cfg: dict, dotted: str, default=None):
     cur = cfg
@@ -33,6 +35,7 @@ def _get(cfg: dict, dotted: str, default=None):
             return default
     return cur
 
+
 def _build_dynamics(cfg: dict):
     """
     Build the dynamics model using the project's light/full models if present.
@@ -40,13 +43,19 @@ def _build_dynamics(cfg: dict):
     use_full = bool(_get(cfg, "simulation.use_full_dynamics", False))
     try:
         if use_full:
-            from src.models.double_inverted_pendulum_full import DoubleInvertedPendulumFull as Model
+            from src.models.double_inverted_pendulum_full import (
+                DoubleInvertedPendulumFull as Model,
+            )
         else:
-            from src.models.double_inverted_pendulum_light import DoubleInvertedPendulumLight as Model
+            from src.models.double_inverted_pendulum_light import (
+                DoubleInvertedPendulumLight as Model,
+            )
     except Exception:
+
         class Model:
             def __init__(self, dt: float):
                 self.dt = dt
+
             def step(self, x, u):
                 x = x.copy()
                 x[0] += self.dt
@@ -56,8 +65,10 @@ def _build_dynamics(cfg: dict):
                 x[4] += self.dt * ((0.0 if np.isscalar(u) else u[1]) - 0.1 * x[4])
                 x[5] += 0.0
                 return x
+
         return Model
     return Model
+
 
 class PlantServer:
     # Network packet formats incorporating sequence numbers and CRC‑32.
@@ -164,7 +175,9 @@ class PlantServer:
                     continue
                 # Decode the command packet: sequence, command, CRC.
                 try:
-                    seq, cmd_val, recv_crc = struct.unpack(self.CMD_FMT, data[: self.CMD_SIZE])
+                    seq, cmd_val, recv_crc = struct.unpack(
+                        self.CMD_FMT, data[: self.CMD_SIZE]
+                    )
                 except Exception:
                     continue
                 # Compute CRC over the sequence and command value (excluding the CRC field).
@@ -181,7 +194,9 @@ class PlantServer:
                     self.state = self.model.step(self.state, u)
                 except Exception:
                     try:
-                        self.state = self.model.step(self.state, np.array([u, 0.0], dtype=float))
+                        self.state = self.model.step(
+                            self.state, np.array([u, 0.0], dtype=float)
+                        )
                     except Exception:
                         pass
                 # Copy state and inject noise.
@@ -195,7 +210,9 @@ class PlantServer:
                 # last received sequence back to the controller as acknowledgement.
                 self.tx_seq = self.rx_seq
                 # Pack sequence and measurement values (6 floats).
-                payload = struct.pack("!I 6d", self.tx_seq, *[float(v) for v in meas[:6]])
+                payload = struct.pack(
+                    "!I 6d", self.tx_seq, *[float(v) for v in meas[:6]]
+                )
                 state_crc = zlib.crc32(payload) & 0xFFFFFFFF
                 pkt = payload + struct.pack("!I", state_crc)
                 try:
@@ -252,8 +269,12 @@ def start_server(cfg_path: str | Path, max_steps: Optional[int] = None) -> Plant
 
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description="HIL Plant Server (UDP)")
-    p.add_argument("--config", type=str, default="config.yaml", help="Path to config.yaml")
-    p.add_argument("--max-steps", type=int, default=None, help="Optional: exit after N steps")
+    p.add_argument(
+        "--config", type=str, default="config.yaml", help="Path to config.yaml"
+    )
+    p.add_argument(
+        "--max-steps", type=int, default=None, help="Optional: exit after N steps"
+    )
     args = p.parse_args(argv)
 
     _ = start_server(args.config, args.max_steps)
@@ -262,4 +283,4 @@ def main(argv=None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-#==============================================================================================\\\
+# ==============================================================================================\\\

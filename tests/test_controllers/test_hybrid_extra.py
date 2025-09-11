@@ -75,6 +75,8 @@ def _compute(ctrl, state, state_vars=None, history=None):
     if state_vars is None or history is None:
         state_vars, history = _init_sv_hist(ctrl)
     return ctrl.compute_control(state, state_vars, history)
+
+
 def test_dead_zone_freezes_int_and_gains(make_hybrid):
     """Inside the dead‑zone the STA integral and adaptation gains must not change."""
     ctrl = make_hybrid()
@@ -149,6 +151,7 @@ def test_u_eq_safety_zero_on_bad_condition(make_hybrid, full_dynamics):
 def test_reproducible_trajectories(make_hybrid, full_dynamics, initial_state):
     """Two controllers with identical parameters should produce identical trajectories."""
     from src.core.simulation_runner import run_simulation
+
     # First controller
     c1 = make_hybrid()
     if hasattr(c1, "set_dynamics"):
@@ -176,6 +179,7 @@ def test_reproducible_trajectories(make_hybrid, full_dynamics, initial_state):
 def test_robustness_sweep(make_hybrid, full_dynamics, dt, th1, th2):
     """Controller should stabilise a range of initial perturbations without NaNs or saturation."""
     from src.core.simulation_runner import run_simulation
+
     ctrl = make_hybrid(dt=dt)
     if hasattr(ctrl, "set_dynamics"):
         ctrl.set_dynamics(full_dynamics)
@@ -192,6 +196,7 @@ def test_robustness_sweep(make_hybrid, full_dynamics, dt, th1, th2):
 def test_gain_growth_slows_in_second_half(make_hybrid, full_dynamics, initial_state):
     """Adaptive gains should grow more slowly in the second half of a simulation."""
     from src.core.simulation_runner import run_simulation
+
     ctrl = make_hybrid()
     if hasattr(ctrl, "set_dynamics"):
         ctrl.set_dynamics(full_dynamics)
@@ -220,6 +225,7 @@ def test_gain_growth_slows_in_second_half(make_hybrid, full_dynamics, initial_st
 def test_long_run_no_drift(make_hybrid, full_dynamics, initial_state):
     """Over a long duration the controller should stabilise without drift."""
     from src.core.simulation_runner import run_simulation
+
     ctrl = make_hybrid()
     if hasattr(ctrl, "set_dynamics"):
         ctrl.set_dynamics(full_dynamics)
@@ -228,4 +234,6 @@ def test_long_run_no_drift(make_hybrid, full_dynamics, initial_state):
     assert np.max(np.abs(U)) <= ctrl.max_force + 1e-9
     # Final state should be close to the upright equilibrium
     assert np.all(np.abs(X[-1, :3]) < 0.02)
-#=============================================================================\\\
+
+
+# =============================================================================\\\

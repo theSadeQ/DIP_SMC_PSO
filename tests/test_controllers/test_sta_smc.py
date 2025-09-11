@@ -1,6 +1,6 @@
-#============================================================================================\\\
-#=========================== tests/test_controllers/test_sta_smc.py =========================\\\
-#============================================================================================\\\
+# ============================================================================================\\\
+# =========================== tests/test_controllers/test_sta_smc.py =========================\\\
+# ============================================================================================\\\
 import numpy as np
 import pytest
 from src.controllers.sta_smc import SuperTwistingSMC
@@ -23,6 +23,7 @@ class IllConditionedDynamics:
 @pytest.fixture
 def dynamics(physics_params):
     return DoubleInvertedPendulum(physics_params)
+
 
 def test_finite_time_convergence(dynamics, timeout=2.0):
     """STA sliding surface σ should converge below 1e-4 in ≤ 2 s."""
@@ -65,13 +66,16 @@ def test_finite_time_convergence(dynamics, timeout=2.0):
         assert convergence_time < timeout
     else:
         final_max_sigma = np.max(np.abs(sigma_b[:, -1]))
-        pytest.fail(f"STA did not converge within {timeout}s. Final max σ={final_max_sigma:.2e}")
+        pytest.fail(
+            f"STA did not converge within {timeout}s. Final max σ={final_max_sigma:.2e}"
+        )
+
 
 def test_initialize_and_compute_control(dynamics):
     """Smoke test for API contract of STA."""
     # ✅ Using the same PSO-optimized gains for consistency
     ctrl = SuperTwistingSMC(
-        gains=[1.1850,47.7040,1.0807,7.4019,46.9200,0.6699],
+        gains=[1.1850, 47.7040, 1.0807, 7.4019, 46.9200, 0.6699],
         dt=0.001,
         dynamics_model=dynamics,
     )
@@ -84,6 +88,7 @@ def test_initialize_and_compute_control(dynamics):
     assert isinstance(u, float)
     assert isinstance(sv2, tuple)
     assert isinstance(hist2, dict)
+
 
 def test_sta_smc_equivalent_control_singular():
     """When the inertia matrix is ill‑conditioned, SuperTwistingSMC should return u_eq=0.0."""
@@ -100,26 +105,48 @@ def test_sta_smc_equivalent_control_singular():
     u_eq = ctrl._compute_equivalent_control(state)
     assert u_eq == 0.0
 
+
 class DummyDyn:
     def __init__(self, M, C=None, G=None):
         self._M = M
         self._C = C if C is not None else np.zeros((3, 3))
         self._G = G if G is not None else np.zeros(3)
-    def _compute_physics_matrices(self, state): return self._M, self._C, self._G
+
+    def _compute_physics_matrices(self, state):
+        return self._M, self._C, self._G
+
 
 def test_equivalent_control_handles_singularity(caplog):
-    M = np.eye(3); M[0,0] = 1e-12  # ill-conditioned → cond ≫ 1e9
-    ctrl = SuperTwistingSMC(gains=[2.0,3.0], dt=0.01, max_force=100.0, damping_gain=0.0, boundary_layer=1e-3, dynamics_model=DummyDyn(M))
+    M = np.eye(3)
+    M[0, 0] = 1e-12  # ill-conditioned → cond ≫ 1e9
+    ctrl = SuperTwistingSMC(
+        gains=[2.0, 3.0],
+        dt=0.01,
+        max_force=100.0,
+        damping_gain=0.0,
+        boundary_layer=1e-3,
+        dynamics_model=DummyDyn(M),
+    )
     state = np.zeros(6)
     u_eq = ctrl._compute_equivalent_control(state)
     assert u_eq == 0.0
 
+
 def test_equivalent_control_clamps_large_value(caplog):
     M = np.eye(3)
     # Make G huge to drive u_eq large; controllability scalar is  L @ I @ B = Lx = 0.0 -> use small off-diagonal to avoid zero
-    dyn = DummyDyn(M, C=np.zeros((3,3)), G=np.array([0.0, 0.0, 1e6]))
-    ctrl = SuperTwistingSMC(gains=[2.0,3.0,5.0,3.0,2.0,1.0], dt=0.01, max_force=10.0, damping_gain=0.0, boundary_layer=1e-3, dynamics_model=dyn)
-    state = np.array([0,0.1,0.1,0,0,0], dtype=float)
+    dyn = DummyDyn(M, C=np.zeros((3, 3)), G=np.array([0.0, 0.0, 1e6]))
+    ctrl = SuperTwistingSMC(
+        gains=[2.0, 3.0, 5.0, 3.0, 2.0, 1.0],
+        dt=0.01,
+        max_force=10.0,
+        damping_gain=0.0,
+        boundary_layer=1e-3,
+        dynamics_model=dyn,
+    )
+    state = np.array([0, 0.1, 0.1, 0, 0, 0], dtype=float)
     u_eq = ctrl._compute_equivalent_control(state)
     assert abs(u_eq) <= 20.0  # clamped to ±2*max_force
-#==============================================================================================================================================\\\
+
+
+# ==============================================================================================================================================\\\

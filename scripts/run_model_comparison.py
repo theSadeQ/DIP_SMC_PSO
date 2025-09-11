@@ -26,8 +26,9 @@ def main() -> None:
     0.1 indicates that the simplified model is a reasonable surrogate
     for the full dynamics.
     """
-    logging.basicConfig(level=logging.INFO,
-                        format="%(asctime)s - %(levelname)s - %(message)s")
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    )
 
     logging.info("=" * 60)
     logging.info("Running Model Comparison")
@@ -58,8 +59,10 @@ def main() -> None:
         for name, state in test_states:
             metrics = compare_models(simple, full, state, u=0.0, dt=0.01)
             # Use a checkmark if the derivative error is within tolerance
-            valid = "✓" if metrics.get('derivative_error', float('inf')) < 0.1 else "✗"
-            logging.info(f"{name:<15} {metrics.get('derivative_error', float('nan')):<12.6f} {valid:<10}")
+            valid = "✓" if metrics.get("derivative_error", float("inf")) < 0.1 else "✗"
+            logging.info(
+                f"{name:<15} {metrics.get('derivative_error', float('nan')):<12.6f} {valid:<10}"
+            )
 
     except Exception as exc:
         # Log any failure during comparison

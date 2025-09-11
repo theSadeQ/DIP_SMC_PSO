@@ -29,17 +29,17 @@ try:
     from src.utils.control_primitives import saturate  # when repo root on sys.path
 except Exception:
     try:
-        from ..utils.control_primitives import saturate  # when importing as src.controllers.*
+        from src.utils.control_primitives import saturate  # when importing as src.controllers.*
     except Exception:
-        from utils.control_primitives import saturate    # when src itself on sys.path
+        from src.utils.control_primitives import saturate    # when src itself on sys.path
 
 try:
     from src.utils.control_outputs import STAOutput  # when repo root on sys.path
 except Exception:
     try:
-        from ..utils.control_outputs import STAOutput  # when importing as src.controllers.*
+        from src.utils.control_outputs import STAOutput  # when importing as src.controllers.*
     except Exception:
-        from utils.control_outputs import STAOutput    # when src itself on sys.path
+        from src.utils.control_outputs import STAOutput    # when src itself on sys.path
 from typing import Optional, List, Tuple, Dict, Union
 
 @numba.njit(cache=True)
@@ -50,6 +50,12 @@ def _sta_smc_control_numba(
     damping_gain: float, dt: float, max_force: float, boundary_layer: float,
     u_eq: float = 0.0
 ) -> Tuple[float, float, float]:
+    r"""
+    Numba‑accelerated core of the Super‑Twisting SMC.
+
+    Uses a saturated sign function for sigma to maintain full control authority
+    outside the boundary layer and linear behavior inside it, which is required
+    for robust, finite‑time convergence of the super‑twisting algorithm.
     """
     Numba‑accelerated core of the Super‑Twisting SMC.
 
@@ -138,6 +144,69 @@ def _sta_smc_core(
  
 
 class SuperTwistingSMC:
+    r"""
+    Second‑order (super‑twisting) sliding‑mode controller for the double‑inverted pendulum.
+
+    This controller implements the super‑twisting algorithm, a higher‑order
+    sliding‑mode technique that achieves finite‑time convergence without
+    requiring direct measurement of the sliding surface derivative.  Compared
+    with conventional (first‑order) sliding‑mode control, the super‑twisting
+    algorithm is known to mitigate chattering and reduce control effort,
+    offering improved tracking accuracy.  The
+    implementation uses a continuous saturation function within a boundary
+    layer ``ε`` to approximate the sign of the sliding variable σ,
+    consistent with the boundary‑layer approach for chattering reduction
+   .  The size of ``ε`` therefore controls
+    the trade‑off between chattering attenuation and steady‑state accuracy
+   .
+
+    **Gains:**
+
+      - If a 2‑element sequence ``[K1, K2]`` is provided, the sliding‑surface
+        gains and poles ``(k1, k2, λ1, λ2)`` are set to default values.
+      - A 6‑element sequence ``[K1, K2, k1, k2, λ1, λ2]`` specifies all
+        super‑twisting and surface parameters explicitly.
+
+    **Sliding surface:**
+
+    .. math::
+        \sigma = k_1\,(\dot{\theta}_1 + \lambda_1\,\theta_1) + k_2\,(\dot{\theta}_2 + \lambda_2\,\theta_2).
+
+    **Discrete‑time control law:**
+
+    .. math::
+        \begin{aligned}
+        u &= u_{\text{eq}} - K_1 \sqrt{|\sigma|}\,\operatorname{sat}\left( \frac{\sigma}{\epsilon} \right) + z - d\,\sigma,\\
+        z^+ &= z - K_2\,\operatorname{sat}\left( \frac{\sigma}{\epsilon} \right)\,dt,
+        \end{aligned}
+
+    where ``sat`` is a continuous approximation of ``sign`` (either linear or
+    hyperbolic tangent), ``d`` is the optional damping gain and ``u_eq`` is
+    the equivalent control derived from the dynamics model.  The final output
+    ``u`` and the disturbance‑like internal state ``z`` are both saturated
+    to lie within the actuator limits.
+
+    The boundary layer ε (> 0) is validated at construction time to avoid
+    division by zero in the saturated sign computation.  A well‑chosen ε
+    ensures finite‑time convergence and reduces chattering.
+
+    **Gain positivity (F‑4.SMCDesign.2 / RC‑04)**:  For finite‑time convergence of
+    the super‑twisting algorithm the algorithmic gains ``K1`` and ``K2`` must
+    be strictly positive and the sliding‑surface gains ``k1`` and ``k2`` together
+    with the slope parameters ``λ1`` and ``λ2`` must also be strictly positive.
+    Super‑twisting literature emphasises that positive constants are required to
+    ensure robust finite‑time stability【MorenoOsorio2012†L27-L40】 and positive
+    sliding‑surface coefficients guarantee that the error terms combine with
+    positive weights【OkstateThesis2013†L1415-L1419】.  The constructor therefore
+    validates all gains using ``require_positive`` and raises a ``ValueError``
+    when any gain is non‑positive.
+
+    Returns
+    -------
+    tuple
+        A triple ``(u, (z, σ), history)`` containing the saturated control
+        signal ``u``, the updated internal state and sliding surface value,
+        and a history dictionary (empty for this controller).
     """
     Second‑order (super‑twisting) sliding‑mode controller for the double‑inverted pendulum.
 
@@ -272,9 +341,9 @@ class SuperTwistingSMC:
             from src.utils.control_primitives import require_positive  # when repo root on sys.path
         except Exception:
             try:
-                from ..utils.control_primitives import require_positive  # when importing as src.controllers.*
+                from src.utils.control_primitives import require_positive  # when importing as src.controllers.*
             except Exception:
-                from utils.control_primitives import require_positive    # when src itself on sys.path
+                from src.utils.control_primitives import require_positive    # when src itself on sys.path
 
         # Integration step must be strictly positive to avoid division by
         # zero in discrete‑time updates.

@@ -1,6 +1,6 @@
-#======================================================================================\\\
+# ======================================================================================\\\
 # tsts/conftest.py ======================================================================================\\\
-#========================================================================================================\\\
+# ========================================================================================================\\\
 """Shared test configuration and fixtures.
 
 This module centralises test configuration for the project.  It exposes
@@ -14,7 +14,10 @@ idempotent and will not override values already set by the user or CI.
 """
 
 # --- begin: early, process-wide test env setup (before any src import) ---
-import os, sys, pathlib, shutil
+import os
+import sys
+import pathlib
+import shutil
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
@@ -63,9 +66,11 @@ except Exception:  # noqa: E402
 # Ensure downstream imports like "from src.core.dynamics import DoubleInvertedPendulum"
 # never fail due to reloads or missing alias.
 try:
-    import importlib
     import src.core.dynamics as _dyn_mod  # noqa: E402
-    if not hasattr(_dyn_mod, "DoubleInvertedPendulum") and hasattr(_dyn_mod, "DIPDynamics"):
+
+    if not hasattr(_dyn_mod, "DoubleInvertedPendulum") and hasattr(
+        _dyn_mod, "DIPDynamics"
+    ):
         setattr(_dyn_mod, "DoubleInvertedPendulum", _dyn_mod.DIPDynamics)
 except Exception:
     pass
@@ -80,8 +85,10 @@ from src.core.dynamics_full import FullDIPDynamics  # noqa: E402
 @pytest.fixture(autouse=True)
 def _ensure_dynamics_alias():
     import importlib
+
     try:
         import src.core.dynamics as m
+
         if not hasattr(m, "DoubleInvertedPendulum") and hasattr(m, "DIPDynamics"):
             # Reload then restore the alias if needed
             try:
@@ -96,6 +103,7 @@ def _ensure_dynamics_alias():
 
 
 # ------------------------------ Optional speed / duration fixtures ------------------------------
+
 
 @pytest.fixture
 def fast_pso(monkeypatch):
@@ -133,6 +141,7 @@ def long_simulation_config(monkeypatch):
 
 # ------------------------------------------ Core config / physics ------------------------------------------
 
+
 @pytest.fixture(scope="session")
 def config() -> ConfigSchema:
     """Load the YAML configuration once per test session."""
@@ -146,6 +155,7 @@ def physics_params(config: ConfigSchema) -> PhysicsConfig:
 
 
 # ---------------------------------------------- Dynamics fixtures ----------------------------------------------
+
 
 @pytest.fixture(scope="function")
 def dynamics(physics_params: PhysicsConfig) -> DIPDynamics:
@@ -161,6 +171,7 @@ def full_dynamics(physics_params: PhysicsConfig) -> FullDIPDynamics:
 
 # ---------------------------------------------- Shared helpers ----------------------------------------------
 
+
 @pytest.fixture(scope="session")
 def physics_cfg(physics_params: PhysicsConfig) -> PhysicsConfig:
     """Alias kept for backwards compatibility with some tests."""
@@ -171,6 +182,7 @@ def physics_cfg(physics_params: PhysicsConfig) -> PhysicsConfig:
 def initial_state() -> "np.ndarray":
     """A reasonable initial state for the double inverted pendulum."""
     import numpy as np
+
     # [x, θ1, θ2, ẋ, θ̇1, θ̇2]
     return np.array([0.0, 0.1, -0.05, 0.0, 0.0, 0.0], dtype=float)
 
@@ -202,9 +214,10 @@ def make_hybrid() -> "callable":
 
 # ---------------------------------------------- Pytest config ----------------------------------------------
 
+
 def pytest_configure(config):
     """Register custom markers to avoid 'unknown mark' warnings."""
     config.addinivalue_line("markers", "slow: mark test as long-running")
 
-#====================================================================================================================================================
-    
+
+# ====================================================================================================================================================

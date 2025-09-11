@@ -1,13 +1,13 @@
-#===================================================================================\\\
-#========================== tests/test_app/test_cli.py =============================\\\
-#===================================================================================\\\
+# ===================================================================================\\\
+# ========================== tests/test_app/test_cli.py =============================\\\
+# ===================================================================================\\\
 
 import subprocess
 import sys
 from pathlib import Path
 import pytest
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 
 # Note: A second definition of ``_run_cli`` existed in this file due to test
@@ -15,6 +15,7 @@ from unittest.mock import patch, MagicMock
 # exactly one implementation.  The definition above (at the top of this
 # module) should be used for all CLI invocations.  See the docstring on thef
 # first ``_run_cli`` for details.
+
 
 def test_app_fails_fast_on_invalid_controller():
     """
@@ -29,22 +30,28 @@ def test_app_fails_fast_on_invalid_controller():
 
     # Assert
     # 1. The process should fail (non-zero exit code).
-    assert result.returncode != 0, \
-        "app.py should exit with an error code on invalid controller, but it exited cleanly."
+    assert (
+        result.returncode != 0
+    ), "app.py should exit with an error code on invalid controller, but it exited cleanly."
 
     # 2. The stderr should contain a ValueError indicating the root cause.
-    assert "ValueError" in result.stderr, \
-        "Expected a ValueError in stderr for an unknown controller."
+    assert (
+        "ValueError" in result.stderr
+    ), "Expected a ValueError in stderr for an unknown controller."
 
     # 3. The error message should mention the invalid controller name.
-    assert invalid_controller_name in result.stderr, \
-        f"Stderr should contain the invalid controller name '{invalid_controller_name}'."
+    assert (
+        invalid_controller_name in result.stderr
+    ), f"Stderr should contain the invalid controller name '{invalid_controller_name}'."
 
     # 4. There should be NO warning about falling back to a PD controller.
-    assert "Falling back to a simple PD controller" not in result.stdout, \
-        "The silent fallback warning should NOT be present."
-    assert "Falling back to a simple PD controller" not in result.stderr, \
-        "The silent fallback warning should NOT be present."
+    assert (
+        "Falling back to a simple PD controller" not in result.stdout
+    ), "The silent fallback warning should NOT be present."
+    assert (
+        "Falling back to a simple PD controller" not in result.stderr
+    ), "The silent fallback warning should NOT be present."
+
 
 def test_app_fails_on_backend_error_in_hil(monkeypatch):
     """
@@ -78,7 +85,7 @@ with patch('app._get_run_simulation', return_value=boom):
 
     # Act: run the script in a new Python interpreter.  Running via -c ensures
     # that the patch is applied inside the same process that calls app.main.
-    cmd = [sys.executable, '-c', test_script]
+    cmd = [sys.executable, "-c", test_script]
     result = subprocess.run(
         cmd,
         cwd=(Path(__file__).resolve().parents[2]),
@@ -88,9 +95,13 @@ with patch('app._get_run_simulation', return_value=boom):
 
     # Assert: the process should have exited with a non-zero code and the
     # injected TypeError should be visible in stderr.
-    assert result.returncode != 0, "app.py should fail when the baseline simulation fails."
-    assert "TypeError: A critical backend error occurred" in result.stderr, \
-        "The specific backend error should be propagated to stderr."
+    assert (
+        result.returncode != 0
+    ), "app.py should fail when the baseline simulation fails."
+    assert (
+        "TypeError: A critical backend error occurred" in result.stderr
+    ), "The specific backend error should be propagated to stderr."
+
 
 def _run_cli(args: list[str]) -> subprocess.CompletedProcess:
     """Run app.py with given arguments and capture output."""
@@ -148,7 +159,9 @@ except Exception as e:
             text=True,
         )
 
-        assert result.returncode == 0, f"Expected success exit, got {result.returncode}. Output: {result.stdout}, Stderr: {result.stderr}"
+        assert (
+            result.returncode == 0
+        ), f"Expected success exit, got {result.returncode}. Output: {result.stdout}, Stderr: {result.stderr}"
         assert "SUCCESS:" in result.stdout
         assert "Double inverted pendulum dynamics model not found" in result.stdout
 
@@ -156,7 +169,10 @@ except Exception as e:
         """Verify that syntax errors in dynamics module cause immediate failure."""
         # Corrected: Patch the import function specifically within the 'app' module's scope.
         # This prevents the patch from affecting imports of app.py's dependencies.
-        with patch('app.importlib.import_module', side_effect=SyntaxError("Invalid syntax in module")):
+        with patch(
+            "app.importlib.import_module",
+            side_effect=SyntaxError("Invalid syntax in module"),
+        ):
             # Now, importing from app will succeed, but calling the function that
             # USES the patched import will fail as intended.
             from app import _build_dynamics
@@ -201,13 +217,16 @@ with patch('app._import_optional', return_value=None):
 """
         result = subprocess.run(
             [sys.executable, "-c", test_script],
-            cwd=Path(__file__).resolve().parents[2], # Run from project root
+            cwd=Path(__file__).resolve().parents[2],  # Run from project root
             capture_output=True,
             text=True,
         )
 
-        assert result.returncode == 0, f"Expected success exit, got {result.returncode}. Output: {result.stdout}, Stderr: {result.stderr}"
+        assert (
+            result.returncode == 0
+        ), f"Expected success exit, got {result.returncode}. Output: {result.stdout}, Stderr: {result.stderr}"
         assert "SUCCESS: Correct error raised" in result.stdout
+
 
 class TestUIFailFast:
     """Test that UI code fails fast on unexpected errors."""
@@ -242,11 +261,14 @@ except Exception as e:
             [sys.executable, "-c", test_script],
             cwd=Path(__file__).resolve().parents[2],
             capture_output=True,
-            text=True
+            text=True,
         )
 
-        assert result.returncode == 0, f"Expected exit 0 (correct error raised). Got {result.returncode}. Output: {result.stdout}, Stderr: {result.stderr}"
+        assert (
+            result.returncode == 0
+        ), f"Expected exit 0 (correct error raised). Got {result.returncode}. Output: {result.stdout}, Stderr: {result.stderr}"
         assert "SUCCESS:" in result.stdout
+
 
 class TestGeneralFailFast:
     """Test general fail-fast behavior."""
@@ -262,14 +284,14 @@ class TestGeneralFailFast:
         streamlit_path = Path(__file__).resolve().parents[2] / "streamlit_app.py"
 
         # Check app.py
-        with open(app_path, 'r') as f:
+        with open(app_path, "r") as f:
             app_content = f.read()
 
         # Look for problematic patterns in critical functions
         critical_functions = [
             "_build_dynamics",
             "_build_controller",
-            "_get_run_simulation"
+            "_get_run_simulation",
         ]
 
         for func in critical_functions:
@@ -287,17 +309,17 @@ class TestGeneralFailFast:
             func_content = app_content[start:end]
 
             # Check for broad exception handlers
-            assert "except Exception:" not in func_content, \
-                f"Found broad 'except Exception:' in {func}"
-            assert "except:" not in func_content, \
-                f"Found bare 'except:' in {func}"
+            assert (
+                "except Exception:" not in func_content
+            ), f"Found broad 'except Exception:' in {func}"
+            assert "except:" not in func_content, f"Found bare 'except:' in {func}"
 
     def test_app_crashes_on_missing_numpy(self):
         """Verify app.py fails fast if numpy is not installed."""
         app_path = (Path(__file__).resolve().parents[2] / "app.py").resolve()
 
         # A script that blocks numpy and tries to import app.py
-        test_script = f"""
+        test_script = """
 import sys
 import os
 sys.modules['numpy'] = None
@@ -316,10 +338,12 @@ except (ImportError, ModuleNotFoundError, RuntimeError, AttributeError):
             [sys.executable, "-c", test_script],
             cwd=app_path.parent,
             capture_output=True,
-            text=True
+            text=True,
         )
 
-        assert result.returncode == 123, f"App should fail with exit code 123 when numpy is missing. Got {result.returncode}. Output: {result.stdout}, Stderr: {result.stderr}"
+        assert (
+            result.returncode == 123
+        ), f"App should fail with exit code 123 when numpy is missing. Got {result.returncode}. Output: {result.stdout}, Stderr: {result.stderr}"
 
 
 def test_app_fails_fast_on_invalid_fdi_config(tmp_path):
@@ -415,6 +439,12 @@ hil:
     # Assert
     assert result.returncode != 0, "app.py should fail with a misconfigured FDI"
     # Depending on validation implementation, Pydantic's ValidationError is typical
-    assert ("ValidationError" in result.stderr) or ("TypeError" in result.stderr) or ("ValueError" in result.stderr)
+    assert (
+        ("ValidationError" in result.stderr)
+        or ("TypeError" in result.stderr)
+        or ("ValueError" in result.stderr)
+    )
     assert "residual_threshold" in result.stderr or "FDIsystem" in result.stderr
-#===================================================================================================================\\\
+
+
+# ===================================================================================================================\\\

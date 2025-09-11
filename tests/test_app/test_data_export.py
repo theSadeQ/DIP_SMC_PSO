@@ -16,11 +16,12 @@ from src.core.dynamics import DIPDynamics
 from src.core.simulation_runner import run_simulation
 from src.config import load_config
 
+
 def test_csv_export_includes_final_state(tmp_path):
     """
     Verify that the exported CSV from the Streamlit app is not truncated
     and includes the final simulation state.
-    
+
     Why: This test catches the off-by-one error where the final state vector
     was being omitted from the CSV export. We simulate the exact export logic
     from streamlit_app.py to ensure data integrity.
@@ -41,40 +42,58 @@ def test_csv_export_includes_final_state(tmp_path):
         dt=dt,
         initial_state=np.zeros(6),
     )
-    
+
     # Verify our assumptions about the simulation output
     assert len(t_sim) == n_steps + 1  # 0.0, 0.01, ..., 0.1 (11 values)
     assert len(x_sim) == n_steps + 1  # 11 state vectors
-    assert len(u_sim) == n_steps      # 10 control inputs
+    assert len(u_sim) == n_steps  # 10 control inputs
 
     # 2. Simulate the CORRECTED export logic from streamlit_app.py
     zip_buf = io.BytesIO()
-    with zipfile.ZipFile(zip_buf, 'w', zipfile.ZIP_DEFLATED) as zf:
+    with zipfile.ZipFile(zip_buf, "w", zipfile.ZIP_DEFLATED) as zf:
         csv_buf = io.StringIO()
         writer = csv.writer(csv_buf)
-        writer.writerow(["time", "x", "theta1", "theta2", "x_dot", "theta1_dot", "theta2_dot", "u"])
-        
+        writer.writerow(
+            ["time", "x", "theta1", "theta2", "x_dot", "theta1_dot", "theta2_dot", "u"]
+        )
+
         # Write the N rows with corresponding controls
         for i in range(len(u_sim)):
-            writer.writerow([
-                t_sim[i], x_sim[i, 0], x_sim[i, 1], x_sim[i, 2],
-                x_sim[i, 3], x_sim[i, 4], x_sim[i, 5], u_sim[i]
-            ])
-        
+            writer.writerow(
+                [
+                    t_sim[i],
+                    x_sim[i, 0],
+                    x_sim[i, 1],
+                    x_sim[i, 2],
+                    x_sim[i, 3],
+                    x_sim[i, 4],
+                    x_sim[i, 5],
+                    u_sim[i],
+                ]
+            )
+
         # Write the final state row with a placeholder for control
-        writer.writerow([
-            t_sim[-1], x_sim[-1, 0], x_sim[-1, 1], x_sim[-1, 2],
-            x_sim[-1, 3], x_sim[-1, 4], x_sim[-1, 5], ''
-        ])
-        
+        writer.writerow(
+            [
+                t_sim[-1],
+                x_sim[-1, 0],
+                x_sim[-1, 1],
+                x_sim[-1, 2],
+                x_sim[-1, 3],
+                x_sim[-1, 4],
+                x_sim[-1, 5],
+                "",
+            ]
+        )
+
         zf.writestr("simulation_data.csv", csv_buf.getvalue())
 
     # 3. Read back and verify the CSV content
     zip_buf.seek(0)
-    with zipfile.ZipFile(zip_buf, 'r') as zf:
-        with zf.open('simulation_data.csv') as f:
+    with zipfile.ZipFile(zip_buf, "r") as zf:
+        with zf.open("simulation_data.csv") as f:
             # Read the CSV content
-            reader = csv.reader(io.TextIOWrapper(f, 'utf-8'))
+            reader = csv.reader(io.TextIOWrapper(f, "utf-8"))
             rows = list(reader)
 
             # Assert row count: header + N steps + final state row
@@ -85,74 +104,88 @@ def test_csv_export_includes_final_state(tmp_path):
 
             # Assert header is correct
             header = rows[0]
-            assert header[0] == "time" and header[-1] == "u", f"Invalid header: {header}"
+            assert (
+                header[0] == "time" and header[-1] == "u"
+            ), f"Invalid header: {header}"
 
             # Assert data rows have correct structure
             for i in range(1, n_steps + 1):  # Rows 1 through n_steps
                 row = rows[i]
                 assert len(row) == 8, f"Row {i} has {len(row)} columns, expected 8"
-                
+
                 # Verify time value
                 time_val = float(row[0])
                 expected_time = (i - 1) * dt
                 np.testing.assert_allclose(time_val, expected_time, atol=1e-9)
-                
+
                 # Verify control value exists
-                assert row[7] != '', f"Row {i} missing control value"
+                assert row[7] != "", f"Row {i} missing control value"
 
             # Assert last row contains the final state with empty control
             last_row = rows[-1]
-            assert len(last_row) == 8, f"Last row has {len(last_row)} columns, expected 8"
-            
+            assert (
+                len(last_row) == 8
+            ), f"Last row has {len(last_row)} columns, expected 8"
+
             # Parse numerical values (excluding the empty control column)
             last_time = float(last_row[0])
             last_state = np.array([float(last_row[j]) for j in range(1, 7)])
             last_control = last_row[7]
-            
+
             # Verify final time
             np.testing.assert_allclose(last_time, t_sim[-1], atol=1e-9)
-            
+
             # Verify final state
             np.testing.assert_allclose(last_state, x_sim[-1], atol=1e-9)
-            
+
             # Verify control is empty placeholder
-            assert last_control == '', "Final row should have empty control placeholder"
+            assert last_control == "", "Final row should have empty control placeholder"
 
 
 def test_csv_export_with_old_bug():
     """
     Test that demonstrates the bug in the original code.
     This test would FAIL with the old code but passes with the fix.
-    
+
     Why: We explicitly test the buggy behavior to ensure we understand
     what was wrong and verify our fix addresses it.
     """
     # Create mock data
     n_steps = 5
     t_sim = np.linspace(0, 0.05, n_steps + 1)  # 6 time points
-    x_sim = np.random.randn(n_steps + 1, 6)    # 6 state vectors
-    u_sim = np.random.randn(n_steps)           # 5 control inputs
-    
+    x_sim = np.random.randn(n_steps + 1, 6)  # 6 state vectors
+    u_sim = np.random.randn(n_steps)  # 5 control inputs
+
     # Simulate the BUGGY export logic
     csv_buf = io.StringIO()
     writer = csv.writer(csv_buf)
-    writer.writerow(["time", "x", "theta1", "theta2", "x_dot", "theta1_dot", "theta2_dot", "u"])
-    
+    writer.writerow(
+        ["time", "x", "theta1", "theta2", "x_dot", "theta1_dot", "theta2_dot", "u"]
+    )
+
     # The buggy loop that caused the issue
     for i in range(len(t_sim) - 1):  # This only writes 5 rows!
-        writer.writerow([
-            t_sim[i], x_sim[i, 0], x_sim[i, 1], x_sim[i, 2],
-            x_sim[i, 3], x_sim[i, 4], x_sim[i, 5], u_sim[i]
-        ])
-    
+        writer.writerow(
+            [
+                t_sim[i],
+                x_sim[i, 0],
+                x_sim[i, 1],
+                x_sim[i, 2],
+                x_sim[i, 3],
+                x_sim[i, 4],
+                x_sim[i, 5],
+                u_sim[i],
+            ]
+        )
+
     # Read back the buggy CSV
     csv_buf.seek(0)
     reader = csv.reader(csv_buf)
     rows = list(reader)
-    
+
     # The bug: we have 6 states but only 5 data rows + 1 header = 6 total rows
     assert len(rows) == n_steps + 1  # Should be n_steps + 2 for complete data!
-    
+
     # The final state x_sim[-1] at t_sim[-1] is missing!
     # This is the bug we fixed.
 
@@ -161,43 +194,47 @@ def test_csv_numeric_precision():
     """
     Verify that numerical values are preserved with sufficient precision
     through the CSV export/import cycle.
-    
+
     Why: CSV is text-based, so we need to ensure floating-point values
     maintain adequate precision for analysis.
     """
     # Create data with known precision requirements
     t_sim = np.array([0.0, 0.001, 0.002, 0.003])
-    x_sim = np.array([
-        [1.23456789, -0.98765432, 3.14159265, -2.71828183, 0.57721566, -1.41421356],
-        [1.23456790, -0.98765431, 3.14159266, -2.71828182, 0.57721567, -1.41421355],
-        [1.23456791, -0.98765430, 3.14159267, -2.71828181, 0.57721568, -1.41421354],
-        [1.23456792, -0.98765429, 3.14159268, -2.71828180, 0.57721569, -1.41421353],
-    ])
+    x_sim = np.array(
+        [
+            [1.23456789, -0.98765432, 3.14159265, -2.71828183, 0.57721566, -1.41421356],
+            [1.23456790, -0.98765431, 3.14159266, -2.71828182, 0.57721567, -1.41421355],
+            [1.23456791, -0.98765430, 3.14159267, -2.71828181, 0.57721568, -1.41421354],
+            [1.23456792, -0.98765429, 3.14159268, -2.71828180, 0.57721569, -1.41421353],
+        ]
+    )
     u_sim = np.array([10.123456, -20.234567, 30.345678])
-    
+
     # Export to CSV
     csv_buf = io.StringIO()
     writer = csv.writer(csv_buf)
-    writer.writerow(["time", "x", "theta1", "theta2", "x_dot", "theta1_dot", "theta2_dot", "u"])
-    
+    writer.writerow(
+        ["time", "x", "theta1", "theta2", "x_dot", "theta1_dot", "theta2_dot", "u"]
+    )
+
     for i in range(len(u_sim)):
         writer.writerow([t_sim[i], *x_sim[i], u_sim[i]])
-    writer.writerow([t_sim[-1], *x_sim[-1], ''])
-    
+    writer.writerow([t_sim[-1], *x_sim[-1], ""])
+
     # Read back and verify precision
     csv_buf.seek(0)
     reader = csv.reader(csv_buf)
     next(reader)  # Skip header
-    
+
     for i, row in enumerate(reader):
         if i < len(u_sim):
             # Verify time
             np.testing.assert_allclose(float(row[0]), t_sim[i], rtol=1e-15)
-            
+
             # Verify state (at least 6 decimal places)
             state_from_csv = np.array([float(row[j]) for j in range(1, 7)])
             np.testing.assert_allclose(state_from_csv, x_sim[i], rtol=1e-6)
-            
+
             # Verify control
             np.testing.assert_allclose(float(row[7]), u_sim[i], rtol=1e-6)
         else:
@@ -205,11 +242,10 @@ def test_csv_numeric_precision():
             np.testing.assert_allclose(float(row[0]), t_sim[-1], rtol=1e-15)
             state_from_csv = np.array([float(row[j]) for j in range(1, 7)])
             np.testing.assert_allclose(state_from_csv, x_sim[-1], rtol=1e-6)
-            assert row[7] == ''
+            assert row[7] == ""
 
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-#==================================================================================================\\\
+# ==================================================================================================\\\
 # END: test_data_export.py
-

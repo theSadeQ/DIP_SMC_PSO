@@ -25,7 +25,6 @@ from __future__ import annotations
 
 import hashlib
 import logging
-import os
 import subprocess
 from typing import Any, Dict
 
@@ -109,7 +108,9 @@ def _get_git_commit() -> str:
         return "unknown"
 
 
-def configure_provenance_logging(config: Dict[str, Any], seed: int, *, level: int = logging.INFO) -> None:
+def configure_provenance_logging(
+    config: Dict[str, Any], seed: int, *, level: int = logging.INFO
+) -> None:
     """Configure the root logger with provenance stamping.
 
     This helper sets up logging such that each log record includes
