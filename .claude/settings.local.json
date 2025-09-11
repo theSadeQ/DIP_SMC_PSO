@@ -14,7 +14,9 @@
       "Bash(/c/ProgramData/anaconda3/python.exe -m black -q .)",
       "Bash(echo:*)",
       "Bash(/c/ProgramData/anaconda3/python.exe -m pip install ruff black)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(./xlude.sh:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
