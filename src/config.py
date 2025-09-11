@@ -1,10 +1,11 @@
-﻿from pydantic_settings import BaseSettings, SettingsConfigDict
-#==================================================================================\\\
+﻿#==================================================================================\\\
 # src/config.py ===================================================================\\\
 #==================================================================================\\\
 
 from __future__ import annotations
 
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import (
 import json
 import logging
 import os
@@ -15,7 +16,6 @@ from typing import Any, Dict, List, Optional, Tuple, Type
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator, model_validator
 from pydantic.fields import FieldInfo
-from pydantic_settings import (
     BaseSettings as PydanticBaseSettings,
     PydanticBaseSettingsSource,
     SettingsConfigDict,
