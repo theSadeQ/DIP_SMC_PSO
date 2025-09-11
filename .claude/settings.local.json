@@ -34,7 +34,8 @@
       "Bash(test:*)",
       "Bash(chmod:*)",
       "Bash(gh pr:*)",
-      "Bash(py -m pip install:*)"
+      "Bash(py -m pip install:*)",
+      "Bash(./xlude.sh:*)"
     ],
     "deny": [],
     "ask": []
