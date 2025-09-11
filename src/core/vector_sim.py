@@ -47,45 +47,39 @@ def simulate(
 ) -> NDArray[np.float64]:
     """Simulate a dynamical system forward in time.
 
-    >>> # Test basic simulation with mock step function
+    Examples
+    --------
+    Scalar (single) trajectory:
+
     >>> import numpy as np
     >>> rng = np.random.default_rng(0)
-    >>> 
-    >>> # Simple scalar simulation (basic case)
-    >>> initial = np.array([1.0, 0.0])  # position, velocity
-    >>> controls = np.array([0.1, -0.1, 0.0])  # 3 control steps
-    >>> dt = 0.1
-    >>> 
-    >>> # This doctest verifies the interface and shape handling
-    >>> # For actual simulation testing, use the integration tests
-    >>> # Here we just validate basic structure
-    >>> assert isinstance(initial, np.ndarray)
-    >>> assert isinstance(controls, np.ndarray)
-    >>> assert len(controls) == 3
-    >>> 
-    >>> # Test batched input shapes (interface validation)
-    >>> initial_batch = np.array([[1.0, 0.0], [2.0, 0.5]])
-    >>> controls_batch = np.array([[0.1, -0.1, 0.0], [0.2, 0.0, -0.1]])
-    >>> 
-    >>> # Validate input dimensions
-    >>> assert initial_batch.shape == (2, 2), f"Expected (2, 2), got {initial_batch.shape}"
-    >>> assert controls_batch.shape == (2, 3), f"Expected (2, 3), got {controls_batch.shape}"
 
-    **Shapes:**
+    >>> x = simulate(
+    ...     initial_state=np.zeros(2),
+    ...     control_inputs=np.array([0.1, -0.1, 0.0]),
+    ...     dt=0.1,
+    ...     horizon=3,
+    ... )
+    >>> x.shape
+    (4, 2)
 
-    ==============================  ====================
-    Input/Output                    Shape
-    ==============================  ====================
-    Single trajectory shape         (H+1, D)
-    Batched trajectory shape        (B, H+1, D)
-    ==============================  ====================
+    Basic interface validation for batched inputs:
 
-    **Early-stop/Truncation Semantics:**
+    >>> rng = np.random.default_rng(0)
+    >>> x0 = np.zeros((3, 2))  # B=3, D=2
+    >>> assert x0.shape == (3, 2)
+    >>> controls = np.array([0.1, 0.0])  # H=2 controls
+    >>> assert controls.shape == (2,)
 
-    If early stopping occurs via `stop_fn` or safety guards, the output is
-    truncated to include only the successfully computed steps. The initial
-    state is always included at index 0. For batched simulations, the earliest
-    stopping time across all batch elements determines the truncation point.
+    Shapes
+    ------
+    Inputs:
+      initial_state : (D,) or (B, D)
+      (controls)    : (H,) | (H,U) | (B,H) | (B,H,U)
+    Outputs:
+      Single:  (H+1, D)
+      Batched: (B, H+1, D)
+    Early-stop truncates outputs to executed steps (+ initial).
 
     Parameters
     ----------
@@ -250,14 +244,14 @@ def simulate(
 
 def simulate_system_batch(
     *,
-    controller_factory: Callable[[np.ndarray], Any],
-    particles: Any,
+    controller_factory: Callable[[NDArray[np.float64]], Any],
+    particles: ArrayLike,
     sim_time: float,
     dt: float,
     u_max: Optional[float] = None,
     seed: Optional[int] = None,
     params_list: Optional[Iterable[Any]] = None,
-    initial_state: Optional[Any] = None,
+    initial_state: Optional[ArrayLike] = None,
     convergence_tol: Optional[float] = None,
     grace_period: float = 0.0,
     rng: Optional[np.random.Generator] = None,

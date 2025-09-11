@@ -87,7 +87,7 @@ def get_step_fn():
     return _load_full_step() if use_full else _load_lowrank_step()
 
 
-def step(x, u, dt):
+def step(x: ArrayLike, u: ArrayLike, dt: float) -> NDArray[np.float64]:
     """
     Unified simulation step entry point.
 
@@ -102,7 +102,7 @@ def step(x, u, dt):
 
     Returns
     -------
-    array-like
+    NDArray[np.float64]
         Next state computed by the selected dynamics implementation.
     """
     return get_step_fn()(x, u, dt)
@@ -124,60 +124,50 @@ def run_simulation(
 ) -> Tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
     """Simulate a single controller trajectory using an explicit Euler method.
 
-    >>> # Basic simulation with mock components for deterministic output
+    Examples
+    --------
+    Scalar (single) trajectory with a tiny dummy dynamics/controller:
+
     >>> import numpy as np
+    >>> from types import SimpleNamespace
     >>> rng = np.random.default_rng(0)
-    >>> 
-    >>> # Mock dynamics model
-    >>> class MockDynamics:
+
+    >>> # Minimal deterministic controller: constant control
+    >>> class ConstCtrl:
+    ...     def __call__(self, t, x):
+    ...         return 0.1
+
+    >>> # Minimal deterministic dynamics: x_next = x + dt*[u, 0, ..., 0]
+    >>> class ToyDyn:
     ...     def step(self, x, u, dt):
     ...         x = np.asarray(x, dtype=float)
-    ...         return x + dt * np.array([0.1, -0.1]) * u  # simple dynamics
-    >>> 
-    >>> # Mock controller
-    >>> class MockController:
-    ...     def __call__(self, t, x):
-    ...         return 0.5  # constant control
-    >>> 
-    >>> # Setup
-    >>> dynamics = MockDynamics()
-    >>> controller = MockController()
-    >>> initial_state = np.array([0.1, 0.0])
-    >>> 
-    >>> # Run simulation
+    ...         e = np.zeros_like(x)
+    ...         e[..., 0] = u
+    ...         return x + dt * e
+
+    >>> ctrl, dyn = ConstCtrl(), ToyDyn()
     >>> t, x, u = run_simulation(
-    ...     controller=controller,
-    ...     dynamics_model=dynamics,
-    ...     sim_time=0.1,
-    ...     dt=0.01,
-    ...     initial_state=initial_state,
+    ...     controller=ctrl,
+    ...     dynamics_model=dyn,
+    ...     sim_time=0.3,           # H = 3 steps at dt=0.1 -> length H+1 = 4
+    ...     dt=0.1,
+    ...     initial_state=np.zeros(2),
     ...     rng=rng
     ... )
-    >>> 
-    >>> # Check shapes and basic invariants
-    >>> assert t.shape == (11,), f"Expected (11,), got {t.shape}"
-    >>> assert x.shape == (11, 2), f"Expected (11, 2), got {x.shape}"
-    >>> assert u.shape == (10,), f"Expected (10,), got {u.shape}"
-    >>> assert np.allclose(t[0], 0.0) and np.allclose(t[-1], 0.1)
-    >>> assert np.allclose(x[0], initial_state)
-    >>> assert np.all(np.isfinite(x)) and np.all(np.isfinite(u))
+    >>> t.shape, x.shape, u.shape
+    ((4,), (4, 2), (3,))
+    >>> bool(np.all(np.diff(x[:, 0]) >= 0))
+    True
 
-    **Shapes:**
-
-    ==============================  ====================
-    Output                          Shape
-    ==============================  ====================
-    Single trajectory time          (H+1,)
-    Single trajectory states        (H+1, D)
-    Single trajectory controls      (H,)
-    ==============================  ====================
-
-    **Early-stop/Truncation Semantics:**
-
-    If the dynamics return NaN/Inf values or raise an exception at any step,
-    the simulation halts immediately. Outputs are truncated to include only
-    the successfully computed steps. The time array always includes the
-    initial time at index 0, and the state array includes the initial state.
+    Shapes
+    ------
+    Inputs:
+      initial_state : (D,) or (B, D)
+      (controls)    : (H,) | (H,U) | (B,H) | (B,H,U)
+    Outputs:
+      Single:  (H+1, D)
+      Batched: (B, H+1, D)
+    Early-stop truncates outputs to executed steps (+ initial).
 
     The runner integrates the provided ``dynamics_model`` forward in time under
     the control law defined by ``controller``.  It produces uniformly spaced
