@@ -18,7 +18,7 @@ import numpy as np
 
 
 def _sat_tanh(x: float, width: float) -> float:
-    """Smooth sign via tanh with width>0; behaves like sign(x) for |x|>>width."""
+    r"""Smooth sign via tanh with width>0; behaves like sign(x) for |x|>>width."""
     w = max(float(width), 1e-9)
     return float(np.tanh(x / w))
 
@@ -369,7 +369,7 @@ class HybridAdaptiveSTASMC:
         return list(self._gains)
 
     def set_dynamics(self, dynamics_model: Any) -> None:
-        """Attach dynamics model providing _compute_physics_matrices(state)->(M,C,G)."""
+        r"""Attach dynamics model providing _compute_physics_matrices(state)->(M,C,G)."""
         self.dyn = dynamics_model
 
     def initialize_state(self) -> Tuple[float, float, float]:
@@ -380,7 +380,7 @@ class HybridAdaptiveSTASMC:
 
     # --------------------- internals -----------------------
     def _compute_sliding_surface(self, state: np.ndarray) -> float:
-        """Compute the sliding surface value s.
+        r"""Compute the sliding surface value s.
 
         The state ordering is [x, θ1, θ2, ẋ, θ̇1, θ̇2].  In the original
         implementation the sliding surface combined the joint velocities and
@@ -425,7 +425,7 @@ class HybridAdaptiveSTASMC:
         return float(-s_raw)
 
     def _compute_equivalent_control(self, state: np.ndarray) -> float:
-        """
+        r"""
         Compute an approximate equivalent control based on the system
         dynamics.  When the equivalent control is enabled (``self.use_equivalent``) and
         the dynamics model provides inertia, Coriolis, and gravity matrices,

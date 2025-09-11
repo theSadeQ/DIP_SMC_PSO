@@ -319,7 +319,7 @@ class ClassicalSMC:
     # ------------------------------------------------------------------
     @property
     def gains(self) -> List[float]:
-        """Return the list of gains used by this controller.
+        r"""Return the list of gains used by this controller.
 
         This property exposes the six control gains in the canonical order
         ``[k1, k2, lam1, lam2, K, kd]`` for external introspection.  The
@@ -329,16 +329,16 @@ class ClassicalSMC:
         return list(self._gains)
 
     def initialize_state(self) -> tuple:
-        """No internal state for classical SMC; returns an empty tuple."""
+        r"""No internal state for classical SMC; returns an empty tuple."""
         return ()
 
     def initialize_history(self) -> dict:
-        """No history tracked for classical SMC; returns an empty dict."""
+        r"""No history tracked for classical SMC; returns an empty dict."""
         return {}
 
     @staticmethod
     def validate_gains(gains: Union[Sequence[float], np.ndarray, Any]) -> None:
-        """
+        r"""
         Validate that exactly six gains have been provided for the classical SMC.
 
         The classical sliding–mode controller uses six gains in the order
@@ -375,7 +375,7 @@ class ClassicalSMC:
             )
 
     def _compute_sliding_surface(self, state: np.ndarray) -> float:
-        """Compute the sliding surface value, ``sigma``.
+        r"""Compute the sliding surface value, ``sigma``.
 
         Args:
             state: State vector ``[x, theta1, theta2, xdot, dtheta1, dtheta2]``.
@@ -387,7 +387,7 @@ class ClassicalSMC:
         return self.lam1 * theta1 + self.lam2 * theta2 + self.k1 * dtheta1 + self.k2 * dtheta2
 
     def _compute_equivalent_control(self, state: np.ndarray) -> float:
-        """Compute the model-based equivalent control ``u_eq`` with enhanced robustness.
+        r"""Compute the model-based equivalent control ``u_eq`` with enhanced robustness.
 
         Args:
             state: State vector ``[x, theta1, theta2, xdot, dtheta1, dtheta2]``.

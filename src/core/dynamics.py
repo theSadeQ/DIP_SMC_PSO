@@ -210,7 +210,7 @@ class DIPParams(NamedTuple):
 
     @classmethod
     def from_physics_config(cls, cfg: Any) -> "DIPParams":
-        """Create a :class:`DIPParams` instance from a PhysicsConfig.
+        r"""Create a :class:`DIPParams` instance from a PhysicsConfig.
 
         This helper converts a high‑level :class:`src.config.PhysicsConfig` into the
         named‑tuple format required by the numba kernels.  Missing regularisation
@@ -309,7 +309,7 @@ def compute_matrices_numba(state: np.ndarray, p: DIPParams) -> Tuple[np.ndarray,
 
 @njit(cache=True, nogil=True, fastmath=False)
 def rhs_numba(state: np.ndarray, u: float, p: DIPParams) -> np.ndarray:
-    """
+    r"""
     Compute the time derivative of the state for the simplified dynamics.
 
     This implementation adds a small Tikhonov regularisation term to the
@@ -566,7 +566,7 @@ class DoubleInvertedPendulum:
         return compute_matrices_numba(state.astype(np.float64), self.params)
 
     def _rhs_core(self, state: np.ndarray, u: float) -> np.ndarray:
-        """
+        r"""
         Evaluate the right‑hand side of the state ODE.
 
         This method wraps the low‑level ``rhs_numba`` implementation and
@@ -588,7 +588,7 @@ class DoubleInvertedPendulum:
         return xdot
 
     def step(self, state: np.ndarray, u: float, dt: float) -> np.ndarray:
-        """Integrate the dynamics over one time step.
+        r"""Integrate the dynamics over one time step.
 
         Depending on the ``integration_scheme`` attribute this method will
         either perform a single fixed‑step RK4 integration or invoke the
@@ -675,7 +675,7 @@ class DoubleInvertedPendulum:
         return self.step(state, u, dt)
 
     def _step_symplectic(self, state: np.ndarray, u: float, dt: float) -> np.ndarray:
-        """Perform a symplectic velocity‑Verlet integration step.
+        r"""Perform a symplectic velocity‑Verlet integration step.
 
         Symplectic integrators preserve the Hamiltonian structure of
         mechanical systems and maintain bounded energy error over long

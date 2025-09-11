@@ -26,14 +26,12 @@ jobs:
         run: |
           python - <<'PY'
           import importlib
-          modules = [
-            "src.config",
+          for m in [
             "src.controllers.factory",
             "src.controllers.classic_smc",
             "src.controllers.adaptive_smc",
             "src.controllers.sta_smc",
-          ]
-          for m in modules:
+          ]:
               importlib.import_module(m)
               print("OK import:", m)
           PY

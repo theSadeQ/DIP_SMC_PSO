@@ -409,7 +409,7 @@ class SuperTwistingSMC:
     # ---------------- Controller state/history API ----------------
 
     def initialize_state(self) -> tuple[float, float]:
-        """Return (z, sigma) initial internal state."""
+        r"""Return (z, sigma) initial internal state."""
         return (0.0, 0.0)
 
     def initialize_history(self) -> Dict:
@@ -461,7 +461,7 @@ class SuperTwistingSMC:
         return STAOutput(u, (new_z, float(sigma)), history.copy())
 
     def validate_gains(self, gains_b: "np.ndarray") -> "np.ndarray":
-        """
+        r"""
         Vectorized feasibility check for super‑twisting SMC gains.
 
         The algorithmic gains ``K1`` and ``K2`` must be strictly positive to
@@ -507,7 +507,7 @@ class SuperTwistingSMC:
     # ------------------------------------------------------------------
     @property
     def gains(self) -> List[float]:
-        """Return a copy of the gains used to configure this controller.
+        r"""Return a copy of the gains used to configure this controller.
 
         The returned list includes all elements supplied to the constructor,
         whether 2 or 6 gains.  This enables external code (and tests) to
@@ -518,7 +518,7 @@ class SuperTwistingSMC:
     # ---------------- Utilities -------------------
 
     def set_dynamics(self, dynamics_model) -> None:
-        """Attach dynamics model if available (used by u_eq if implemented)."""
+        r"""Attach dynamics model if available (used by u_eq if implemented)."""
         self.dyn = dynamics_model
 
     def _compute_sliding_surface(self, state: np.ndarray) -> float:
@@ -526,7 +526,7 @@ class SuperTwistingSMC:
         return self.surf_gain_k1 * (th1dot + self.surf_lam1 * th1) + self.surf_gain_k2 * (th2dot + self.surf_lam2 * th2)
 
     def _compute_equivalent_control(self, state: np.ndarray) -> float:
-        """Compute the model‑based equivalent control ``u_eq`` using Tikhonov regularisation.
+        r"""Compute the model‑based equivalent control ``u_eq`` using Tikhonov regularisation.
 
         The original implementation used an SVD‑based condition estimate and a
         pseudo‑inverse to invert the inertia matrix.  This version instead

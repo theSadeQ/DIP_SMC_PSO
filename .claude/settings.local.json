@@ -11,7 +11,10 @@
       "Bash(/dev/null)",
       "Bash(/c/ProgramData/anaconda3/Scripts/ruff.exe check --fix)",
       "Bash(/c/ProgramData/anaconda3/python.exe -m ruff check --fix)",
-      "Bash(/c/ProgramData/anaconda3/python.exe -m black -q .)"
+      "Bash(/c/ProgramData/anaconda3/python.exe -m black -q .)",
+      "Bash(echo:*)",
+      "Bash(/c/ProgramData/anaconda3/python.exe -m pip install ruff black)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
