@@ -2,7 +2,28 @@
   "permissions": {
     "allow": [
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git for-each-ref:*)",
+      "Bash(grep:*)",
+      "Read(//d/Projects/main/**)",
+      "Bash(git worktree:*)",
+      "Bash(for branch in bp-types-doctests c04/ci-pytest c04/factory-indent-fix c04/finish-line c04/fix-config-clean c04/fix-pydantic-settings c04/manual-config-fix c04/tests-integration c04_shim_logger c04_shim_logger_fix2)",
+      "Bash(do echo \"=== Testing merge conflict for $branch ===\")",
+      "Bash(git reset:*)",
+      "Bash(/dev/null)",
+      "Bash(if git merge --no-ff --no-commit \"origin/$branch\")",
+      "Bash(then echo \"✓ $branch merges cleanly\")",
+      "Bash(else echo \"⚠️  CONFLICT detected in $branch - will need manual resolution\")",
+      "Bash(git merge:*)",
+      "Bash(fi)",
+      "Bash(done)",
+      "Bash(do echo \"Creating backup ref for $branch\")",
+      "Bash(git fetch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git branch:*)",
+      "Bash(printf:*)",
+      "Bash(git rev-list:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
