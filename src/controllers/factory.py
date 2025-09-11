@@ -11,6 +11,13 @@ import logging
 import warnings
 import threading
 from collections.abc import MutableMapping
+# --- module logger (module-level; safe even if logging configured elsewhere) ---
+logger = logging.getLogger("project.factory")
+if not logger.handlers:
+    _h = logging.StreamHandler()
+    _h.setLevel(logging.INFO)
+    logger.addHandler(_h)
+logger.setLevel(logging.INFO)
 
 # ---------- custom exceptions ----------
 class FactoryConfigurationError(Exception):
@@ -465,20 +472,11 @@ def build_controller(
                 error_msg = str(e)
                 if "unexpected keyword argument" in error_msg:
                     import re
-
-
-# module logger (safe even if configured elsewhere)
-logger = logging.getLogger("project.factory")
-if not logger.handlers:
-    handler = logging.StreamHandler()
-    handler.setLevel(logging.INFO)
-    logger.addHandler(handler)
-logger.setLevel(logging.INFO)
                     match = re.search(r"'(\w+)'", error_msg)
-                    bad_key = match.group(1) if match else None
-                    if bad_key:
+                    if match:
+                        unknown_key = match.group(1)
                         raise FactoryConfigurationError(
-                            f"controllers.{controller_name}.{bad_key}: Unknown parameter. "
+                            f"controllers.{controller_name}.{unknown_key}: Unknown parameter. "
                             f"Error: {error_msg}"
                         )
                 raise FactoryConfigurationError(
