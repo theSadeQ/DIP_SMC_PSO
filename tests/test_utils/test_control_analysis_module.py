@@ -9,13 +9,7 @@ according to the Kalman rank conditions【920100172589331†L79-L84】.
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
 import numpy as np
-
-# Add project src to path
-project_root = Path(__file__).resolve().parents[2] / "DIP_SMC_PSO/src"
-sys.path.insert(0, str(project_root))
 
 from src.utils.control_analysis import (
     controllability_matrix,

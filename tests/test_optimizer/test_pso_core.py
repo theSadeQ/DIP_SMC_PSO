@@ -16,25 +16,11 @@ test suite from a different working directory.
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-# ---------------------------------------------------------------------------
-# Dynamically add the project’s ``src`` directory to ``sys.path``.
-#
-# These tests reside outside of the ``DIP_SMC_PSO`` package.  During test
-# discovery the working directory may not include the package root, so we
-# insert the absolute path to ``DIP_SMC_PSO/src`` to ensure that imports
-# such as ``controllers.factory`` and ``core.simulation_runner`` resolve
-# correctly in a location‑agnostic way.
-project_root = Path(__file__).resolve().parents[2] / "DIP_SMC_PSO/src"
-sys.path.insert(0, str(project_root))
-
 import numpy as np
 import pytest
 
-from src.optimizer.pso_optimizer import _normalise, PSOTuner  # type: ignore
-from src.config import (  # type: ignore
+from src.optimizer.pso_optimizer import _normalise, PSOTuner
+from src.config import (
     ConfigSchema,
     HILConfig,
     SimulationConfig,

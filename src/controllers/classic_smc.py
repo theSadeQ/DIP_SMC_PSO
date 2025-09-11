@@ -6,8 +6,22 @@
 
 import numpy as np
 import logging
-from ..utils.control_primitives import saturate  # relative import for utils
-from ..utils.control_outputs import ClassicalSMCOutput  # named‑tuple output type
+# robust import for utils.* to support both import styles
+try:
+    from src.utils.control_primitives import saturate  # when repo root on sys.path
+except Exception:
+    try:
+        from ..utils.control_primitives import saturate  # when importing as src.controllers.*
+    except Exception:
+        from utils.control_primitives import saturate    # when src itself on sys.path
+
+try:
+    from src.utils.control_outputs import ClassicalSMCOutput  # when repo root on sys.path
+except Exception:
+    try:
+        from ..utils.control_outputs import ClassicalSMCOutput  # when importing as src.controllers.*
+    except Exception:
+        from utils.control_outputs import ClassicalSMCOutput    # when src itself on sys.path
 from typing import TYPE_CHECKING, List, Tuple, Dict, Optional, Union, Sequence, Any
 
 # Avoid circular import at runtime
@@ -131,7 +145,14 @@ class ClassicalSMC:
         # Validate shared parameters via central utility.  Positivity of gains
         # and boundary layers ensures that the sliding surface and switching
         # function remain well‑defined and stable.
-        from ..utils.control_primitives import require_positive  # relative import for utils
+        # robust import for utils.* to support both import styles
+        try:
+            from src.utils.control_primitives import require_positive  # when repo root on sys.path
+        except Exception:
+            try:
+                from ..utils.control_primitives import require_positive  # when importing as src.controllers.*
+            except Exception:
+                from utils.control_primitives import require_positive    # when src itself on sys.path
         self.max_force = require_positive(max_force, "max_force")
         # Use helpers for the adaptive boundary layer.  The nominal
         # thickness ``epsilon0`` must be strictly positive, while

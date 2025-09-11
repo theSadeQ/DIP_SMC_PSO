@@ -11,18 +11,12 @@ stepping loop.
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
 from typing import Any
 import numpy as np
 import pytest
 from unittest.mock import patch
 
-# Ensure project src is on path
-project_root = Path(__file__).resolve().parents[2] / "DIP_SMC_PSO/src"
-sys.path.insert(0, str(project_root))
-
-from src.optimizer.pso_optimizer import PSOTuner  # type: ignore
+from src.optimizer.pso_optimizer import PSOTuner
 from src.config import (
     ConfigSchema,
     HILConfig,

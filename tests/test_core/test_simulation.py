@@ -11,18 +11,10 @@ directory is appended to ``sys.path`` at runtime.
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
 import numpy as np
 import pytest
 
-# ---------------------------------------------------------------------------
-# Make the project’s ``src`` directory importable.  Tests are collected
-# outside of the package tree, so we explicitly add the path here.
-project_root = Path(__file__).resolve().parents[2] / "DIP_SMC_PSO/src"
-sys.path.insert(0, str(project_root))
-
-from core.simulation_runner import run_simulation  # type: ignore
+from src.core.simulation_runner import run_simulation
 
 
 class DummyDynamics:

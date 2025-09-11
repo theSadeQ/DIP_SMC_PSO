@@ -1,5 +1,4 @@
 import sys, pathlib, numpy as np, pytest
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
 from src.utils.control_primitives import saturate
 

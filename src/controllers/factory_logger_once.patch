@@ -1,0 +1,30 @@
+*** a/src/controllers/factory.py
+--- b/src/controllers/factory.py
+***************
+*** 1,15 ****
+  import importlib
+  import sys
+  import types
+  from collections.abc import MutableMapping
+--- 1,24 ----
+  import importlib
+  import sys
+  import types
+  from collections.abc import MutableMapping
++ import logging
++
++ # ----- module logger (single source of truth) -----
++ # Keep quiet by default; upstream apps/tests can attach their own handlers.
++ logger = logging.getLogger("project.factory")
++ if not logger.handlers:
++     logger.addHandler(logging.NullHandler())
++ logger.setLevel(logging.INFO)
+
+***************
+*** 16,40 ****
+- # ---------- logger setup ----------
+- if not logger or not logger.handlers:
+-     logger.addHandler(logging.NullHandler())
+- # (any similar early block referencing `logger` before assignment)
+--- 16,20 ----
+  # rest of file...
