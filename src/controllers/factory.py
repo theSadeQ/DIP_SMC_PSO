@@ -25,9 +25,13 @@ class UnknownConfigKeyError(ValueError):
     """Raised when unexpected/unknown keys appear in a controller config block."""
     pass
 
-# ---------- logger setup ----------
+# --- module logger (module-level; safe if configured elsewhere) ---
+logger = logging.getLogger("project.factory")
 if not logger.handlers:
-    logger.addHandler(logging.NullHandler())
+    _h = logging.StreamHandler()
+    _h.setLevel(logging.INFO)
+    logger.addHandler(_h)
+logger.setLevel(logging.INFO)
 
 # ---------- Controller Registry ----------
 CONTROLLER_REGISTRY: Dict[str, Type[Any]] = {}
@@ -462,10 +466,10 @@ def build_controller(
                 if "unexpected keyword argument" in error_msg:
                     import re
                     match = re.search(r"'(\w+)'", error_msg)
-                    if match:
-                        unknown_key = match.group(1)
+                    bad_key = match.group(1) if match else None
+                    if bad_key:
                         raise FactoryConfigurationError(
-                            f"controllers.{controller_name}.{unknown_key}: Unknown parameter. "
+                            f"controllers.{controller_name}.{bad_key}: Unknown parameter. "
                             f"Error: {error_msg}"
                         )
                 raise FactoryConfigurationError(
