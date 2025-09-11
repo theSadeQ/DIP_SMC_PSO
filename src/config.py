@@ -1,4 +1,5 @@
-﻿#==================================================================================\\\
+﻿from pydantic_settings import BaseSettings, SettingsConfigDict
+#==================================================================================\\\
 # src/config.py ===================================================================\\\
 #==================================================================================\\\
 
@@ -12,7 +13,7 @@ from types import SimpleNamespace
 from typing import Any, Dict, List, Optional, Tuple, Type
 
 import yaml
-
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator, model_validator
 from pydantic.fields import FieldInfo
 from pydantic_settings import (
     BaseSettings as PydanticBaseSettings,
@@ -554,3 +555,4 @@ def load_config(
 
 
 #====================================================================================\\\
+
