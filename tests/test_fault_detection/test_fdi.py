@@ -19,21 +19,9 @@ the project’s ``src`` directory onto ``sys.path`` before importing
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
 import numpy as np
 
-# ---------------------------------------------------------------------------
-# Add the project's src directory to sys.path.  This allows us to import
-# modules under ``src`` when these tests are collected from outside the
-# ``DIP_SMC_PSO`` package.  Without this insertion the import would fail.
-project_root = Path(__file__).resolve().parents[2] / "DIP_SMC_PSO/src"
-sys.path.insert(0, str(project_root))
-
-# Import the FDIsystem from the project.  With ``project_root`` inserted on
-# ``sys.path`` the top‑level ``fault_detection`` package resolves to
-# ``DIP_SMC_PSO/src/fault_detection``.
-from fault_detection.fdi import FDIsystem  # type: ignore
+from src.fault_detection.fdi import FDIsystem
 
 
 class ZeroDynamics:

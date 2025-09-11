@@ -11,16 +11,10 @@ controller factory is used with a single gain dimension.
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
 import numpy as np
 from unittest.mock import patch
 
-# Add project src to path
-project_root = Path(__file__).resolve().parents[2] / "DIP_SMC_PSO/src"
-sys.path.insert(0, str(project_root))
-
-from benchmarks.statistical_benchmarks import run_trials
+from src.benchmarks.statistical_benchmarks import run_trials
 from src.config import (
     ConfigSchema,
     HILConfig,

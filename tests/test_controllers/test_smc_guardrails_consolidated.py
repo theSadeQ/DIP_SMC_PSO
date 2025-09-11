@@ -1,5 +1,4 @@
 import sys, pathlib, importlib, numpy as np, pytest
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
 factory = importlib.import_module("src.controllers.factory")
 

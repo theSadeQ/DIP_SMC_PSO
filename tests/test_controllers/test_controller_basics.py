@@ -17,14 +17,12 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-# Add the project’s src directory for module resolution
-project_root = Path(__file__).resolve().parents[2] / "DIP_SMC_PSO/src"
-sys.path.insert(0, str(project_root))
+# Import from src.* now that pytest.ini configures pythonpath properly
 
-from controllers.factory import create_controller  # type: ignore
-from controllers.classic_smc import ClassicalSMC  # type: ignore
-from controllers.sta_smc import SuperTwistingSMC  # type: ignore
-from controllers.adaptive_smc import AdaptiveSMC  # type: ignore
+from src.controllers.factory import create_controller
+from src.controllers.classic_smc import ClassicalSMC
+from src.controllers.sta_smc import SuperTwistingSMC
+from src.controllers.adaptive_smc import AdaptiveSMC
 
 
 def test_sta_smc_state_vars_signature() -> None:

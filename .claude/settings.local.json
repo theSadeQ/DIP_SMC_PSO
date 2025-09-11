@@ -23,7 +23,13 @@
       "Bash(git branch:*)",
       "Bash(printf:*)",
       "Bash(git rev-list:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(python:*)",
+      "Bash(pip install:*)",
+      "Bash(py:*)",
+      "Bash(gh pr create:*)",
+      "Bash(git rebase:*)"
     ],
     "deny": [],
     "ask": []
