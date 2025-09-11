@@ -1,4 +1,4 @@
-# ///=================================================================================================================\\\
+﻿# ///=================================================================================================================\\\
 # ///======================================== src/controllers/factory.py =============================================\\\
 # ///=================================================================================================================\\\
 
@@ -461,6 +461,15 @@ def build_controller(
                 error_msg = str(e)
                 if "unexpected keyword argument" in error_msg:
                     import re
+
+
+# module logger (safe even if configured elsewhere)
+logger = logging.getLogger("project.factory")
+if not logger.handlers:
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.INFO)
+    logger.addHandler(handler)
+logger.setLevel(logging.INFO)
                     match = re.search(r"'(\w+)'", error_msg)
                     if match:
                         unknown_key = match.group(1)
@@ -925,10 +934,10 @@ def _build_mpc_controller(key, ctrl_cfg_dict, config, gains, shared_dt, shared_m
     if "horizon" in ctrl_cfg_dict:
         hv = ctrl_cfg_dict["horizon"]
         if not isinstance(hv, int):
-            raise ConfigValueError(f"controllers.{key}.horizon must be an integer ≥ 1 (got {hv!r})")
+            raise ConfigValueError(f"controllers.{key}.horizon must be an integer â‰¥ 1 (got {hv!r})")
         horizon = hv
         if horizon < 1:
-            raise ConfigValueError(f"controllers.{key}.horizon must be ≥ 1 (got {horizon})")
+            raise ConfigValueError(f"controllers.{key}.horizon must be â‰¥ 1 (got {horizon})")
     
     max_cart_pos = float(ctrl_cfg_dict.get("max_cart_pos", 1.5))
     if not (math.isfinite(max_cart_pos) and max_cart_pos > 0):
@@ -943,7 +952,7 @@ def _build_mpc_controller(key, ctrl_cfg_dict, config, gains, shared_dt, shared_m
         if wkey in ctrl_cfg_dict:
             val = float(ctrl_cfg_dict[wkey])
             if val < 0:
-                raise ConfigValueError(f"controllers.{key}.{wkey} must be ≥ 0 (got {val})")
+                raise ConfigValueError(f"controllers.{key}.{wkey} must be â‰¥ 0 (got {val})")
     
     # Build dummy dynamics
     class _DummyDyn:
