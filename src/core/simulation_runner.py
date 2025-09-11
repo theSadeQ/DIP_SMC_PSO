@@ -17,6 +17,7 @@ from importlib import import_module
 import time
 from typing import Any, Callable, Optional, Tuple
 import numpy as np
+from numpy.typing import ArrayLike, NDArray
 
 # Attempt to import the configuration.  The config module must define an
 # attribute ``config.simulation.use_full_dynamics``.  We import lazily in
@@ -113,15 +114,70 @@ def run_simulation(
     dynamics_model: Any,
     sim_time: float,
     dt: float,
-    initial_state: Any,
+    initial_state: ArrayLike,
     u_max: Optional[float] = None,
     seed: Optional[int] = None,
     rng: Optional[np.random.Generator] = None,
     latency_margin: Optional[float] = None,
-    fallback_controller: Optional[Callable[[float, np.ndarray], float]] = None,
+    fallback_controller: Optional[Callable[[float, NDArray[np.float64]], float]] = None,
     **_kwargs: Any,
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+) -> Tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
     """Simulate a single controller trajectory using an explicit Euler method.
+
+    >>> # Basic simulation with mock components for deterministic output
+    >>> import numpy as np
+    >>> rng = np.random.default_rng(0)
+    >>> 
+    >>> # Mock dynamics model
+    >>> class MockDynamics:
+    ...     def step(self, x, u, dt):
+    ...         x = np.asarray(x, dtype=float)
+    ...         return x + dt * np.array([0.1, -0.1]) * u  # simple dynamics
+    >>> 
+    >>> # Mock controller
+    >>> class MockController:
+    ...     def __call__(self, t, x):
+    ...         return 0.5  # constant control
+    >>> 
+    >>> # Setup
+    >>> dynamics = MockDynamics()
+    >>> controller = MockController()
+    >>> initial_state = np.array([0.1, 0.0])
+    >>> 
+    >>> # Run simulation
+    >>> t, x, u = run_simulation(
+    ...     controller=controller,
+    ...     dynamics_model=dynamics,
+    ...     sim_time=0.1,
+    ...     dt=0.01,
+    ...     initial_state=initial_state,
+    ...     rng=rng
+    ... )
+    >>> 
+    >>> # Check shapes and basic invariants
+    >>> assert t.shape == (11,), f"Expected (11,), got {t.shape}"
+    >>> assert x.shape == (11, 2), f"Expected (11, 2), got {x.shape}"
+    >>> assert u.shape == (10,), f"Expected (10,), got {u.shape}"
+    >>> assert np.allclose(t[0], 0.0) and np.allclose(t[-1], 0.1)
+    >>> assert np.allclose(x[0], initial_state)
+    >>> assert np.all(np.isfinite(x)) and np.all(np.isfinite(u))
+
+    **Shapes:**
+
+    ==============================  ====================
+    Output                          Shape
+    ==============================  ====================
+    Single trajectory time          (H+1,)
+    Single trajectory states        (H+1, D)
+    Single trajectory controls      (H,)
+    ==============================  ====================
+
+    **Early-stop/Truncation Semantics:**
+
+    If the dynamics return NaN/Inf values or raise an exception at any step,
+    the simulation halts immediately. Outputs are truncated to include only
+    the successfully computed steps. The time array always includes the
+    initial time at index 0, and the state array includes the initial state.
 
     The runner integrates the provided ``dynamics_model`` forward in time under
     the control law defined by ``controller``.  It produces uniformly spaced
@@ -183,12 +239,12 @@ def run_simulation(
 
     Returns
     -------
-    t_arr : numpy.ndarray
+    t_arr : NDArray[np.float64]
         1D array of time points including the initial time at index 0.  The
         final element equals ``n_steps * dt`` where ``n_steps = int(round(sim_time / dt))``.
-    x_arr : numpy.ndarray
+    x_arr : NDArray[np.float64]
         2D array of shape ``(len(t_arr), D)`` containing the state trajectory.
-    u_arr : numpy.ndarray
+    u_arr : NDArray[np.float64]
         1D array of shape ``(len(t_arr) - 1,)`` containing the applied control
         sequence.  Empty if no integration steps were executed.
     """

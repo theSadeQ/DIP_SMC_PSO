@@ -11,9 +11,10 @@ from __future__ import annotations
 
 import numpy as np
 from typing import Any, Tuple, Optional, Dict
+from numpy.typing import ArrayLike
 
 
-def _guard_no_nan(state: Any, step_idx: int) -> None:
+def _guard_no_nan(state: ArrayLike, step_idx: int) -> None:
     """Raise if ``state`` contains any non‑finite values.
 
     Parameters
@@ -36,7 +37,7 @@ def _guard_no_nan(state: Any, step_idx: int) -> None:
         raise RuntimeError(f"NaN detected in state at step <i> (i={step_idx})")
 
 
-def _guard_energy(state: Any, limits: Optional[Dict[str, float]]) -> None:
+def _guard_energy(state: ArrayLike, limits: Optional[Dict[str, float]]) -> None:
     """Check that the total energy of ``state`` does not exceed a maximum.
 
     Energy is defined as the sum of squares of the state variables
@@ -66,7 +67,7 @@ def _guard_energy(state: Any, limits: Optional[Dict[str, float]]) -> None:
         )
 
 
-def _guard_bounds(state: Any, bounds: Optional[Tuple[Any, Any]], t: float) -> None:
+def _guard_bounds(state: ArrayLike, bounds: Optional[Tuple[ArrayLike, ArrayLike]], t: float) -> None:
     """Check that ``state`` lies within elementwise bounds.
 
     Parameters
