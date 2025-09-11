@@ -16,14 +16,10 @@ import numpy as np
 import pytest
 
 # ---------------------------------------------------------------------------
-# Insert the project’s ``src`` directory into the import search path.  When
-# these tests run from the repository root ``pytest`` cannot resolve
-# ``src.controllers.factory`` without this modification.
-project_root = Path(__file__).resolve().parents[2] / "DIP_SMC_PSO/src"
-sys.path.insert(0, str(project_root))
+# Import from src.* now that pytest.ini configures pythonpath properly
 
-from controllers.factory import create_controller, _canonical  # type: ignore
-from controllers.classic_smc import ClassicalSMC  # type: ignore
+from src.controllers.factory import create_controller, _canonical
+from src.controllers.classic_smc import ClassicalSMC
 
 
 def test_factory_importable() -> None:

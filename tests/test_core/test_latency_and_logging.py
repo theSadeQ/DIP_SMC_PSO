@@ -9,23 +9,15 @@ controllers are used so that the tests execute quickly.
 """
 from __future__ import annotations
 
-import sys
 import time
-from pathlib import Path
 from typing import List
 
 import numpy as np
 import pytest
 import logging
 
-# ---------------------------------------------------------------------------
-# Make the project's ``src`` directory importable.  Tests are collected
-# outside of the package tree, so we explicitly add the path here.
-project_root = Path(__file__).resolve().parents[2] / "DIP_SMC_PSO/src"
-sys.path.insert(0, str(project_root))
-
-from core.simulation_runner import run_simulation  # type: ignore
-from logging_config import configure_provenance_logging  # type: ignore
+from src.core.simulation_runner import run_simulation
+from src.logging_config import configure_provenance_logging
 
 
 class DummyDyn:

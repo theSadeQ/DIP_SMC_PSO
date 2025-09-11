@@ -13,18 +13,10 @@ each scenario.  The project’s ``src`` directory is prepended to
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
 import numpy as np
 import pytest
 
-# Ensure the project’s ``src`` directory is on the import path.  When these
-# tests are run from the repository root ``controllers`` will not be
-# discoverable without explicitly adding ``DIP_SMC_PSO/src`` to ``sys.path``.
-project_root = Path(__file__).resolve().parents[2] / "DIP_SMC_PSO/src"
-sys.path.insert(0, str(project_root))
-
-from controllers.classic_smc import ClassicalSMC  # type: ignore
+from src.controllers.classic_smc import ClassicalSMC
 
 
 class OffDiagonalDynamics:

@@ -1,6 +1,13 @@
 from __future__ import annotations
 from typing import Dict, Tuple, Any, List, Optional
-from ..utils.control_outputs import HybridSTAOutput  # relative import for named‑tuple
+# robust import for utils.* to support both import styles
+try:
+    from src.utils.control_outputs import HybridSTAOutput  # when repo root on sys.path
+except Exception:
+    try:
+        from ..utils.control_outputs import HybridSTAOutput  # when importing as src.controllers.*
+    except Exception:
+        from utils.control_outputs import HybridSTAOutput    # when src itself on sys.path
 import numpy as np
 
 # Changed: migrate from deprecated 'use_equivalent' to 'enable_equivalent'; added
@@ -162,7 +169,14 @@ class HybridAdaptiveSTASMC:
         # Validate core parameters using shared utility.  This centralises
         # positivity and non‑negativity checks to avoid duplication and
         # inconsistent error messages across controllers【676964782857750†L146-L149】.
-        from ..utils.control_primitives import require_positive  # relative import for utils
+        # robust import for utils.* to support both import styles
+        try:
+            from src.utils.control_primitives import require_positive  # when repo root on sys.path
+        except Exception:
+            try:
+                from ..utils.control_primitives import require_positive  # when importing as src.controllers.*
+            except Exception:
+                from utils.control_primitives import require_positive    # when src itself on sys.path
 
         # Time step and actuator saturation must be strictly positive.  A
         # zero or negative time step would break discrete integration and

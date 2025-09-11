@@ -68,7 +68,14 @@ from typing import Dict, Tuple, Optional, List
 # relative import.  Using relative imports avoids issues when the project
 # package is nested under different root prefixes.  See the design notes
 # regarding explicit interfaces and return contracts【738473614585036†L239-L256】.
-from ..utils.control_outputs import AdaptiveSMCOutput
+# robust import for utils.* to support both import styles
+try:
+    from src.utils.control_outputs import AdaptiveSMCOutput  # when repo root on sys.path
+except Exception:
+    try:
+        from ..utils.control_outputs import AdaptiveSMCOutput  # when importing as src.controllers.*
+    except Exception:
+        from utils.control_outputs import AdaptiveSMCOutput    # when src itself on sys.path
 
 
 class AdaptiveSMC:
@@ -142,9 +149,14 @@ class AdaptiveSMC:
         # Use centralised positivity checks for dt and max_force.  The
         # ``require_positive`` helper enforces strictly positive values and
         # provides consistent error messages across controllers【675644021986605†L385-L388】.
-        # Import from the local package rather than via ``src.utils`` to
-        # preserve relative import semantics when this module is packaged.
-        from ..utils.control_primitives import require_positive
+        # robust import for utils.* to support both import styles
+        try:
+            from src.utils.control_primitives import require_positive  # when repo root on sys.path
+        except Exception:
+            try:
+                from ..utils.control_primitives import require_positive  # when importing as src.controllers.*
+            except Exception:
+                from utils.control_primitives import require_positive    # when src itself on sys.path
         self.dt = require_positive(dt, "dt")
         self.max_force = require_positive(max_force, "max_force")
         # Remove rate_weight.  The adaptive SMC controller adapts its gain
@@ -154,7 +166,14 @@ class AdaptiveSMC:
         # Roy (2020) for an adaptation law that increases the gain outside a
         # dead‑zone and decreases it within a neighbourhood of the sliding
         # surface【462167782799487†L186-L195】.
-        from ..utils.control_primitives import require_positive
+        # robust import for utils.* to support both import styles
+        try:
+            from src.utils.control_primitives import require_positive  # when repo root on sys.path
+        except Exception:
+            try:
+                from ..utils.control_primitives import require_positive  # when importing as src.controllers.*
+            except Exception:
+                from utils.control_primitives import require_positive    # when src itself on sys.path
         # Use central positivity checks.  leak_rate and adapt_rate_limit may be zero
         # according to design review but must not be negative.  Gains K_min and
         # K_max must be strictly positive to ensure Lyapunov stability【462167782799487†L186-L195】.
@@ -214,7 +233,14 @@ class AdaptiveSMC:
         # The sliding surface is a linear combination of state variables with
         # positive weights; choosing non‑positive values violates the
         # conditions for sliding‑mode stability【462167782799487†L186-L195】.
-        from ..utils.control_primitives import require_positive
+        # robust import for utils.* to support both import styles
+        try:
+            from src.utils.control_primitives import require_positive  # when repo root on sys.path
+        except Exception:
+            try:
+                from ..utils.control_primitives import require_positive  # when importing as src.controllers.*
+            except Exception:
+                from utils.control_primitives import require_positive    # when src itself on sys.path
         k1, k2, lam1, lam2, gamma = gains[:5]
         for name, val in zip(("k1", "k2", "lam1", "lam2", "gamma"), (k1, k2, lam1, lam2, gamma)):
             require_positive(val, f"AdaptiveSMC gain {name}")
@@ -320,7 +346,14 @@ class AdaptiveSMC:
         # Compute switching control with current adaptive gain.  Use the
         # shared ``saturate`` helper to unify boundary layer behaviour
         # across controllers.  ``saturate`` divides by epsilon internally.
-        from ..utils.control_primitives import saturate  # local relative import to avoid cycles
+        # robust import for utils.* to support both import styles
+        try:
+            from src.utils.control_primitives import saturate  # when repo root on sys.path
+        except Exception:
+            try:
+                from ..utils.control_primitives import saturate  # when importing as src.controllers.*
+            except Exception:
+                from utils.control_primitives import saturate    # when src itself on sys.path
         if self.smooth_switch:
             switching = saturate(sigma, self.boundary_layer, method="tanh")
         else:

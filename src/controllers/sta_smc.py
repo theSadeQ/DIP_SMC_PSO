@@ -24,8 +24,22 @@ except Exception:  # pragma: no cover - fallback when numba is missing
             return deco
     numba = _DummyNumba()  # type: ignore
 import numpy as np
-from ..utils.control_primitives import saturate  # relative import for utils
-from ..utils.control_outputs import STAOutput  # named‑tuple output type
+# robust import for utils.* to support both import styles
+try:
+    from src.utils.control_primitives import saturate  # when repo root on sys.path
+except Exception:
+    try:
+        from ..utils.control_primitives import saturate  # when importing as src.controllers.*
+    except Exception:
+        from utils.control_primitives import saturate    # when src itself on sys.path
+
+try:
+    from src.utils.control_outputs import STAOutput  # when repo root on sys.path
+except Exception:
+    try:
+        from ..utils.control_outputs import STAOutput  # when importing as src.controllers.*
+    except Exception:
+        from utils.control_outputs import STAOutput    # when src itself on sys.path
 from typing import Optional, List, Tuple, Dict, Union
 
 @numba.njit(cache=True)
@@ -253,7 +267,14 @@ class SuperTwistingSMC:
         # validations enforce positivity or non‑negativity with
         # consistent error messages across controllers.  See
         # `src/utils/control_primitives.require_positive` for details.
-        from ..utils.control_primitives import require_positive  # relative import for utils
+        # robust import for utils.* to support both import styles
+        try:
+            from src.utils.control_primitives import require_positive  # when repo root on sys.path
+        except Exception:
+            try:
+                from ..utils.control_primitives import require_positive  # when importing as src.controllers.*
+            except Exception:
+                from utils.control_primitives import require_positive    # when src itself on sys.path
 
         # Integration step must be strictly positive to avoid division by
         # zero in discrete‑time updates.
