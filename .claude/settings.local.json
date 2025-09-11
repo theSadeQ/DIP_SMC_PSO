@@ -35,7 +35,11 @@
       "Bash(chmod:*)",
       "Bash(gh pr:*)",
       "Bash(py -m pip install:*)",
-      "Bash(./xlude.sh:*)"
+      "Bash(./xlude.sh:*)",
+      "Bash(./xlude.sh ci-gate:*)",
+      "Bash(./xlude.sh backup-refs:*)",
+      "Bash(mkdir:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []
