@@ -1,5 +1,7 @@
 # Optimal Sliding Mode Control for a Double-Inverted Pendulum via PSO
 
+[![Validate ResearchPlanSpec](https://github.com/theSadeQ/DIP_SMC_PSO/actions/workflows/validate.yml/badge.svg)](https://github.com/theSadeQ/DIP_SMC_PSO/actions/workflows/validate.yml)
+
 This project provides a comprehensive Python-based simulation environment for designing, tuning, and analyzing advanced sliding mode controllers (SMC) for a double-inverted pendulum on a cart. It features multiple controller types, automated gain tuning via Particle Swarm Optimization (PSO), and both command-line and interactive web-based interfaces.
 
 ## Key Features
