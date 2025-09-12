@@ -32,8 +32,45 @@ jobs:
       with:
         python-version: '3.12'
         
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+        
     - name: Create reports directory
       run: mkdir -p reports
+      
+    - name: Check for changed plan files
+      id: changed_files
+      run: |
+        # Fetch base branch for comparison
+        git fetch origin ${{ github.event.pull_request.base.ref || 'main' }} --depth=1 || true
+        
+        # Find changed JSON files that look like plan files
+        CHANGED=$(git diff --name-only origin/${{ github.event.pull_request.base.ref || 'main' }}... 2>/dev/null | grep -E '(^plans/.+\.json$|.*plan.*\.json$)' || true)
+        
+        if [ -n "$CHANGED" ]; then
+          echo "Changed plan files found:"
+          echo "$CHANGED"
+          echo "files=$CHANGED" >> $GITHUB_OUTPUT
+          echo "has_changes=true" >> $GITHUB_OUTPUT
+        else
+          echo "No plan files changed"
+          echo "has_changes=false" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Validate changed plan files
+      if: steps.changed_files.outputs.has_changes == 'true'
+      run: |
+        echo "::group::Validating changed plan files"
+        IFS=$'\n' read -rd '' -a files <<< "${{ steps.changed_files.outputs.files }}" || true
+        for file in "${files[@]}"; do
+          if [ -f "$file" ]; then
+            echo "::notice::Validating $file"
+            python repo_validate.py --schema-version-enforce error "$file" || exit 1
+          else
+            echo "::warning::File $file not found (may have been deleted)"
+          fi
+        done
+        echo "::endgroup::"
       
     - name: Validate valid fixture
       id: validate_valid
@@ -84,6 +121,9 @@ print(f'✓ Invalid fixture correctly shows {len(report[\"errors\"])} errors')
           exit 1
         fi
         
+    - name: Run tests
+      run: pytest -q
+        
     - name: Upload validation reports
       uses: actions/upload-artifact@v4
       if: always()
@@ -98,4 +138,5 @@ print(f'✓ Invalid fixture correctly shows {len(report[\"errors\"])} errors')
         echo "::notice::Validation completed successfully"
         echo "::notice::✓ Valid fixture passed validation (no errors)"
         echo "::notice::✓ Invalid fixture correctly failed validation (has errors)"
+        echo "::notice::✓ Tests passed"
         echo "::notice::Reports saved to artifacts"

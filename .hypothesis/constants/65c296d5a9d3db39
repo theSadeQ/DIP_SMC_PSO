@@ -1,0 +1,4 @@
+# file: D:\Projects\main\DIP_SMC_PSO\src\config.py
+# hypothesis_version: 6.138.15
+
+[0.0, 1e-12, 1e-10, 0.001, 0.01, 0.1, 0.2, 0.5, 1.5, 3.0, 5.0, 50.0, 1000.0, 10000.0, 100000000.0, 100, 200, '***', ', ', '-', '.', '.env', '.json', '.yaml', '.yml', 'C04__', 'FDIConfig', 'Loaded .env file', 'PhysicsConfig', 'Unknown error', '_', '__', '_file_path', 'adaptive_smc', 'after', 'allow', 'allow_unknown', 'cart_mass', 'classical_smc', 'config', 'config.yaml', 'dt', 'duration', 'env_parse_none_str', 'errors', 'forbid', 'global_seed', 'gravity', 'initial_state', 'input', 'key', 'loc', 'model_extra', 'mpc_controller', 'msg', 'null', 'password', 'pendulum1_com', 'pendulum1_inertia', 'pendulum1_length', 'pendulum1_mass', 'pendulum2_com', 'pendulum2_inertia', 'pendulum2_length', 'pendulum2_mass', 'project.config', 'residual_states', 'residual_weights', 'secret', 'sta_smc', 'swing_up_smc', 'token', 'unknown_params', 'utf-8']

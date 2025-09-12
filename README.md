@@ -35,6 +35,18 @@ or use CLI flag:
 python repo_validate.py --schema-version-enforce error plans/my_plan.json
 ```
 
+### Performance limits
+
+For safety and resource management:
+
+```bash
+# Set file size limit (default: 2MB) and timeout (default: 10s)
+python repo_validate.py --max-bytes 1000000 --timeout-s 5 plans/my_plan.json
+
+# Disable JSON Schema validation for faster processing
+python repo_validate.py --jsonschema-off plans/my_plan.json
+```
+
 Keep examples in this README in sync with actual CLI output.
 
 ---

@@ -64,7 +64,12 @@
       "Bash(echo \"Exit code: $?\")",
       "Bash(git tag:*)",
       "Bash(\"C:\\Users\\sadeg\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" repo_validate.py --schema-version-enforce error fixtures/valid_plan.json)",
-      "Bash(\"C:\\Users\\sadeg\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" repo_validate.py --schema-version-enforce error fixtures/invalid_schema_version.json)"
+      "Bash(\"C:\\Users\\sadeg\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" repo_validate.py --schema-version-enforce error fixtures/invalid_schema_version.json)",
+      "Bash(\"C:\\Users\\sadeg\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" -m pytest -q)",
+      "Bash(\"C:\\Users\\sadeg\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" -m pytest tests/test_property_based.py -q)",
+      "Bash(\"C:\\Users\\sadeg\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" repo_validate.py --max-bytes 100000 --timeout-s 1 fixtures/valid_plan.json)",
+      "Bash(\"C:\\Users\\sadeg\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" repo_validate.py --max-bytes 1 /tmp/tiny.json)",
+      "Bash(\"C:\\Users\\sadeg\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" repo_validate.py --timeout-s 1 /tmp/tiny.json)"
     ],
     "deny": [],
     "ask": []

@@ -1,0 +1,4 @@
+# file: D:\Projects\main\DIP_SMC_PSO\src\core\dynamics.py
+# hypothesis_version: 6.138.15
+
+[0.0, 1e-12, 1e-10, 1e-06, 1e-05, 0.0001, 0.001, 0.05, 0.5, 1.0, 2.0, 6.0, 100000000.0, 10000000000.0, 100000000000000.0, 'DIPParams', '_', 'adaptive', 'cart_friction', 'cart_mass', 'condition_tol_factor', 'controller', 'det_threshold', 'gravity', 'integration_scheme', 'joint1_friction', 'joint2_friction', 'max_condition_number', 'min_regularization', 'model_dump', 'pendulum1_com', 'pendulum1_inertia', 'pendulum1_length', 'pendulum1_mass', 'pendulum2_com', 'pendulum2_inertia', 'pendulum2_length', 'pendulum2_mass', 'regularization', 'regularization_alpha', 'rk4', 'symplectic']
