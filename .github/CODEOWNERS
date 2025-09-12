@@ -1,0 +1,11 @@
+# Research plan validation ownership
+# These files require approval from research reviewers for changes
+
+plans/**           @your-org/research-reviewers @your-github-handle
+validator.py       @your-org/research-reviewers @your-github-handle  
+repo_validate.py   @your-org/research-reviewers @your-github-handle
+fixtures/*.json    @your-org/research-reviewers @your-github-handle
+CONTRIBUTING.md    @your-org/research-reviewers @your-github-handle
+
+# Validation workflow changes
+.github/workflows/validate.yml  @your-org/research-reviewers @your-github-handle

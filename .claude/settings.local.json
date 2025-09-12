@@ -61,7 +61,10 @@
       "Bash(\"C:\\Users\\sadeg\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" tests/run_crossfield_tests.py)",
       "Bash(make validate:*)",
       "Bash(echo $?)",
-      "Bash(echo \"Exit code: $?\")"
+      "Bash(echo \"Exit code: $?\")",
+      "Bash(git tag:*)",
+      "Bash(\"C:\\Users\\sadeg\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" repo_validate.py --schema-version-enforce error fixtures/valid_plan.json)",
+      "Bash(\"C:\\Users\\sadeg\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" repo_validate.py --schema-version-enforce error fixtures/invalid_schema_version.json)"
     ],
     "deny": [],
     "ask": []

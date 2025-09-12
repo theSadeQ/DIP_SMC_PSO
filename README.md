@@ -2,6 +2,43 @@
 
 [![Validate ResearchPlanSpec](https://github.com/theSadeQ/DIP_SMC_PSO/actions/workflows/validate.yml/badge.svg)](https://github.com/theSadeQ/DIP_SMC_PSO/actions/workflows/validate.yml)
 
+## How to validate a ResearchPlan JSON
+
+Run the validator locally:
+
+```bash
+python repo_validate.py plans/my_plan.json
+```
+
+**Exit codes:** 0 = no errors; 1 = validation errors present.
+
+**Output:** machine-readable JSON report with `errors[]` and `warnings[]`.
+
+### Schema version policy
+
+Plans should include a schema version marker:
+
+```json
+{ "metadata": { "schema_version": "1.0", "...": "..." }, ... }
+```
+
+Currently missing or non-1.x versions produce a **WARNING** (accepted).
+To enforce as errors later, set:
+
+```bash
+SCHEMA_VERSION_ENFORCE=error python repo_validate.py plans/my_plan.json
+```
+
+or use CLI flag:
+
+```bash
+python repo_validate.py --schema-version-enforce error plans/my_plan.json
+```
+
+Keep examples in this README in sync with actual CLI output.
+
+---
+
 This project provides a comprehensive Python-based simulation environment for designing, tuning, and analyzing advanced sliding mode controllers (SMC) for a double-inverted pendulum on a cart. It features multiple controller types, automated gain tuning via Particle Swarm Optimization (PSO), and both command-line and interactive web-based interfaces.
 
 ## Key Features

@@ -2,6 +2,7 @@
 import json
 import re
 import sys
+import os
 from typing import Any, Dict, List, Tuple
 
 ISO_RE = re.compile(
@@ -363,9 +364,9 @@ def validate_research_plan(obj: Dict[str, Any]) -> Dict[str, Any]:
         if not is_object(md):
             add_error(rep, "metadata", ERROR_TYPE, "Expected object")
         else:
-            allowed = ["title","version","created_at","updated_at","tags"]
+            allowed = ["title","version","created_at","updated_at","tags","schema_version"]
             unknown_field_check(rep, md, allowed, "metadata", allow_unknown=False)
-            check_field_order(rep, md, ["title","version","created_at","updated_at","tags"], "metadata")
+            check_field_order(rep, md, ["title","version","created_at","updated_at","tags","schema_version"], "metadata")
             if "title" not in md: add_error(rep, "metadata.title", ERROR_REQUIRED, "Required field missing")
             else:
                 if not is_string(md["title"]): add_error(rep, "metadata.title", ERROR_TYPE, "Expected string")
@@ -384,6 +385,22 @@ def validate_research_plan(obj: Dict[str, Any]) -> Dict[str, Any]:
                     for i, t in enumerate(md["tags"]):
                         if not is_string(t):
                             add_error(rep, f"metadata.tags[{i}]", ERROR_TYPE, "Expected string")
+            # schema_version policy (warn now, error later)
+            strict_schema = os.getenv("SCHEMA_VERSION_ENFORCE", "warn")
+            if "schema_version" not in md:
+                if strict_schema == "error":
+                    add_error(rep, "metadata.schema_version", ERROR_REQUIRED, "schema_version required (expected '1.x')")
+                else:
+                    add_warning(rep, "metadata.schema_version", WARNING, "Recommended schema_version '1.x' missing")
+            else:
+                if not is_string(md["schema_version"]):
+                    add_error(rep, "metadata.schema_version", ERROR_TYPE, "Expected string")
+                else:
+                    if not re.match(r"^1(\.[\d]+.*)?$", md["schema_version"]):
+                        if strict_schema == "error":
+                            add_error(rep, "metadata.schema_version", ERROR_TYPE, "Expected schema_version '1.x'")
+                        else:
+                            add_warning(rep, "metadata.schema_version", WARNING, "Expected schema_version '1.x'")
 
     if "executive_summary" in obj:
         es = obj["executive_summary"]
