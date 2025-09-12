@@ -1,0 +1,170 @@
+{
+  "metadata": {
+    "title": "Sample Research Plan",
+    "version": "1.0.0",
+    "created_at": "2025-09-11T00:00:00Z",
+    "updated_at": "2025-09-11T12:00:00Z",
+    "tags": [
+      "example",
+      "spec"
+    ]
+  },
+  "executive_summary": {
+    "context": "General research objective.",
+    "intended_outcomes": [
+      "Validated schema",
+      "Reproducible process"
+    ],
+    "phases_overview": [
+      "Initial",
+      "Expansion",
+      "Finalize"
+    ]
+  },
+  "phases": [
+    {
+      "name": "Initial",
+      "goals": [
+        "Establish structure"
+      ],
+      "success_criteria": [
+        "Schemas validated"
+      ],
+      "tasks": [
+        {
+          "id": "T1",
+          "title": "Define schemas",
+          "contracts": {
+            "inputs": {
+              "plan": {
+                "type": "object",
+                "description": "ResearchPlan JSON"
+              }
+            },
+            "outputs": {
+              "report": {
+                "type": "object",
+                "description": "Validation report"
+              }
+            },
+            "errors": [
+              "InvalidType",
+              "MissingField"
+            ],
+            "guards": {
+              "shape_validation": true,
+              "nan_policy": "reject"
+            },
+            "tests": {
+              "selector": "unit:contracts",
+              "coverage_target": 0.8
+            },
+            "ci": {
+              "matrix": [
+                "3.10",
+                "3.11",
+                "3.12"
+              ],
+              "artifacts": "reports/"
+            }
+          }
+        }
+      ],
+      "artifacts": [
+        {
+          "kind": "document",
+          "name": "Schema Spec",
+          "location": "docs/schema.md"
+        }
+      ],
+      "validation_steps": [
+        {
+          "action": "Run validator",
+          "expected": "No errors present",
+          "tolerance": "n/a"
+        },
+        {
+          "action": "Check errors handling",
+          "expected": "Handles invalidtype and missingfield gracefully"
+        }
+      ],
+      "execution_prompt": {
+        "title": "Execute Initial Phase",
+        "constraints": [
+          "Follow schema strictly"
+        ],
+        "inputs": [
+          "Plan outline"
+        ],
+        "tasks": [
+          "Draft objects",
+          "Review"
+        ],
+        "validation_steps": [
+          "Run validator"
+        ],
+        "artifacts": [
+          "Spec draft"
+        ]
+      },
+      "non_goals": [
+        "Out-of-scope items"
+      ],
+      "anti_patterns": [
+        "Skip validation"
+      ]
+    }
+  ],
+  "risks": [
+    {
+      "description": "Ambiguity in fields",
+      "mitigation": "Add clarifications"
+    }
+  ],
+  "acceptance": [
+    {
+      "statement": "schemas validated",
+      "evidence": "Validator output green"
+    }
+  ],
+  "checklists": {
+    "definition_of_done": {
+      "items": [
+        "All required fields present"
+      ]
+    },
+    "review": {
+      "items": [
+        "Peer review complete"
+      ]
+    },
+    "ops": {
+      "items": [
+        "Artifacts stored"
+      ]
+    }
+  },
+  "manifests": [
+    {
+      "name": "Initial",
+      "goals": [
+        "Structure"
+      ],
+      "acceptance": [
+        "Validator green"
+      ],
+      "artifacts": [
+        "Schema Spec"
+      ]
+    },
+    {
+      "name": "Plan",
+      "goals": [
+        "Clarity"
+      ],
+      "acceptance": [
+        "All checks pass"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,139 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "title": 123,
+    "created_at": "2025-09-11 00:00:00",
+    "tags": [
+      "ok",
+      7
+    ]
+  },
+  "executive_summary": {
+    "intended_outcomes": "should be array",
+    "context": "Objective text",
+    "phases_overview": [
+      "Init"
+    ]
+  },
+  "phases": [
+    {
+      "name": "Initial",
+      "goals": [
+        "Setup"
+      ],
+      "success_criteria": [
+        "Must have coverage"
+      ],
+      "tasks": [
+        {
+          "id": "DUP",
+          "title": "Task A",
+          "contracts": {
+            "inputs": {
+              "plan": {
+                "type": "object"
+              }
+            },
+            "outputs": {
+              "report": {
+                "type": "object"
+              }
+            },
+            "errors": [
+              "E1",
+              "E2"
+            ],
+            "tests": {
+              "selector": "unit",
+              "unknown": "field"
+            },
+            "guards": {
+              "nan_policy": "maybe"
+            },
+            "ci": {
+              "matrix": [
+                "3.10",
+                3.11
+              ]
+            }
+          }
+        },
+        {
+          "id": "DUP",
+          "title": "Task B",
+          "contracts": {
+            "inputs": {
+              "plan": {
+                "type": "object"
+              }
+            },
+            "outputs": {
+              "report": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      ],
+      "artifacts": [
+        {
+          "kind": "document",
+          "name": "A1"
+        }
+      ],
+      "validation_steps": [
+        {
+          "action": "Run validator",
+          "expected": "covers e1 only"
+        }
+      ],
+      "anti_patterns": [
+        "Ignore tests"
+      ]
+    }
+  ],
+  "risks": [
+    "should be objects"
+  ],
+  "acceptance": [
+    {
+      "statement": "different acceptance",
+      "evidence": 42
+    }
+  ],
+  "checklists": {
+    "definition_of_done": {
+      "items": [
+        "present"
+      ]
+    },
+    "ops": {
+      "items": [
+        "present"
+      ]
+    }
+  },
+  "manifests": [
+    {
+      "name": "UnknownPhase",
+      "goals": [
+        "G"
+      ],
+      "acceptance": [
+        "A"
+      ],
+      "artifacts": [
+        "MissingArtifact"
+      ]
+    },
+    {
+      "goals": [
+        "G"
+      ],
+      "acceptance": [
+        "A"
+      ]
+    }
+  ],
+  "extra_top_level": "not allowed"
+}

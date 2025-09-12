@@ -72,6 +72,14 @@ The test suite is built for speed and robustness. Key features include:
 -   **Batch Testing:** Many tests run simulations in large batches with randomized initial conditions to ensure controllers are robust.
 -   **Coverage:** The suite includes unit tests for individual components, integration tests for system-wide behavior, and scientific validation tests for principles like Lyapunov stability and chattering reduction.
 
+### CI lanes & selectors
+
+```bash
+pytest -q -k "full_dynamics"
+python dev/runner.py c1-02
+python dev/runner.py c1-03
+```
+
 ## Usage
 
 You can interact with the simulation environment in two primary ways: through the command-line interface or the interactive web application.
@@ -158,3 +166,34 @@ You can adjust the threshold as needed (e.g., `median:3%`, `max:10%`).
 Benchmarks honor `config.yaml` values (e.g., `simulation.dt`, `controllers.*.max_force`, and whether to use the full dynamics). For quicker local runs, you can reduce workload via test fixtures (see `tests/conftest.py`).
 
 Results include min/median/mean/stddev and number of rounds/iterations, enabling data-driven decisions about performance trade-offs.
+
+## ResearchPlan Validation
+
+This project includes a comprehensive validation system for ResearchPlan JSON specifications.
+
+### Validate a ResearchPlan file
+
+```bash
+python repo_validate.py fixtures/valid_plan.json
+python repo_validate.py fixtures/invalid_plan.json
+```
+
+### Using Make (if available)
+
+```bash
+# Validate default fixture
+make validate
+
+# Validate specific file
+make validate FILE=fixtures/invalid_plan.json
+
+# Run all validation tests
+make test-validation
+```
+
+### Exit Codes
+
+- **Exit 0**: Validation passed (no errors)
+- **Exit 1**: Validation failed (has errors)
+
+The validator generates machine-readable JSON reports with detailed error messages, field locations, and severity levels. See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete validation documentation and error model.

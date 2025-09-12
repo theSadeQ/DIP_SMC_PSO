@@ -1,0 +1,98 @@
+
+name: Validate ResearchPlanSpec
+
+# Triggers: Run on push to main, pull requests, and manual dispatch
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'fixtures/*.json'
+      - 'validator.py'
+      - 'repo_validate.py'
+      - 'tests/**/*'
+
+jobs:
+  validate:
+    name: Validate ResearchPlan Fixtures
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        
+    - name: Create reports directory
+      run: mkdir -p reports
+      
+    - name: Validate valid fixture
+      id: validate_valid
+      run: |
+        echo "::group::Validating valid_plan.json"
+        echo "Expected result: PASS (no errors)"
+        python repo_validate.py fixtures/valid_plan.json > reports/valid_plan_report.json
+        VALID_EXIT_CODE=$?
+        echo "Valid fixture validation completed with exit code: $VALID_EXIT_CODE"
+        echo "::endgroup::"
+        
+        echo "::group::Valid fixture report"
+        cat reports/valid_plan_report.json
+        echo "::endgroup::"
+        
+        # Fail if valid fixture has errors
+        if [ $VALID_EXIT_CODE -ne 0 ]; then
+          echo "::error::Valid fixture should not have any errors"
+          exit 1
+        fi
+        
+    - name: Validate invalid fixture
+      id: validate_invalid
+      run: |
+        echo "::group::Validating invalid_plan.json"
+        echo "Expected result: FAIL (has errors)"
+        python repo_validate.py fixtures/invalid_plan.json > reports/invalid_plan_report.json || true
+        echo "Invalid fixture validation completed"
+        echo "::endgroup::"
+        
+        echo "::group::Invalid fixture report"
+        cat reports/invalid_plan_report.json
+        echo "::endgroup::"
+        
+        # Verify invalid fixture actually has errors
+        if python -c "
+import json
+with open('reports/invalid_plan_report.json', 'r') as f:
+    report = json.load(f)
+if not report['errors']:
+    print('ERROR: Invalid fixture should have errors')
+    exit(1)
+print(f'✓ Invalid fixture correctly shows {len(report[\"errors\"])} errors')
+"; then
+          echo "Invalid fixture validation check passed"
+        else
+          echo "::error::Invalid fixture should contain validation errors"
+          exit 1
+        fi
+        
+    - name: Upload validation reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: validation-reports
+        path: reports/
+        retention-days: 30
+        
+    - name: Validation Summary
+      if: always()
+      run: |
+        echo "::notice::Validation completed successfully"
+        echo "::notice::✓ Valid fixture passed validation (no errors)"
+        echo "::notice::✓ Invalid fixture correctly failed validation (has errors)"
+        echo "::notice::Reports saved to artifacts"

@@ -78,6 +78,30 @@ def simulate(
         ``(H_stop+1, D)`` for scalar runs or ``(B, H_stop+1, D)`` for
         batched runs, where ``H_stop <= horizon`` if early stopping
         occurred.
+
+    Examples
+    --------
+    Scalar simulation:
+    
+    >>> import numpy as np
+    >>> x0 = np.array([1.0, 0.0])
+    >>> u = np.array([0.1, 0.2])
+    >>> result = simulate(x0, u, 0.1)
+    >>> result.shape
+    (3, 2)
+    >>> result[0]  # initial state
+    array([1., 0.])
+    
+    Batch simulation with early stopping:
+    
+    >>> x0_batch = np.array([[1.0, 0.0], [2.0, 1.0]])  
+    >>> u_batch = np.array([[0.1, 0.2], [0.3, 0.4]])
+    >>> stop_fn = lambda x: np.sum(x**2) > 10.0
+    >>> result = simulate(x0_batch, u_batch, 0.1, stop_fn=stop_fn)
+    >>> result.shape[0] == 2  # batch size preserved
+    True
+    >>> result.shape[1] <= 3  # may be truncated due to early stop
+    True
     """
     # Convert state to array and normalise batch dimension
     x = np.asarray(initial_state, dtype=float)
