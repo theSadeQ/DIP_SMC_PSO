@@ -11,9 +11,12 @@ on:
   pull_request:
     paths:
       - 'fixtures/*.json'
+      - 'plans/**/*.json'
+      - '**/*plan*.json'
       - 'validator.py'
       - 'repo_validate.py'
       - 'tests/**/*'
+      - '.github/workflows/validate.yml'
 
 jobs:
   validate:
