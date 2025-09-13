@@ -12,7 +12,9 @@
       "Bash(\"C:\\Users\\sadeg\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" -m pytest -q -m \"not slow and not benchmark\" --tb=short)",
       "Bash(\"C:\\Users\\sadeg\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" -c \"from src.controllers.hybrid_adaptive_sta_smc import HybridAdaptiveSTASMC; print(''Import successful'')\")",
       "Bash(\"C:\\Users\\sadeg\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" -m pytest tests/test_core/test_dynamics_lowrank.py::TestSafety -v)",
-      "Bash(\"C:\\Users\\sadeg\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" -m pytest tests/test_core/ -x -q)"
+      "Bash(\"C:\\Users\\sadeg\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" -m pytest tests/test_core/ -x -q)",
+      "Bash(\"C:\\Users\\sadeg\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" -m pip install --upgrade pydantic)",
+      "Bash(\"C:\\Users\\sadeg\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" -m pip install --upgrade pydantic-core)"
     ],
     "deny": [],
     "ask": []

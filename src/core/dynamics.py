@@ -96,12 +96,12 @@ class DIPParams(NamedTuple):
     nearly singular.  A common remedy is Tikhonov regularisation: adding a
     small positive constant to the diagonal to ensure the matrix remains
     invertible.  In ridge regression the normal equations are regularised
-    by adding \(\lambda I\), which improves conditioning at the cost of
+    by adding \\(\\lambda I\\), which improves conditioning at the cost of
     bias【Hoerl1970 p.215, DOI:10.1080/00401706.1970.10488634】.
 
     * ``regularization_alpha`` scales the diagonal damping by the largest
       singular value of the inertia matrix.  According to ridge regression
-      theory, adding \(\lambda I\) with \(\lambda>0\) stabilises the inverse and
+      theory, adding \\(\\lambda I\\) with \\(\\lambda>0\\) stabilises the inverse and
       trades bias for variance【Hoerl1970 p.215, DOI:10.1080/00401706.1970.10488634】.
     * ``max_condition_number`` limits the ratio of the largest to smallest
       singular values; if the condition number exceeds this bound the

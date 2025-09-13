@@ -366,9 +366,9 @@ class HybridAdaptiveSTASMC:
         the dynamics model provides inertia, Coriolis, and gravity matrices,
         the controller solves the linear equation
 
-            M(q)·\\ddot{q} + C(q,\\dot{q})·\\dot{q} + G(q) = B·u
+            M(q)·\\\\ddot{q} + C(q,\\\\dot{q})·\\\\dot{q} + G(q) = B·u
 
-        for the control input ``u`` that maintains \\dot{s}=0 on the
+        for the control input ``u`` that maintains \\\\dot{s}=0 on the
         sliding surface.  To improve numerical stability, the inertia
         matrix ``M`` is regularised by adding a small diagonal term
         (Tikhonov regularisation) before inversion.  This technique,

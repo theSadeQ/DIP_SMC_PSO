@@ -1,8 +1,8 @@
 # Contributing
 
 - Use feature branches; open PRs against `main`.
-- Keep units SI by default. Define all symbols in `docs/symbols.md`.
-- For changes to interfaces, update **both** code and `docs/io_contracts.csv` in the same PR.
+- Keep units SI by default. Define all symbols in `symbols.md`.
+- For changes to interfaces, update **both** code and `io_contracts.csv` in the same PR.
 - Link every artifact to a clear objective or KPI.
 
 ## Commit Message Hints

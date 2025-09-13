@@ -164,15 +164,15 @@ class SuperTwistingSMC:
     **Sliding surface:**
 
     .. math::
-        \sigma = k_1\,(\dot{\theta}_1 + \lambda_1\,\theta_1) + k_2\,(\dot{\theta}_2 + \lambda_2\,\theta_2).
+        \\sigma = k_1\\,(\\dot{\\theta}_1 + \\lambda_1\\,\\theta_1) + k_2\\,(\\dot{\\theta}_2 + \\lambda_2\\,\\theta_2).
 
     **Discrete‑time control law:**
 
     .. math::
-        \begin{aligned}
-        u &= u_{\text{eq}} - K_1 \sqrt{|\sigma|}\,\operatorname{sat}\left( \frac{\sigma}{\epsilon} \right) + z - d\,\sigma,\\
-        z^+ &= z - K_2\,\operatorname{sat}\left( \frac{\sigma}{\epsilon} \right)\,dt,
-        \end{aligned}
+        \\begin{aligned}
+        u &= u_{\\\\text{eq}} - K_1 \\\\sqrt{|\\\\sigma|}\\\\,\\\\operatorname{sat}\\\\left( \\\\frac{\\\\sigma}{\\\\epsilon} \\\\right) + z - d\\\\,\\\\sigma,\\\\\\\\
+        z^+ &= z - K_2\\\\,\\\\operatorname{sat}\\\\left( \\\\frac{\\\\sigma}{\\\\epsilon} \\\\right)\\\\,dt,
+        \\end{aligned}
 
     where ``sat`` is a continuous approximation of ``sign`` (either linear or
     hyperbolic tangent), ``d`` is the optional damping gain and ``u_eq`` is

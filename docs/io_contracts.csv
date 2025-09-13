@@ -1,0 +1,9 @@
+signal_name,direction,unit,update_rate_Hz,valid_range,description
+x,input,m,100,-0.5–0.5,Cart position measured from track centre
+x_dot,input,m/s,100,-5–5,Cart velocity measurement
+theta1,input,rad,100,-3.14–3.14,First pendulum angle measurement
+theta1_dot,input,rad/s,100,-10–10,First pendulum angular rate
+theta2,input,rad,100,-3.14–3.14,Second pendulum angle measurement
+theta2_dot,input,rad/s,100,-10–10,Second pendulum angular rate
+u,output,N,100,-150–150,Control input (force) applied to the cart actuator
+r,input,m,100,-0.5–0.5,Desired cart position (reference signal)

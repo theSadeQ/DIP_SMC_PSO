@@ -414,7 +414,7 @@ class ClassicalSMC:
 
         .. math::
 
-            u = u_{\text{eq}} - K \operatorname{sat}\left(\frac{\sigma}{\epsilon}\right) - k_d \, \sigma,
+            u = u_{\\text{eq}} - K \\\\operatorname{sat}\\\\left(\\\\frac{\\\\sigma}{\\\\epsilon}\\\\right) - k_d \\\\, \\\\sigma,
 
         where ``sat`` is either ``tanh`` or a linear clip depending on
         ``switch_method``.
