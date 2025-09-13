@@ -1,0 +1,32 @@
+name: docs-ci
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+      - '.github/**'
+      - 'scripts/**'
+  push:
+    branches: [ main ]
+    paths:
+      - 'docs/**'
+      - '.github/**'
+      - 'scripts/**'
+jobs:
+  lint-and-links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Markdownlint
+        uses: DavidAnson/markdownlint-cli2-action@v18
+        with:
+          globs: |
+            **/*.md
+      - name: Link check
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --verbose --no-progress --max-concurrency 4 --exclude-file .lycheeignore **/*.md
+      - name: Validate I/O contracts
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - run: python scripts/validate_io_contracts.py

@@ -1,0 +1,4 @@
+# Adjust team/usernames to your org
+/docs/ @team-controls
+/scripts/ @team-controls
+/.github/ @team-controls

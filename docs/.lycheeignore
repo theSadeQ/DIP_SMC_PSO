@@ -1,0 +1,4 @@
+http://localhost
+https://localhost
+# Ignore anchors until anchors are stable
+# ^.*#.*$

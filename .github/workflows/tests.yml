@@ -1,0 +1,29 @@
+name: tests
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ "**" ]
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    env:
+      MPLBACKEND: Agg  # enforce headless backend in CI
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip wheel
+          pip install -r requirements.txt
+      - name: Static guard: ban plt.show()
+        run: |
+          python scripts/no_show_guard.py .
+      - name: Run tests (warnings as errors)
+        run: |
+          pytest -q -W error

@@ -6,8 +6,10 @@ Execute: python run_tests.py
 
 """
 
-import logging
 import os
+os.environ.setdefault("MPLBACKEND", "Agg")
+
+import logging
 import subprocess
 import sys
 import locale

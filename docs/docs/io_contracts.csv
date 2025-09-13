@@ -1,0 +1,2 @@
+signal_name,direction,unit,update_rate_Hz,valid_range,description
+temp_sensor_1,input,degC,10,0-100,Inlet temperature sensor
