@@ -71,13 +71,22 @@ def _compute(ctrl, state, state_vars=None, history=None):
             "k2": list(getattr(ctrl, "k2_hist", [])),
         }
         return u, (k1, k2, u_int), hist
-    # API: u, state_vars, history = compute_control(state, state_vars, history)
+
+    # API: HybridSTAOutput = compute_control(state, state_vars, history)
     if state_vars is None or history is None:
         state_vars, history = _init_sv_hist(ctrl)
-    return ctrl.compute_control(state, state_vars, history)
+
+    result = ctrl.compute_control(state, state_vars, history)
+
+    # Handle HybridSTAOutput (NamedTuple with u, state, history, sigma fields)
+    if hasattr(result, 'u') and hasattr(result, 'state') and hasattr(result, 'history'):
+        return result.u, result.state, result.history
+
+    # Fallback for tuple unpacking (old API)
+    return result
 def test_dead_zone_freezes_int_and_gains(make_hybrid):
     """Inside the dead‑zone the STA integral and adaptation gains must not change."""
-    ctrl = make_hybrid()
+    ctrl = make_hybrid(gains=[5.0, 3.0, 5.0, 1.8], use_relative_surface=True)  # Use relative formulation as mentioned in comment
     # Choose angles so that the sliding surface s ≈ 0.  With the relative
     # formulation s = c1*(θ̇₁ + λ₁ θ₁) + c2*((θ̇₂ − θ̇₁) + λ₂ (θ₂ − θ₁)) and zero
     # velocities this reduces to  s = c1*λ₁ θ₁ + c2*λ₂ (θ₂−θ₁).  Using the
@@ -158,8 +167,8 @@ def test_reproducible_trajectories(make_hybrid, full_dynamics, initial_state):
     if hasattr(c2, "set_dynamics"):
         c2.set_dynamics(full_dynamics)
     # Run two simulations
-    t1, X1, U1 = run_simulation(c1, full_dynamics, 6.0, 0.001, initial_state)
-    t2, X2, U2 = run_simulation(c2, full_dynamics, 6.0, 0.001, initial_state)
+    t1, X1, U1 = run_simulation(controller=c1, dynamics_model=full_dynamics, sim_time=6.0, dt=0.001, initial_state=initial_state)
+    t2, X2, U2 = run_simulation(controller=c2, dynamics_model=full_dynamics, sim_time=6.0, dt=0.001, initial_state=initial_state)
     # Trajectories and control histories must match exactly
     assert np.allclose(X1, X2)
     assert np.allclose(U1, U2)
@@ -180,7 +189,7 @@ def test_robustness_sweep(make_hybrid, full_dynamics, dt, th1, th2):
     if hasattr(ctrl, "set_dynamics"):
         ctrl.set_dynamics(full_dynamics)
     x0 = np.array([0.0, th1, th2, 0.0, 0.0, 0.0], dtype=float)
-    _, X, U = run_simulation(ctrl, full_dynamics, 5.0, dt, x0)
+    _, X, U = run_simulation(controller=ctrl, dynamics_model=full_dynamics, sim_time=5.0, dt=dt, initial_state=x0)
     # Ensure no infinities or NaNs in the state trajectory
     assert np.all(np.isfinite(X))
     # Control should respect the actuator limit
@@ -196,7 +205,7 @@ def test_gain_growth_slows_in_second_half(make_hybrid, full_dynamics, initial_st
     if hasattr(ctrl, "set_dynamics"):
         ctrl.set_dynamics(full_dynamics)
     # Run a moderately long simulation to gather a history
-    _, X, _ = run_simulation(ctrl, full_dynamics, 10.0, 0.001, initial_state)
+    _, X, _ = run_simulation(controller=ctrl, dynamics_model=full_dynamics, sim_time=10.0, dt=0.001, initial_state=initial_state)
     # Recompute control offline to collect gain histories
     state_vars, history = _init_sv_hist(ctrl)
     for state in X:
@@ -223,7 +232,7 @@ def test_long_run_no_drift(make_hybrid, full_dynamics, initial_state):
     ctrl = make_hybrid()
     if hasattr(ctrl, "set_dynamics"):
         ctrl.set_dynamics(full_dynamics)
-    _, X, U = run_simulation(ctrl, full_dynamics, 30.0, 0.001, initial_state)
+    _, X, U = run_simulation(controller=ctrl, dynamics_model=full_dynamics, sim_time=30.0, dt=0.001, initial_state=initial_state)
     # Actuator should respect its limit even over long horizons
     assert np.max(np.abs(U)) <= ctrl.max_force + 1e-9
     # Final state should be close to the upright equilibrium

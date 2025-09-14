@@ -1,0 +1,1685 @@
+﻿[
+    {
+        "citation_id":  "CIT-068",
+        "doc_entity":  "for validation, but they are **not** part of the optimisation cost. [CIT-068]",
+        "doc_location":  ".\\docs\\analysis_plan.md:12",
+        "code_reference":  "src/optimizer/pso_optimizer.py:430",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-042",
+        "doc_entity":  "`stability:Â 0.1`Â [CIT-042].  During optimisation the PSO tuner computes",
+        "doc_location":  ".\\docs\\analysis_plan.md:18",
+        "code_reference":  "config.yaml:270",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-043",
+        "doc_entity":  "Simulations and experiments are logged at **100Â Hz**, corresponding to a 10Â ms sampling period.  This matches the default simulator time step `dt = 0.01` defined in `config.yaml`Â [CIT-043].  Some controllers integrate internally at smaller steps (e.g. 1Â ms for superâ€‘twisting or adaptive variants), but all logging and nominal simulations operate at 100Â Hz.  Logs include time stamps, full state vectors and control inputs.  Raw logs are",
+        "doc_location":  ".\\docs\\analysis_plan.md:81",
+        "code_reference":  "config.yaml:222",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-045",
+        "doc_entity":  "- **Actuator saturation:** limits the commanded force to $\\pm150\\,\\text{N}$ by clipping it to the `max_force` setting.  The faultâ€‘detection system merely sets a status flag; it does not alter the control command.  Any safeâ€‘state behaviour (for example, commanding zero force) must be implemented by a higherâ€‘level supervisor. [CIT-045][CIT-064][CIT-065]",
+        "doc_location":  ".\\docs\\architecture.md:13",
+        "code_reference":  "config.yaml:64",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-064",
+        "doc_entity":  "- **Actuator saturation:** limits the commanded force to $\\pm150\\,\\text{N}$ by clipping it to the `max_force` setting.  The faultâ€‘detection system merely sets a status flag; it does not alter the control command.  Any safeâ€‘state behaviour (for example, commanding zero force) must be implemented by a higherâ€‘level supervisor. [CIT-045][CIT-064][CIT-065]",
+        "doc_location":  ".\\docs\\architecture.md:13",
+        "code_reference":  "src/fault_detection/fdi.py:80",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-065",
+        "doc_entity":  "- **Actuator saturation:** limits the commanded force to $\\pm150\\,\\text{N}$ by clipping it to the `max_force` setting.  The faultâ€‘detection system merely sets a status flag; it does not alter the control command.  Any safeâ€‘state behaviour (for example, commanding zero force) must be implemented by a higherâ€‘level supervisor. [CIT-045][CIT-064][CIT-065]",
+        "doc_location":  ".\\docs\\architecture.md:13",
+        "code_reference":  null,
+        "validation_status":  "missing_reference",
+        "proposed_update":  null,
+        "reasoning":  "No code_reference in registry."
+    },
+    {
+        "citation_id":  "CIT-070",
+        "doc_entity":  "tuned gains to JSON files for subsequent use. [CIT-070]",
+        "doc_location":  ".\\docs\\architecture.md:19",
+        "code_reference":  "scripts/reoptimize_controllers.py:91",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-043",
+        "doc_entity":  "- **Sampling:** the simulation and control operate at a base period $T_s=10\\,\\text{ms}$ (0.01Â s), matching the `simulation.dt` parameter (0.01) in `config.yaml`Â [CIT-043].  Individual controller implementations may integrate internally at 1Â ms, but the baseline configuration and logging use a 10Â ms sample period.",
+        "doc_location":  ".\\docs\\architecture.md:25",
+        "code_reference":  "config.yaml:222",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-044",
+        "doc_entity":  "entries)Â [CIT-044].  These finite step sizes introduce quantisation noise that",
+        "doc_location":  ".\\docs\\architecture.md:31",
+        "code_reference":  "config.yaml:297",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-045",
+        "doc_entity":  "subsequently saturated to the Â±150Â N limitÂ [CIT-045].",
+        "doc_location":  ".\\docs\\architecture.md:34",
+        "code_reference":  "config.yaml:64",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-067",
+        "doc_entity":  "to detect dropped or outâ€‘ofâ€‘order packets. [CIT-067][CIT-066]",
+        "doc_location":  ".\\docs\\architecture.md:37",
+        "code_reference":  "src/hil/plant_server.py:91",
+        "validation_status":  "inconsistent",
+        "proposed_update":  "Clarify 20 ms as illustrative; tie to `hil.extra_latency_ms` without fixed limit.",
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-066",
+        "doc_entity":  "to detect dropped or outâ€‘ofâ€‘order packets. [CIT-067][CIT-066]",
+        "doc_location":  ".\\docs\\architecture.md:37",
+        "code_reference":  "src/hil/controller_client.py:100",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-068",
+        "doc_entity":  "\"doc_entity\":  \"for validation, but they are **not** part of the optimisation cost. [CIT-068]\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:4",
+        "code_reference":  "src/optimizer/pso_optimizer.py:430",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-042",
+        "doc_entity":  "\"doc_entity\":  \"`stability:Â 0.1`Â [CIT-042].  During optimisation the PSO tuner computes\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:13",
+        "code_reference":  "config.yaml:270",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-043",
+        "doc_entity":  "\"doc_entity\":  \"Simulations and experiments are logged at **100Â Hz**, corresponding to a 10Â ms sampling period.  This matches the default simulator time step `dt = 0.01` defined in `config.yaml`Â [CIT-043].  Some controllers integrate internally at smaller steps (e.g. 1Â ms for superâ€‘twisting or adaptive variants), but all logging and nominal simulations operate at 100Â Hz.  Logs include time stamps, full state vectors and control inputs.  Raw logs are\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:22",
+        "code_reference":  "config.yaml:222",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-045",
+        "doc_entity":  "\"doc_entity\":  \"- **Actuator saturation:** limits the commanded force to $\\\\pm150\\\\,\\\\text{N}$ by clipping it to the `max_force` setting.  The faultâ€‘detection system merely sets a status flag; it does not alter the control command.  Any safeâ€‘state behaviour (for example, commanding zero force) must be implemented by a higherâ€‘level supervisor. [CIT-045][CIT-064][CIT-065]\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:31",
+        "code_reference":  "config.yaml:64",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-064",
+        "doc_entity":  "\"doc_entity\":  \"- **Actuator saturation:** limits the commanded force to $\\\\pm150\\\\,\\\\text{N}$ by clipping it to the `max_force` setting.  The faultâ€‘detection system merely sets a status flag; it does not alter the control command.  Any safeâ€‘state behaviour (for example, commanding zero force) must be implemented by a higherâ€‘level supervisor. [CIT-045][CIT-064][CIT-065]\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:31",
+        "code_reference":  "src/fault_detection/fdi.py:80",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-065",
+        "doc_entity":  "\"doc_entity\":  \"- **Actuator saturation:** limits the commanded force to $\\\\pm150\\\\,\\\\text{N}$ by clipping it to the `max_force` setting.  The faultâ€‘detection system merely sets a status flag; it does not alter the control command.  Any safeâ€‘state behaviour (for example, commanding zero force) must be implemented by a higherâ€‘level supervisor. [CIT-045][CIT-064][CIT-065]\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:31",
+        "code_reference":  null,
+        "validation_status":  "missing_reference",
+        "proposed_update":  null,
+        "reasoning":  "No code_reference in registry."
+    },
+    {
+        "citation_id":  "CIT-045",
+        "doc_entity":  "\"doc_entity\":  \"- **Actuator saturation:** limits the commanded force to $\\\\pm150\\\\,\\\\text{N}$ by clipping it to the `max_force` setting.  The faultâ€‘detection system merely sets a status flag; it does not alter the control command.  Any safeâ€‘state behaviour (for example, commanding zero force) must be implemented by a higherâ€‘level supervisor. [CIT-045][CIT-064][CIT-065]\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:40",
+        "code_reference":  "config.yaml:64",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-064",
+        "doc_entity":  "\"doc_entity\":  \"- **Actuator saturation:** limits the commanded force to $\\\\pm150\\\\,\\\\text{N}$ by clipping it to the `max_force` setting.  The faultâ€‘detection system merely sets a status flag; it does not alter the control command.  Any safeâ€‘state behaviour (for example, commanding zero force) must be implemented by a higherâ€‘level supervisor. [CIT-045][CIT-064][CIT-065]\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:40",
+        "code_reference":  "src/fault_detection/fdi.py:80",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-065",
+        "doc_entity":  "\"doc_entity\":  \"- **Actuator saturation:** limits the commanded force to $\\\\pm150\\\\,\\\\text{N}$ by clipping it to the `max_force` setting.  The faultâ€‘detection system merely sets a status flag; it does not alter the control command.  Any safeâ€‘state behaviour (for example, commanding zero force) must be implemented by a higherâ€‘level supervisor. [CIT-045][CIT-064][CIT-065]\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:40",
+        "code_reference":  null,
+        "validation_status":  "missing_reference",
+        "proposed_update":  null,
+        "reasoning":  "No code_reference in registry."
+    },
+    {
+        "citation_id":  "CIT-045",
+        "doc_entity":  "\"doc_entity\":  \"- **Actuator saturation:** limits the commanded force to $\\\\pm150\\\\,\\\\text{N}$ by clipping it to the `max_force` setting.  The faultâ€‘detection system merely sets a status flag; it does not alter the control command.  Any safeâ€‘state behaviour (for example, commanding zero force) must be implemented by a higherâ€‘level supervisor. [CIT-045][CIT-064][CIT-065]\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:49",
+        "code_reference":  "config.yaml:64",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-064",
+        "doc_entity":  "\"doc_entity\":  \"- **Actuator saturation:** limits the commanded force to $\\\\pm150\\\\,\\\\text{N}$ by clipping it to the `max_force` setting.  The faultâ€‘detection system merely sets a status flag; it does not alter the control command.  Any safeâ€‘state behaviour (for example, commanding zero force) must be implemented by a higherâ€‘level supervisor. [CIT-045][CIT-064][CIT-065]\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:49",
+        "code_reference":  "src/fault_detection/fdi.py:80",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-065",
+        "doc_entity":  "\"doc_entity\":  \"- **Actuator saturation:** limits the commanded force to $\\\\pm150\\\\,\\\\text{N}$ by clipping it to the `max_force` setting.  The faultâ€‘detection system merely sets a status flag; it does not alter the control command.  Any safeâ€‘state behaviour (for example, commanding zero force) must be implemented by a higherâ€‘level supervisor. [CIT-045][CIT-064][CIT-065]\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:49",
+        "code_reference":  null,
+        "validation_status":  "missing_reference",
+        "proposed_update":  null,
+        "reasoning":  "No code_reference in registry."
+    },
+    {
+        "citation_id":  "CIT-070",
+        "doc_entity":  "\"doc_entity\":  \"tuned gains to JSON files for subsequent use. [CIT-070]\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:58",
+        "code_reference":  "scripts/reoptimize_controllers.py:91",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-043",
+        "doc_entity":  "\"doc_entity\":  \"- **Sampling:** the simulation and control operate at a base period $T_s=10\\\\,\\\\text{ms}$ (0.01Â s), matching the `simulation.dt` parameter (0.01) in `config.yaml`Â [CIT-043].  Individual controller implementations may integrate internally at 1Â ms, but the baseline configuration and logging use a 10Â ms sample period.\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:67",
+        "code_reference":  "config.yaml:222",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-044",
+        "doc_entity":  "\"doc_entity\":  \"entries)Â [CIT-044].  These finite step sizes introduce quantisation noise that\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:76",
+        "code_reference":  "config.yaml:297",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-045",
+        "doc_entity":  "\"doc_entity\":  \"subsequently saturated to the Â±150Â N limitÂ [CIT-045].\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:85",
+        "code_reference":  "config.yaml:64",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-067",
+        "doc_entity":  "\"doc_entity\":  \"to detect dropped or outâ€‘ofâ€‘order packets. [CIT-067][CIT-066]\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:94",
+        "code_reference":  "src/hil/plant_server.py:91",
+        "validation_status":  "inconsistent",
+        "proposed_update":  "Clarify 20 ms as illustrative; tie to `hil.extra_latency_ms` without fixed limit.",
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-066",
+        "doc_entity":  "\"doc_entity\":  \"to detect dropped or outâ€‘ofâ€‘order packets. [CIT-067][CIT-066]\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:94",
+        "code_reference":  "src/hil/controller_client.py:100",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-067",
+        "doc_entity":  "\"doc_entity\":  \"to detect dropped or outâ€‘ofâ€‘order packets. [CIT-067][CIT-066]\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:103",
+        "code_reference":  "src/hil/plant_server.py:91",
+        "validation_status":  "inconsistent",
+        "proposed_update":  "Clarify 20 ms as illustrative; tie to `hil.extra_latency_ms` without fixed limit.",
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-066",
+        "doc_entity":  "\"doc_entity\":  \"to detect dropped or outâ€‘ofâ€‘order packets. [CIT-067][CIT-066]\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:103",
+        "code_reference":  "src/hil/controller_client.py:100",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-043",
+        "doc_entity":  "\"doc_entity\":  \"- **Sensors:** measure cart position $x$, pendulum angles $\\\\theta_1$ and $\\\\theta_2$, and the corresponding velocities $\\\\dot{x}$, $\\\\dot{\\\\theta}_1$ and $\\\\dot{\\\\theta}_2$.  The implementation orders these six signals as $[x,\\\\theta_1,\\\\theta_2,\\\\dot{x},\\\\dot{\\\\theta}_1,\\\\dot{\\\\theta}_2]$ when forming the state vector.  This naming follows the code and I/O contracts (see `io_contracts.csv`) and eliminates the ambiguous subscript ``_c`` used in earlier drafts.  Measurements are sampled at **100Â Hz**, corresponding to a 10Â ms sampling period, and form the state vector for control.  This rate matches the default simulation time step ``dt = 0.01`` defined in `config.yaml`Â [CIT-043].  Individual controller implementations may specify a smaller internal ``dt`` (e.g., 0.001Â s for certain superâ€‘twisting or adaptive variants), but the baseline configuration and logging operate on a 10Â ms period.  The sensors are quantised with step sizes configured in `config.yaml` (0.01Â rad for angles and 0.0005Â m for position)Â [CIT-044]; these finite resolutions introduce small quantisation noise but do not affect the ordering or unit definitions.  In addition to quantisation, additive white measurement noise is applied in software: the `sensors` section of `config.yaml` specifies a standard deviation of **0.005Â rad** for angle measurements (`angle_noise_std`) and **0.001Â m** for the cart position (`position_noise_std`)Â [CIT-046].  These Gaussian noise levels are injected at each 10Â ms sample.  In hardwareâ€‘inâ€‘theâ€‘loop (HIL) experiments the `hil.sensor_noise_std` parameter controls additional transmission noise (default zero).\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:112",
+        "code_reference":  "config.yaml:222",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-044",
+        "doc_entity":  "\"doc_entity\":  \"- **Sensors:** measure cart position $x$, pendulum angles $\\\\theta_1$ and $\\\\theta_2$, and the corresponding velocities $\\\\dot{x}$, $\\\\dot{\\\\theta}_1$ and $\\\\dot{\\\\theta}_2$.  The implementation orders these six signals as $[x,\\\\theta_1,\\\\theta_2,\\\\dot{x},\\\\dot{\\\\theta}_1,\\\\dot{\\\\theta}_2]$ when forming the state vector.  This naming follows the code and I/O contracts (see `io_contracts.csv`) and eliminates the ambiguous subscript ``_c`` used in earlier drafts.  Measurements are sampled at **100Â Hz**, corresponding to a 10Â ms sampling period, and form the state vector for control.  This rate matches the default simulation time step ``dt = 0.01`` defined in `config.yaml`Â [CIT-043].  Individual controller implementations may specify a smaller internal ``dt`` (e.g., 0.001Â s for certain superâ€‘twisting or adaptive variants), but the baseline configuration and logging operate on a 10Â ms period.  The sensors are quantised with step sizes configured in `config.yaml` (0.01Â rad for angles and 0.0005Â m for position)Â [CIT-044]; these finite resolutions introduce small quantisation noise but do not affect the ordering or unit definitions.  In addition to quantisation, additive white measurement noise is applied in software: the `sensors` section of `config.yaml` specifies a standard deviation of **0.005Â rad** for angle measurements (`angle_noise_std`) and **0.001Â m** for the cart position (`position_noise_std`)Â [CIT-046].  These Gaussian noise levels are injected at each 10Â ms sample.  In hardwareâ€‘inâ€‘theâ€‘loop (HIL) experiments the `hil.sensor_noise_std` parameter controls additional transmission noise (default zero).\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:112",
+        "code_reference":  "config.yaml:297",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-046",
+        "doc_entity":  "\"doc_entity\":  \"- **Sensors:** measure cart position $x$, pendulum angles $\\\\theta_1$ and $\\\\theta_2$, and the corresponding velocities $\\\\dot{x}$, $\\\\dot{\\\\theta}_1$ and $\\\\dot{\\\\theta}_2$.  The implementation orders these six signals as $[x,\\\\theta_1,\\\\theta_2,\\\\dot{x},\\\\dot{\\\\theta}_1,\\\\dot{\\\\theta}_2]$ when forming the state vector.  This naming follows the code and I/O contracts (see `io_contracts.csv`) and eliminates the ambiguous subscript ``_c`` used in earlier drafts.  Measurements are sampled at **100Â Hz**, corresponding to a 10Â ms sampling period, and form the state vector for control.  This rate matches the default simulation time step ``dt = 0.01`` defined in `config.yaml`Â [CIT-043].  Individual controller implementations may specify a smaller internal ``dt`` (e.g., 0.001Â s for certain superâ€‘twisting or adaptive variants), but the baseline configuration and logging operate on a 10Â ms period.  The sensors are quantised with step sizes configured in `config.yaml` (0.01Â rad for angles and 0.0005Â m for position)Â [CIT-044]; these finite resolutions introduce small quantisation noise but do not affect the ordering or unit definitions.  In addition to quantisation, additive white measurement noise is applied in software: the `sensors` section of `config.yaml` specifies a standard deviation of **0.005Â rad** for angle measurements (`angle_noise_std`) and **0.001Â m** for the cart position (`position_noise_std`)Â [CIT-046].  These Gaussian noise levels are injected at each 10Â ms sample.  In hardwareâ€‘inâ€‘theâ€‘loop (HIL) experiments the `hil.sensor_noise_std` parameter controls additional transmission noise (default zero).\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:112",
+        "code_reference":  "config.yaml:295",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-043",
+        "doc_entity":  "\"doc_entity\":  \"- **Sensors:** measure cart position $x$, pendulum angles $\\\\theta_1$ and $\\\\theta_2$, and the corresponding velocities $\\\\dot{x}$, $\\\\dot{\\\\theta}_1$ and $\\\\dot{\\\\theta}_2$.  The implementation orders these six signals as $[x,\\\\theta_1,\\\\theta_2,\\\\dot{x},\\\\dot{\\\\theta}_1,\\\\dot{\\\\theta}_2]$ when forming the state vector.  This naming follows the code and I/O contracts (see `io_contracts.csv`) and eliminates the ambiguous subscript ``_c`` used in earlier drafts.  Measurements are sampled at **100Â Hz**, corresponding to a 10Â ms sampling period, and form the state vector for control.  This rate matches the default simulation time step ``dt = 0.01`` defined in `config.yaml`Â [CIT-043].  Individual controller implementations may specify a smaller internal ``dt`` (e.g., 0.001Â s for certain superâ€‘twisting or adaptive variants), but the baseline configuration and logging operate on a 10Â ms period.  The sensors are quantised with step sizes configured in `config.yaml` (0.01Â rad for angles and 0.0005Â m for position)Â [CIT-044]; these finite resolutions introduce small quantisation noise but do not affect the ordering or unit definitions.  In addition to quantisation, additive white measurement noise is applied in software: the `sensors` section of `config.yaml` specifies a standard deviation of **0.005Â rad** for angle measurements (`angle_noise_std`) and **0.001Â m** for the cart position (`position_noise_std`)Â [CIT-046].  These Gaussian noise levels are injected at each 10Â ms sample.  In hardwareâ€‘inâ€‘theâ€‘loop (HIL) experiments the `hil.sensor_noise_std` parameter controls additional transmission noise (default zero).\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:121",
+        "code_reference":  "config.yaml:222",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-044",
+        "doc_entity":  "\"doc_entity\":  \"- **Sensors:** measure cart position $x$, pendulum angles $\\\\theta_1$ and $\\\\theta_2$, and the corresponding velocities $\\\\dot{x}$, $\\\\dot{\\\\theta}_1$ and $\\\\dot{\\\\theta}_2$.  The implementation orders these six signals as $[x,\\\\theta_1,\\\\theta_2,\\\\dot{x},\\\\dot{\\\\theta}_1,\\\\dot{\\\\theta}_2]$ when forming the state vector.  This naming follows the code and I/O contracts (see `io_contracts.csv`) and eliminates the ambiguous subscript ``_c`` used in earlier drafts.  Measurements are sampled at **100Â Hz**, corresponding to a 10Â ms sampling period, and form the state vector for control.  This rate matches the default simulation time step ``dt = 0.01`` defined in `config.yaml`Â [CIT-043].  Individual controller implementations may specify a smaller internal ``dt`` (e.g., 0.001Â s for certain superâ€‘twisting or adaptive variants), but the baseline configuration and logging operate on a 10Â ms period.  The sensors are quantised with step sizes configured in `config.yaml` (0.01Â rad for angles and 0.0005Â m for position)Â [CIT-044]; these finite resolutions introduce small quantisation noise but do not affect the ordering or unit definitions.  In addition to quantisation, additive white measurement noise is applied in software: the `sensors` section of `config.yaml` specifies a standard deviation of **0.005Â rad** for angle measurements (`angle_noise_std`) and **0.001Â m** for the cart position (`position_noise_std`)Â [CIT-046].  These Gaussian noise levels are injected at each 10Â ms sample.  In hardwareâ€‘inâ€‘theâ€‘loop (HIL) experiments the `hil.sensor_noise_std` parameter controls additional transmission noise (default zero).\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:121",
+        "code_reference":  "config.yaml:297",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-046",
+        "doc_entity":  "\"doc_entity\":  \"- **Sensors:** measure cart position $x$, pendulum angles $\\\\theta_1$ and $\\\\theta_2$, and the corresponding velocities $\\\\dot{x}$, $\\\\dot{\\\\theta}_1$ and $\\\\dot{\\\\theta}_2$.  The implementation orders these six signals as $[x,\\\\theta_1,\\\\theta_2,\\\\dot{x},\\\\dot{\\\\theta}_1,\\\\dot{\\\\theta}_2]$ when forming the state vector.  This naming follows the code and I/O contracts (see `io_contracts.csv`) and eliminates the ambiguous subscript ``_c`` used in earlier drafts.  Measurements are sampled at **100Â Hz**, corresponding to a 10Â ms sampling period, and form the state vector for control.  This rate matches the default simulation time step ``dt = 0.01`` defined in `config.yaml`Â [CIT-043].  Individual controller implementations may specify a smaller internal ``dt`` (e.g., 0.001Â s for certain superâ€‘twisting or adaptive variants), but the baseline configuration and logging operate on a 10Â ms period.  The sensors are quantised with step sizes configured in `config.yaml` (0.01Â rad for angles and 0.0005Â m for position)Â [CIT-044]; these finite resolutions introduce small quantisation noise but do not affect the ordering or unit definitions.  In addition to quantisation, additive white measurement noise is applied in software: the `sensors` section of `config.yaml` specifies a standard deviation of **0.005Â rad** for angle measurements (`angle_noise_std`) and **0.001Â m** for the cart position (`position_noise_std`)Â [CIT-046].  These Gaussian noise levels are injected at each 10Â ms sample.  In hardwareâ€‘inâ€‘theâ€‘loop (HIL) experiments the `hil.sensor_noise_std` parameter controls additional transmission noise (default zero).\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:121",
+        "code_reference":  "config.yaml:295",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-043",
+        "doc_entity":  "\"doc_entity\":  \"- **Sensors:** measure cart position $x$, pendulum angles $\\\\theta_1$ and $\\\\theta_2$, and the corresponding velocities $\\\\dot{x}$, $\\\\dot{\\\\theta}_1$ and $\\\\dot{\\\\theta}_2$.  The implementation orders these six signals as $[x,\\\\theta_1,\\\\theta_2,\\\\dot{x},\\\\dot{\\\\theta}_1,\\\\dot{\\\\theta}_2]$ when forming the state vector.  This naming follows the code and I/O contracts (see `io_contracts.csv`) and eliminates the ambiguous subscript ``_c`` used in earlier drafts.  Measurements are sampled at **100Â Hz**, corresponding to a 10Â ms sampling period, and form the state vector for control.  This rate matches the default simulation time step ``dt = 0.01`` defined in `config.yaml`Â [CIT-043].  Individual controller implementations may specify a smaller internal ``dt`` (e.g., 0.001Â s for certain superâ€‘twisting or adaptive variants), but the baseline configuration and logging operate on a 10Â ms period.  The sensors are quantised with step sizes configured in `config.yaml` (0.01Â rad for angles and 0.0005Â m for position)Â [CIT-044]; these finite resolutions introduce small quantisation noise but do not affect the ordering or unit definitions.  In addition to quantisation, additive white measurement noise is applied in software: the `sensors` section of `config.yaml` specifies a standard deviation of **0.005Â rad** for angle measurements (`angle_noise_std`) and **0.001Â m** for the cart position (`position_noise_std`)Â [CIT-046].  These Gaussian noise levels are injected at each 10Â ms sample.  In hardwareâ€‘inâ€‘theâ€‘loop (HIL) experiments the `hil.sensor_noise_std` parameter controls additional transmission noise (default zero).\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:130",
+        "code_reference":  "config.yaml:222",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-044",
+        "doc_entity":  "\"doc_entity\":  \"- **Sensors:** measure cart position $x$, pendulum angles $\\\\theta_1$ and $\\\\theta_2$, and the corresponding velocities $\\\\dot{x}$, $\\\\dot{\\\\theta}_1$ and $\\\\dot{\\\\theta}_2$.  The implementation orders these six signals as $[x,\\\\theta_1,\\\\theta_2,\\\\dot{x},\\\\dot{\\\\theta}_1,\\\\dot{\\\\theta}_2]$ when forming the state vector.  This naming follows the code and I/O contracts (see `io_contracts.csv`) and eliminates the ambiguous subscript ``_c`` used in earlier drafts.  Measurements are sampled at **100Â Hz**, corresponding to a 10Â ms sampling period, and form the state vector for control.  This rate matches the default simulation time step ``dt = 0.01`` defined in `config.yaml`Â [CIT-043].  Individual controller implementations may specify a smaller internal ``dt`` (e.g., 0.001Â s for certain superâ€‘twisting or adaptive variants), but the baseline configuration and logging operate on a 10Â ms period.  The sensors are quantised with step sizes configured in `config.yaml` (0.01Â rad for angles and 0.0005Â m for position)Â [CIT-044]; these finite resolutions introduce small quantisation noise but do not affect the ordering or unit definitions.  In addition to quantisation, additive white measurement noise is applied in software: the `sensors` section of `config.yaml` specifies a standard deviation of **0.005Â rad** for angle measurements (`angle_noise_std`) and **0.001Â m** for the cart position (`position_noise_std`)Â [CIT-046].  These Gaussian noise levels are injected at each 10Â ms sample.  In hardwareâ€‘inâ€‘theâ€‘loop (HIL) experiments the `hil.sensor_noise_std` parameter controls additional transmission noise (default zero).\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:130",
+        "code_reference":  "config.yaml:297",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-046",
+        "doc_entity":  "\"doc_entity\":  \"- **Sensors:** measure cart position $x$, pendulum angles $\\\\theta_1$ and $\\\\theta_2$, and the corresponding velocities $\\\\dot{x}$, $\\\\dot{\\\\theta}_1$ and $\\\\dot{\\\\theta}_2$.  The implementation orders these six signals as $[x,\\\\theta_1,\\\\theta_2,\\\\dot{x},\\\\dot{\\\\theta}_1,\\\\dot{\\\\theta}_2]$ when forming the state vector.  This naming follows the code and I/O contracts (see `io_contracts.csv`) and eliminates the ambiguous subscript ``_c`` used in earlier drafts.  Measurements are sampled at **100Â Hz**, corresponding to a 10Â ms sampling period, and form the state vector for control.  This rate matches the default simulation time step ``dt = 0.01`` defined in `config.yaml`Â [CIT-043].  Individual controller implementations may specify a smaller internal ``dt`` (e.g., 0.001Â s for certain superâ€‘twisting or adaptive variants), but the baseline configuration and logging operate on a 10Â ms period.  The sensors are quantised with step sizes configured in `config.yaml` (0.01Â rad for angles and 0.0005Â m for position)Â [CIT-044]; these finite resolutions introduce small quantisation noise but do not affect the ordering or unit definitions.  In addition to quantisation, additive white measurement noise is applied in software: the `sensors` section of `config.yaml` specifies a standard deviation of **0.005Â rad** for angle measurements (`angle_noise_std`) and **0.001Â m** for the cart position (`position_noise_std`)Â [CIT-046].  These Gaussian noise levels are injected at each 10Â ms sample.  In hardwareâ€‘inâ€‘theâ€‘loop (HIL) experiments the `hil.sensor_noise_std` parameter controls additional transmission noise (default zero).\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:130",
+        "code_reference":  "config.yaml:295",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-045",
+        "doc_entity":  "\"doc_entity\":  \"specified `max_force` in `config.yaml`Â [CIT-045].\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:139",
+        "code_reference":  "config.yaml:64",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-063",
+        "doc_entity":  "\"doc_entity\":  \"Before turning to the tuning bounds, note that the nominal physical parameters stated aboveâ€”cart mass, pendulum masses, lengths, centreâ€‘ofâ€‘mass distances, inertias and friction coefficientsâ€”are taken directly from the `physics` section of `config.yaml`Â [CIT-063].\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:148",
+        "code_reference":  "config.yaml:191",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-050",
+        "doc_entity":  "\"doc_entity\":  \"| cart_mass | 1.0 | 2.0 | kg | Cart mass tuned by PSOÂ [CIT-050] |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:157",
+        "code_reference":  "config.yaml:153",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-051",
+        "doc_entity":  "\"doc_entity\":  \"| pendulum1_mass | 0.1 | 0.3 | kg | Mass of first pendulumÂ [CIT-051] |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:166",
+        "code_reference":  "config.yaml:156",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-052",
+        "doc_entity":  "\"doc_entity\":  \"| pendulum2_mass | 0.1 | 0.2 | kg | Mass of second pendulumÂ [CIT-052] |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:175",
+        "code_reference":  "config.yaml:159",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-053",
+        "doc_entity":  "\"doc_entity\":  \"| pendulum1_length | 0.3 | 0.5 | m | Length of first pendulumÂ [CIT-053] |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:184",
+        "code_reference":  "config.yaml:162",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-054",
+        "doc_entity":  "\"doc_entity\":  \"| pendulum2_length | 0.2 | 0.4 | m | Length of second pendulumÂ [CIT-054] |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:193",
+        "code_reference":  "config.yaml:165",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-055",
+        "doc_entity":  "\"doc_entity\":  \"| pendulum1_com | 0.15 | 0.25 | m | Centreâ€‘ofâ€‘mass distance of first pendulumÂ [CIT-055] |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:202",
+        "code_reference":  "config.yaml:168",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-056",
+        "doc_entity":  "\"doc_entity\":  \"| pendulum2_com | 0.10 | 0.20 | m | Centreâ€‘ofâ€‘mass distance of second pendulumÂ [CIT-056] |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:211",
+        "code_reference":  "config.yaml:171",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-057",
+        "doc_entity":  "\"doc_entity\":  \"| pendulum1_inertia | 0.0015 | 0.004 | kgÂ·mÂ² | Inertia of first pendulum about pivotÂ [CIT-057] |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:220",
+        "code_reference":  "config.yaml:174",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-058",
+        "doc_entity":  "\"doc_entity\":  \"| pendulum2_inertia | 0.0005 | 0.002 | kgÂ·mÂ² | Inertia of second pendulum about pivotÂ [CIT-058] |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:229",
+        "code_reference":  "config.yaml:177",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-059",
+        "doc_entity":  "\"doc_entity\":  \"| boundary_layer | 0.01 | 0.05 | â€“ | SMC boundary layer width (dimensionless)Â [CIT-059] |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:238",
+        "code_reference":  "config.yaml:189",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-045",
+        "doc_entity":  "\"doc_entity\":  \"| max_force | 150 | 150 | N | Actuator saturation limit (fixed at 150Â N in `config.yaml`)Â [CIT-045] |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:247",
+        "code_reference":  "config.yaml:64",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-060",
+        "doc_entity":  "\"doc_entity\":  \"| cart_friction | 0.1 | 0.5 | â€“ | Viscous friction coefficient for the cartÂ [CIT-060] |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:256",
+        "code_reference":  "config.yaml:180",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-061",
+        "doc_entity":  "\"doc_entity\":  \"| joint1_friction | 0.001 | 0.01 | â€“ | Friction coefficient for the first jointÂ [CIT-061] |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:265",
+        "code_reference":  "config.yaml:183",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-062",
+        "doc_entity":  "\"doc_entity\":  \"| joint2_friction | 0.001 | 0.01 | â€“ | Friction coefficient for the second jointÂ [CIT-062] |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:274",
+        "code_reference":  "config.yaml:186",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-044",
+        "doc_entity":  "\"doc_entity\":  \"`quantization_angle` and `quantization_position` in `config.yaml`Â [CIT-044].\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:283",
+        "code_reference":  "config.yaml:297",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-046",
+        "doc_entity":  "\"doc_entity\":  \"of the configuration and are set to **0.005Â rad** for angles and **0.001Â m** for position by default; these values mirror the `angle_noise_std` and `position_noise_std` entries in `config.yaml`Â [CIT-046].  Unmodelled higherâ€‘order dynamics and external\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:292",
+        "code_reference":  "config.yaml:295",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-032",
+        "doc_entity":  "\"doc_entity\":  \"\\u003e **State ordering:** the internal implementation orders the six state variables as $[x,\\\\theta_1,\\\\theta_2,\\\\dot{x},\\\\dot{\\\\theta}_1,\\\\dot{\\\\theta}_2]^\\\\top$.  This differs from the $[x,\\\\dot{x},\\\\theta_1,\\\\dot{\\\\theta}_1,\\\\theta_2,\\\\dot{\\\\theta}_2]$ ordering sometimes used in literature.  The chosen ordering matches the state unpacking in the controllers (see `AdaptiveSMC.compute_control()` and the superâ€‘twisting controller in `sta_smc.py`), where the second and third entries are the pendulum angles and the remaining entries are velocities.  When computing Jacobians or linearising the dynamics one should therefore map the symbolic state vector to this ordering. [CIT-032]\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:301",
+        "code_reference":  "src/controllers/classic_smc.py:329",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-033",
+        "doc_entity":  "\"doc_entity\":  \"* Cart mass \\\\(m_0 = 1.5\\\\,\\\\text{kg}\\\\)Â [CIT-033]\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:310",
+        "code_reference":  "config.yaml:191",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-034",
+        "doc_entity":  "\"doc_entity\":  \"* First pendulum mass \\\\(m_1 = 0.2\\\\,\\\\text{kg}\\\\)Â [CIT-034]\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:319",
+        "code_reference":  "config.yaml:192",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-035",
+        "doc_entity":  "\"doc_entity\":  \"* Second pendulum mass \\\\(m_2 = 0.15\\\\,\\\\text{kg}\\\\)Â [CIT-035]\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:328",
+        "code_reference":  "config.yaml:193",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-036",
+        "doc_entity":  "\"doc_entity\":  \"* First pendulum length \\\\(l_1 = 0.4\\\\,\\\\text{m}\\\\)Â [CIT-036]\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:337",
+        "code_reference":  "config.yaml:194",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-037",
+        "doc_entity":  "\"doc_entity\":  \"* Second pendulum length \\\\(l_2 = 0.3\\\\,\\\\text{m}\\\\)Â [CIT-037]\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:346",
+        "code_reference":  "config.yaml:195",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-038",
+        "doc_entity":  "\"doc_entity\":  \"\\\\(l_{2,\\\\mathrm{com}} = 0.15\\\\,\\\\text{m}\\\\)Â [CIT-038]\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:355",
+        "code_reference":  "config.yaml:196",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-039",
+        "doc_entity":  "\"doc_entity\":  \"\\\\(I_2 = 1.15\\\\times10^{-3}\\\\,\\\\text{kgÂ·m}^2\\\\)Â [CIT-039]\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:364",
+        "code_reference":  "config.yaml:198",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-040",
+        "doc_entity":  "\"doc_entity\":  \"* Gravity \\\\(g=9.81\\\\,\\\\text{m/s}^2\\\\)Â [CIT-040]\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:373",
+        "code_reference":  "config.yaml:200",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-041",
+        "doc_entity":  "\"doc_entity\":  \"* Viscous friction coefficients \\\\(b_c=0.2\\\\), \\\\(b_1=0.005\\\\) and \\\\(b_2=0.004\\\\)Â [CIT-041]\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:382",
+        "code_reference":  "config.yaml:201",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-001",
+        "doc_entity":  "\"doc_entity\":  \"| $u(t)$ | Control input (force applied to cart) [CIT-001] | N |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:391",
+        "code_reference":  "src/controllers/sta_smc.py:90",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-002",
+        "doc_entity":  "\"doc_entity\":  \"| $x$ | Cart position [CIT-002] | m |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:400",
+        "code_reference":  "src/controllers/hybrid_adaptive_sta_smc.py:513",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-003",
+        "doc_entity":  "\"doc_entity\":  \"| $\\\\dot{x}$ | Cart velocity [CIT-003] | m/s |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:409",
+        "code_reference":  "src/controllers/hybrid_adaptive_sta_smc.py:514",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-004",
+        "doc_entity":  "\"doc_entity\":  \"| $\\\\theta_1$ | Angle of first pendulum [CIT-004] | rad |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:418",
+        "code_reference":  "src/controllers/classic_smc.py:335",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-005",
+        "doc_entity":  "\"doc_entity\":  \"| $\\\\dot{\\\\theta}_1$ | Angular rate of first pendulum [CIT-005] | rad/s |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:427",
+        "code_reference":  "src/controllers/classic_smc.py:335",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-006",
+        "doc_entity":  "\"doc_entity\":  \"| $\\\\theta_2$ | Angle of second pendulum [CIT-006] | rad |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:436",
+        "code_reference":  "src/controllers/classic_smc.py:335",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-007",
+        "doc_entity":  "\"doc_entity\":  \"| $\\\\dot{\\\\theta}_2$ | Angular rate of second pendulum [CIT-007] | rad/s |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:445",
+        "code_reference":  "src/controllers/classic_smc.py:335",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-008",
+        "doc_entity":  "\"doc_entity\":  \"| $m_0$ | Mass of cart [CIT-008] | kg |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:454",
+        "code_reference":  "config.yaml:191",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-009",
+        "doc_entity":  "\"doc_entity\":  \"| $m_1$ | Mass of first pendulum [CIT-009] | kg |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:463",
+        "code_reference":  "config.yaml:192",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-010",
+        "doc_entity":  "\"doc_entity\":  \"| $m_2$ | Mass of second pendulum [CIT-010] | kg |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:472",
+        "code_reference":  "config.yaml:193",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-011",
+        "doc_entity":  "\"doc_entity\":  \"| $l_1$ | Length of first pendulum [CIT-011] | m |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:481",
+        "code_reference":  "config.yaml:194",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-012",
+        "doc_entity":  "\"doc_entity\":  \"| $l_2$ | Length of second pendulum [CIT-012] | m |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:490",
+        "code_reference":  "config.yaml:195",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-013",
+        "doc_entity":  "\"doc_entity\":  \"| $g$ | Gravitational acceleration [CIT-013] | m/sÂ² |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:499",
+        "code_reference":  "config.yaml:200",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-014",
+        "doc_entity":  "\"doc_entity\":  \"| $l_{1,\\\\mathrm{com}}$ | Centreâ€‘ofâ€‘mass distance of first pendulum [CIT-014] | m |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:508",
+        "code_reference":  "config.yaml:196",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-015",
+        "doc_entity":  "\"doc_entity\":  \"| $l_{2,\\\\mathrm{com}}$ | Centreâ€‘ofâ€‘mass distance of second pendulum [CIT-015] | m |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:517",
+        "code_reference":  "config.yaml:197",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-016",
+        "doc_entity":  "\"doc_entity\":  \"| $I_1$ | Inertia of first pendulum about pivot [CIT-016] | kgÂ·mÂ² |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:526",
+        "code_reference":  "config.yaml:198",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-017",
+        "doc_entity":  "\"doc_entity\":  \"| $I_2$ | Inertia of second pendulum about pivot [CIT-017] | kgÂ·mÂ² |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:535",
+        "code_reference":  "config.yaml:199",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-018",
+        "doc_entity":  "\"doc_entity\":  \"| $b_c$ | Viscous friction coefficient for the cart [CIT-018] | â€“ |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:544",
+        "code_reference":  "config.yaml:201",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-019",
+        "doc_entity":  "\"doc_entity\":  \"| $b_1$ | Friction coefficient for the first joint [CIT-019] | â€“ |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:553",
+        "code_reference":  "config.yaml:202",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-020",
+        "doc_entity":  "\"doc_entity\":  \"| $b_2$ | Friction coefficient for the second joint [CIT-020] | â€“ |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:562",
+        "code_reference":  "config.yaml:203",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-021",
+        "doc_entity":  "\"doc_entity\":  \"| $k_1,k_2$ | Slidingâ€‘surface gains weighting pendulum velocity and angle terms [CIT-021] | â€“ |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:571",
+        "code_reference":  "src/controllers/classic_smc.py:150",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-022",
+        "doc_entity":  "\"doc_entity\":  \"| $\\\\lambda_1,\\\\lambda_2$ | Slope parameters defining the sliding surface (convert angle errors to rate errors) [CIT-022] | 1/s |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:580",
+        "code_reference":  "src/controllers/classic_smc.py:150",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-023",
+        "doc_entity":  "\"doc_entity\":  \"| $K$ | Switching gain multiplying the saturated sliding variable in the classical SMC control law [CIT-023] | N |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:589",
+        "code_reference":  "src/controllers/classic_smc.py:150",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-024",
+        "doc_entity":  "\"doc_entity\":  \"| $k_d$ | Derivative (linear) gain used to damp the sliding surface dynamics [CIT-024] | N/rad |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:598",
+        "code_reference":  "src/controllers/classic_smc.py:150",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-025",
+        "doc_entity":  "\"doc_entity\":  \"| $K_1,K_2$ | Algorithmic gains for the superâ€‘twisting SMC (squareâ€‘root and integral terms) [CIT-025] | N |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:607",
+        "code_reference":  "src/controllers/sta_smc.py:270",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-026",
+        "doc_entity":  "\"doc_entity\":  \"| $c_1,c_2$ | Gains defining the hybrid adaptive sliding surface [CIT-026] | â€“ |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:616",
+        "code_reference":  "src/controllers/hybrid_adaptive_sta_smc.py:170",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-027",
+        "doc_entity":  "\"doc_entity\":  \"| $\\\\alpha$ | Proportional gain on the sliding variable $\\\\sigma$ in adaptive SMC [CIT-027] | NÂ·s/rad |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:625",
+        "code_reference":  "src/controllers/adaptive_smc.py:201",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-028",
+        "doc_entity":  "\"doc_entity\":  \"| $\\\\gamma$ | Adaptation rate for the switching gain $K$ in adaptive SMC (adds to $K$ proportionally to $|\\\\sigma|$) [CIT-028] | N/rad |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:634",
+        "code_reference":  "src/controllers/adaptive_smc.py:152",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-029",
+        "doc_entity":  "\"doc_entity\":  \"| $\\\\sigma$ | Sliding surface value combining weighted angle and velocity errors [CIT-029] | rad/s |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:643",
+        "code_reference":  "src/controllers/classic_smc.py:345",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-030",
+        "doc_entity":  "\"doc_entity\":  \"| $z$ | Internal integrator state used in the superâ€‘twisting algorithm [CIT-030] | N |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:652",
+        "code_reference":  "src/controllers/sta_smc.py:84",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-031",
+        "doc_entity":  "\"doc_entity\":  \"| $\\\\varepsilon$ | Boundaryâ€‘layer width; scales the saturation function inside the switching law [CIT-031] | rad/s |\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:661",
+        "code_reference":  "src/controllers/classic_smc.py:173",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-048",
+        "doc_entity":  "\"doc_entity\":  \"threshold for **10** consecutive samples (100Â ms at 100Â Hz)Â [CIT-048].  Adaptive\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:670",
+        "code_reference":  "src/fault_detection/fdi.py:81",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-049",
+        "doc_entity":  "\"doc_entity\":  \"(default 5.0) to detect slow driftsÂ [CIT-049].  Both adaptive and CUSUM features are\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:679",
+        "code_reference":  "src/fault_detection/fdi.py:87",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-043",
+        "doc_entity":  "\"doc_entity\":  \"and error signals at **100Â Hz** (10Â ms sampling)Â [CIT-043].  For each test ID, store the log under\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:688",
+        "code_reference":  "config.yaml:222",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-047",
+        "doc_entity":  "\"doc_entity\":  \"switch to the slidingâ€‘mode stabilising controllerÂ [CIT-047].\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:697",
+        "code_reference":  "config.yaml:61",
+        "validation_status":  "inconsistent",
+        "proposed_update":  "Update angle thresholds in docs to 0.35 rad (switch) and 0.4 rad (reentry) to match config and controller.",
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-047",
+        "doc_entity":  "\"doc_entity\":  \"cart velocity is near zeroÂ [CIT-047].\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:706",
+        "code_reference":  "config.yaml:61",
+        "validation_status":  "inconsistent",
+        "proposed_update":  "Update angle thresholds in docs to 0.35 rad (switch) and 0.4 rad (reentry) to match config and controller.",
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-048",
+        "doc_entity":  "\"doc_entity\":  \"consecutive 100Â Hz samplesÂ [CIT-048].  Adaptive thresholding and CUSUM may adjust\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:715",
+        "code_reference":  "src/fault_detection/fdi.py:81",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-049",
+        "doc_entity":  "\"doc_entity\":  \"this threshold dynamicallyÂ [CIT-049].\",",
+        "doc_location":  ".\\docs\\citation_validation_report.json:724",
+        "code_reference":  "src/fault_detection/fdi.py:87",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-043",
+        "doc_entity":  "- **Sensors:** measure cart position $x$, pendulum angles $\\theta_1$ and $\\theta_2$, and the corresponding velocities $\\dot{x}$, $\\dot{\\theta}_1$ and $\\dot{\\theta}_2$.  The implementation orders these six signals as $[x,\\theta_1,\\theta_2,\\dot{x},\\dot{\\theta}_1,\\dot{\\theta}_2]$ when forming the state vector.  This naming follows the code and I/O contracts (see `io_contracts.csv`) and eliminates the ambiguous subscript ``_c`` used in earlier drafts.  Measurements are sampled at **100Â Hz**, corresponding to a 10Â ms sampling period, and form the state vector for control.  This rate matches the default simulation time step ``dt = 0.01`` defined in `config.yaml`Â [CIT-043].  Individual controller implementations may specify a smaller internal ``dt`` (e.g., 0.001Â s for certain superâ€‘twisting or adaptive variants), but the baseline configuration and logging operate on a 10Â ms period.  The sensors are quantised with step sizes configured in `config.yaml` (0.01Â rad for angles and 0.0005Â m for position)Â [CIT-044]; these finite resolutions introduce small quantisation noise but do not affect the ordering or unit definitions.  In addition to quantisation, additive white measurement noise is applied in software: the `sensors` section of `config.yaml` specifies a standard deviation of **0.005Â rad** for angle measurements (`angle_noise_std`) and **0.001Â m** for the cart position (`position_noise_std`)Â [CIT-046].  These Gaussian noise levels are injected at each 10Â ms sample.  In hardwareâ€‘inâ€‘theâ€‘loop (HIL) experiments the `hil.sensor_noise_std` parameter controls additional transmission noise (default zero).",
+        "doc_location":  ".\\docs\\context.md:4",
+        "code_reference":  "config.yaml:222",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-044",
+        "doc_entity":  "- **Sensors:** measure cart position $x$, pendulum angles $\\theta_1$ and $\\theta_2$, and the corresponding velocities $\\dot{x}$, $\\dot{\\theta}_1$ and $\\dot{\\theta}_2$.  The implementation orders these six signals as $[x,\\theta_1,\\theta_2,\\dot{x},\\dot{\\theta}_1,\\dot{\\theta}_2]$ when forming the state vector.  This naming follows the code and I/O contracts (see `io_contracts.csv`) and eliminates the ambiguous subscript ``_c`` used in earlier drafts.  Measurements are sampled at **100Â Hz**, corresponding to a 10Â ms sampling period, and form the state vector for control.  This rate matches the default simulation time step ``dt = 0.01`` defined in `config.yaml`Â [CIT-043].  Individual controller implementations may specify a smaller internal ``dt`` (e.g., 0.001Â s for certain superâ€‘twisting or adaptive variants), but the baseline configuration and logging operate on a 10Â ms period.  The sensors are quantised with step sizes configured in `config.yaml` (0.01Â rad for angles and 0.0005Â m for position)Â [CIT-044]; these finite resolutions introduce small quantisation noise but do not affect the ordering or unit definitions.  In addition to quantisation, additive white measurement noise is applied in software: the `sensors` section of `config.yaml` specifies a standard deviation of **0.005Â rad** for angle measurements (`angle_noise_std`) and **0.001Â m** for the cart position (`position_noise_std`)Â [CIT-046].  These Gaussian noise levels are injected at each 10Â ms sample.  In hardwareâ€‘inâ€‘theâ€‘loop (HIL) experiments the `hil.sensor_noise_std` parameter controls additional transmission noise (default zero).",
+        "doc_location":  ".\\docs\\context.md:4",
+        "code_reference":  "config.yaml:297",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-046",
+        "doc_entity":  "- **Sensors:** measure cart position $x$, pendulum angles $\\theta_1$ and $\\theta_2$, and the corresponding velocities $\\dot{x}$, $\\dot{\\theta}_1$ and $\\dot{\\theta}_2$.  The implementation orders these six signals as $[x,\\theta_1,\\theta_2,\\dot{x},\\dot{\\theta}_1,\\dot{\\theta}_2]$ when forming the state vector.  This naming follows the code and I/O contracts (see `io_contracts.csv`) and eliminates the ambiguous subscript ``_c`` used in earlier drafts.  Measurements are sampled at **100Â Hz**, corresponding to a 10Â ms sampling period, and form the state vector for control.  This rate matches the default simulation time step ``dt = 0.01`` defined in `config.yaml`Â [CIT-043].  Individual controller implementations may specify a smaller internal ``dt`` (e.g., 0.001Â s for certain superâ€‘twisting or adaptive variants), but the baseline configuration and logging operate on a 10Â ms period.  The sensors are quantised with step sizes configured in `config.yaml` (0.01Â rad for angles and 0.0005Â m for position)Â [CIT-044]; these finite resolutions introduce small quantisation noise but do not affect the ordering or unit definitions.  In addition to quantisation, additive white measurement noise is applied in software: the `sensors` section of `config.yaml` specifies a standard deviation of **0.005Â rad** for angle measurements (`angle_noise_std`) and **0.001Â m** for the cart position (`position_noise_std`)Â [CIT-046].  These Gaussian noise levels are injected at each 10Â ms sample.  In hardwareâ€‘inâ€‘theâ€‘loop (HIL) experiments the `hil.sensor_noise_std` parameter controls additional transmission noise (default zero).",
+        "doc_location":  ".\\docs\\context.md:4",
+        "code_reference":  "config.yaml:295",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-045",
+        "doc_entity":  "specified `max_force` in `config.yaml`Â [CIT-045].",
+        "doc_location":  ".\\docs\\context.md:7",
+        "code_reference":  "config.yaml:64",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-063",
+        "doc_entity":  "Before turning to the tuning bounds, note that the nominal physical parameters stated aboveâ€”cart mass, pendulum masses, lengths, centreâ€‘ofâ€‘mass distances, inertias and friction coefficientsâ€”are taken directly from the `physics` section of `config.yaml`Â [CIT-063].",
+        "doc_location":  ".\\docs\\context.md:11",
+        "code_reference":  "config.yaml:191",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-050",
+        "doc_entity":  "| cart_mass | 1.0 | 2.0 | kg | Cart mass tuned by PSOÂ [CIT-050] |",
+        "doc_location":  ".\\docs\\context.md:15",
+        "code_reference":  "config.yaml:153",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-051",
+        "doc_entity":  "| pendulum1_mass | 0.1 | 0.3 | kg | Mass of first pendulumÂ [CIT-051] |",
+        "doc_location":  ".\\docs\\context.md:16",
+        "code_reference":  "config.yaml:156",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-052",
+        "doc_entity":  "| pendulum2_mass | 0.1 | 0.2 | kg | Mass of second pendulumÂ [CIT-052] |",
+        "doc_location":  ".\\docs\\context.md:17",
+        "code_reference":  "config.yaml:159",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-053",
+        "doc_entity":  "| pendulum1_length | 0.3 | 0.5 | m | Length of first pendulumÂ [CIT-053] |",
+        "doc_location":  ".\\docs\\context.md:18",
+        "code_reference":  "config.yaml:162",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-054",
+        "doc_entity":  "| pendulum2_length | 0.2 | 0.4 | m | Length of second pendulumÂ [CIT-054] |",
+        "doc_location":  ".\\docs\\context.md:19",
+        "code_reference":  "config.yaml:165",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-055",
+        "doc_entity":  "| pendulum1_com | 0.15 | 0.25 | m | Centreâ€‘ofâ€‘mass distance of first pendulumÂ [CIT-055] |",
+        "doc_location":  ".\\docs\\context.md:20",
+        "code_reference":  "config.yaml:168",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-056",
+        "doc_entity":  "| pendulum2_com | 0.10 | 0.20 | m | Centreâ€‘ofâ€‘mass distance of second pendulumÂ [CIT-056] |",
+        "doc_location":  ".\\docs\\context.md:21",
+        "code_reference":  "config.yaml:171",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-057",
+        "doc_entity":  "| pendulum1_inertia | 0.0015 | 0.004 | kgÂ·mÂ² | Inertia of first pendulum about pivotÂ [CIT-057] |",
+        "doc_location":  ".\\docs\\context.md:22",
+        "code_reference":  "config.yaml:174",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-058",
+        "doc_entity":  "| pendulum2_inertia | 0.0005 | 0.002 | kgÂ·mÂ² | Inertia of second pendulum about pivotÂ [CIT-058] |",
+        "doc_location":  ".\\docs\\context.md:23",
+        "code_reference":  "config.yaml:177",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-059",
+        "doc_entity":  "| boundary_layer | 0.01 | 0.05 | â€“ | SMC boundary layer width (dimensionless)Â [CIT-059] |",
+        "doc_location":  ".\\docs\\context.md:24",
+        "code_reference":  "config.yaml:189",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-045",
+        "doc_entity":  "| max_force | 150 | 150 | N | Actuator saturation limit (fixed at 150Â N in `config.yaml`)Â [CIT-045] |",
+        "doc_location":  ".\\docs\\context.md:25",
+        "code_reference":  "config.yaml:64",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-060",
+        "doc_entity":  "| cart_friction | 0.1 | 0.5 | â€“ | Viscous friction coefficient for the cartÂ [CIT-060] |",
+        "doc_location":  ".\\docs\\context.md:26",
+        "code_reference":  "config.yaml:180",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-061",
+        "doc_entity":  "| joint1_friction | 0.001 | 0.01 | â€“ | Friction coefficient for the first jointÂ [CIT-061] |",
+        "doc_location":  ".\\docs\\context.md:27",
+        "code_reference":  "config.yaml:183",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-062",
+        "doc_entity":  "| joint2_friction | 0.001 | 0.01 | â€“ | Friction coefficient for the second jointÂ [CIT-062] |",
+        "doc_location":  ".\\docs\\context.md:28",
+        "code_reference":  "config.yaml:186",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-044",
+        "doc_entity":  "`quantization_angle` and `quantization_position` in `config.yaml`Â [CIT-044].",
+        "doc_location":  ".\\docs\\context.md:39",
+        "code_reference":  "config.yaml:297",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-046",
+        "doc_entity":  "of the configuration and are set to **0.005Â rad** for angles and **0.001Â m** for position by default; these values mirror the `angle_noise_std` and `position_noise_std` entries in `config.yaml`Â [CIT-046].  Unmodelled higherâ€‘order dynamics and external",
+        "doc_location":  ".\\docs\\context.md:41",
+        "code_reference":  "config.yaml:295",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-032",
+        "doc_entity":  "\u003e **State ordering:** the internal implementation orders the six state variables as $[x,\\theta_1,\\theta_2,\\dot{x},\\dot{\\theta}_1,\\dot{\\theta}_2]^\\top$.  This differs from the $[x,\\dot{x},\\theta_1,\\dot{\\theta}_1,\\theta_2,\\dot{\\theta}_2]$ ordering sometimes used in literature.  The chosen ordering matches the state unpacking in the controllers (see `AdaptiveSMC.compute_control()` and the superâ€‘twisting controller in `sta_smc.py`), where the second and third entries are the pendulum angles and the remaining entries are velocities.  When computing Jacobians or linearising the dynamics one should therefore map the symbolic state vector to this ordering. [CIT-032]",
+        "doc_location":  ".\\docs\\plant_model.md:50",
+        "code_reference":  "src/controllers/classic_smc.py:329",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-033",
+        "doc_entity":  "* Cart mass \\(m_0 = 1.5\\,\\text{kg}\\)Â [CIT-033]",
+        "doc_location":  ".\\docs\\plant_model.md:63",
+        "code_reference":  "config.yaml:191",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-034",
+        "doc_entity":  "* First pendulum mass \\(m_1 = 0.2\\,\\text{kg}\\)Â [CIT-034]",
+        "doc_location":  ".\\docs\\plant_model.md:64",
+        "code_reference":  "config.yaml:192",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-035",
+        "doc_entity":  "* Second pendulum mass \\(m_2 = 0.15\\,\\text{kg}\\)Â [CIT-035]",
+        "doc_location":  ".\\docs\\plant_model.md:65",
+        "code_reference":  "config.yaml:193",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-036",
+        "doc_entity":  "* First pendulum length \\(l_1 = 0.4\\,\\text{m}\\)Â [CIT-036]",
+        "doc_location":  ".\\docs\\plant_model.md:66",
+        "code_reference":  "config.yaml:194",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-037",
+        "doc_entity":  "* Second pendulum length \\(l_2 = 0.3\\,\\text{m}\\)Â [CIT-037]",
+        "doc_location":  ".\\docs\\plant_model.md:67",
+        "code_reference":  "config.yaml:195",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-038",
+        "doc_entity":  "\\(l_{2,\\mathrm{com}} = 0.15\\,\\text{m}\\)Â [CIT-038]",
+        "doc_location":  ".\\docs\\plant_model.md:69",
+        "code_reference":  "config.yaml:196",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-039",
+        "doc_entity":  "\\(I_2 = 1.15\\times10^{-3}\\,\\text{kgÂ·m}^2\\)Â [CIT-039]",
+        "doc_location":  ".\\docs\\plant_model.md:71",
+        "code_reference":  "config.yaml:198",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-040",
+        "doc_entity":  "* Gravity \\(g=9.81\\,\\text{m/s}^2\\)Â [CIT-040]",
+        "doc_location":  ".\\docs\\plant_model.md:72",
+        "code_reference":  "config.yaml:200",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-041",
+        "doc_entity":  "* Viscous friction coefficients \\(b_c=0.2\\), \\(b_1=0.005\\) and \\(b_2=0.004\\)Â [CIT-041]",
+        "doc_location":  ".\\docs\\plant_model.md:73",
+        "code_reference":  "config.yaml:201",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-001",
+        "doc_entity":  "| $u(t)$ | Control input (force applied to cart) [CIT-001] | N |",
+        "doc_location":  ".\\docs\\symbols.md:5",
+        "code_reference":  "src/controllers/sta_smc.py:90",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-002",
+        "doc_entity":  "| $x$ | Cart position [CIT-002] | m |",
+        "doc_location":  ".\\docs\\symbols.md:6",
+        "code_reference":  "src/controllers/hybrid_adaptive_sta_smc.py:513",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-003",
+        "doc_entity":  "| $\\dot{x}$ | Cart velocity [CIT-003] | m/s |",
+        "doc_location":  ".\\docs\\symbols.md:7",
+        "code_reference":  "src/controllers/hybrid_adaptive_sta_smc.py:514",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-004",
+        "doc_entity":  "| $\\theta_1$ | Angle of first pendulum [CIT-004] | rad |",
+        "doc_location":  ".\\docs\\symbols.md:8",
+        "code_reference":  "src/controllers/classic_smc.py:335",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-005",
+        "doc_entity":  "| $\\dot{\\theta}_1$ | Angular rate of first pendulum [CIT-005] | rad/s |",
+        "doc_location":  ".\\docs\\symbols.md:9",
+        "code_reference":  "src/controllers/classic_smc.py:335",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-006",
+        "doc_entity":  "| $\\theta_2$ | Angle of second pendulum [CIT-006] | rad |",
+        "doc_location":  ".\\docs\\symbols.md:10",
+        "code_reference":  "src/controllers/classic_smc.py:335",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-007",
+        "doc_entity":  "| $\\dot{\\theta}_2$ | Angular rate of second pendulum [CIT-007] | rad/s |",
+        "doc_location":  ".\\docs\\symbols.md:11",
+        "code_reference":  "src/controllers/classic_smc.py:335",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-008",
+        "doc_entity":  "| $m_0$ | Mass of cart [CIT-008] | kg |",
+        "doc_location":  ".\\docs\\symbols.md:12",
+        "code_reference":  "config.yaml:191",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-009",
+        "doc_entity":  "| $m_1$ | Mass of first pendulum [CIT-009] | kg |",
+        "doc_location":  ".\\docs\\symbols.md:13",
+        "code_reference":  "config.yaml:192",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-010",
+        "doc_entity":  "| $m_2$ | Mass of second pendulum [CIT-010] | kg |",
+        "doc_location":  ".\\docs\\symbols.md:14",
+        "code_reference":  "config.yaml:193",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-011",
+        "doc_entity":  "| $l_1$ | Length of first pendulum [CIT-011] | m |",
+        "doc_location":  ".\\docs\\symbols.md:15",
+        "code_reference":  "config.yaml:194",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-012",
+        "doc_entity":  "| $l_2$ | Length of second pendulum [CIT-012] | m |",
+        "doc_location":  ".\\docs\\symbols.md:16",
+        "code_reference":  "config.yaml:195",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-013",
+        "doc_entity":  "| $g$ | Gravitational acceleration [CIT-013] | m/sÂ² |",
+        "doc_location":  ".\\docs\\symbols.md:17",
+        "code_reference":  "config.yaml:200",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-014",
+        "doc_entity":  "| $l_{1,\\mathrm{com}}$ | Centreâ€‘ofâ€‘mass distance of first pendulum [CIT-014] | m |",
+        "doc_location":  ".\\docs\\symbols.md:18",
+        "code_reference":  "config.yaml:196",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-015",
+        "doc_entity":  "| $l_{2,\\mathrm{com}}$ | Centreâ€‘ofâ€‘mass distance of second pendulum [CIT-015] | m |",
+        "doc_location":  ".\\docs\\symbols.md:19",
+        "code_reference":  "config.yaml:197",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-016",
+        "doc_entity":  "| $I_1$ | Inertia of first pendulum about pivot [CIT-016] | kgÂ·mÂ² |",
+        "doc_location":  ".\\docs\\symbols.md:20",
+        "code_reference":  "config.yaml:198",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-017",
+        "doc_entity":  "| $I_2$ | Inertia of second pendulum about pivot [CIT-017] | kgÂ·mÂ² |",
+        "doc_location":  ".\\docs\\symbols.md:21",
+        "code_reference":  "config.yaml:199",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-018",
+        "doc_entity":  "| $b_c$ | Viscous friction coefficient for the cart [CIT-018] | â€“ |",
+        "doc_location":  ".\\docs\\symbols.md:22",
+        "code_reference":  "config.yaml:201",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-019",
+        "doc_entity":  "| $b_1$ | Friction coefficient for the first joint [CIT-019] | â€“ |",
+        "doc_location":  ".\\docs\\symbols.md:23",
+        "code_reference":  "config.yaml:202",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-020",
+        "doc_entity":  "| $b_2$ | Friction coefficient for the second joint [CIT-020] | â€“ |",
+        "doc_location":  ".\\docs\\symbols.md:24",
+        "code_reference":  "config.yaml:203",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-021",
+        "doc_entity":  "| $k_1,k_2$ | Slidingâ€‘surface gains weighting pendulum velocity and angle terms [CIT-021] | â€“ |",
+        "doc_location":  ".\\docs\\symbols.md:25",
+        "code_reference":  "src/controllers/classic_smc.py:150",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-022",
+        "doc_entity":  "| $\\lambda_1,\\lambda_2$ | Slope parameters defining the sliding surface (convert angle errors to rate errors) [CIT-022] | 1/s |",
+        "doc_location":  ".\\docs\\symbols.md:26",
+        "code_reference":  "src/controllers/classic_smc.py:150",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-023",
+        "doc_entity":  "| $K$ | Switching gain multiplying the saturated sliding variable in the classical SMC control law [CIT-023] | N |",
+        "doc_location":  ".\\docs\\symbols.md:27",
+        "code_reference":  "src/controllers/classic_smc.py:150",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-024",
+        "doc_entity":  "| $k_d$ | Derivative (linear) gain used to damp the sliding surface dynamics [CIT-024] | N/rad |",
+        "doc_location":  ".\\docs\\symbols.md:28",
+        "code_reference":  "src/controllers/classic_smc.py:150",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-025",
+        "doc_entity":  "| $K_1,K_2$ | Algorithmic gains for the superâ€‘twisting SMC (squareâ€‘root and integral terms) [CIT-025] | N |",
+        "doc_location":  ".\\docs\\symbols.md:29",
+        "code_reference":  "src/controllers/sta_smc.py:270",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-026",
+        "doc_entity":  "| $c_1,c_2$ | Gains defining the hybrid adaptive sliding surface [CIT-026] | â€“ |",
+        "doc_location":  ".\\docs\\symbols.md:30",
+        "code_reference":  "src/controllers/hybrid_adaptive_sta_smc.py:170",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-027",
+        "doc_entity":  "| $\\alpha$ | Proportional gain on the sliding variable $\\sigma$ in adaptive SMC [CIT-027] | NÂ·s/rad |",
+        "doc_location":  ".\\docs\\symbols.md:31",
+        "code_reference":  "src/controllers/adaptive_smc.py:201",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-028",
+        "doc_entity":  "| $\\gamma$ | Adaptation rate for the switching gain $K$ in adaptive SMC (adds to $K$ proportionally to $|\\sigma|$) [CIT-028] | N/rad |",
+        "doc_location":  ".\\docs\\symbols.md:32",
+        "code_reference":  "src/controllers/adaptive_smc.py:152",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-029",
+        "doc_entity":  "| $\\sigma$ | Sliding surface value combining weighted angle and velocity errors [CIT-029] | rad/s |",
+        "doc_location":  ".\\docs\\symbols.md:33",
+        "code_reference":  "src/controllers/classic_smc.py:345",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-030",
+        "doc_entity":  "| $z$ | Internal integrator state used in the superâ€‘twisting algorithm [CIT-030] | N |",
+        "doc_location":  ".\\docs\\symbols.md:34",
+        "code_reference":  "src/controllers/sta_smc.py:84",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-031",
+        "doc_entity":  "| $\\varepsilon$ | Boundaryâ€‘layer width; scales the saturation function inside the switching law [CIT-031] | rad/s |",
+        "doc_location":  ".\\docs\\symbols.md:35",
+        "code_reference":  "src/controllers/classic_smc.py:173",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-075",
+        "doc_entity":  "| T‑001   | Step input $r$: 0→1 m | Settling time \u0026 overshoot    | $t_s \\\\le 2\\\\,\\\\text{s}$ and $M_p \\\\le 10\\\\,\\\\%$ [CIT-075]             |       |",
+        "doc_location":  ".\\docs\\test_protocols.md:7",
+        "code_reference":  "tests/test_app/test_cli.py:392",
+        "validation_status":  "inconsistent",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-076",
+        "doc_entity":  "| T‑002   | +10 % plant gain      | Stability margins             | phase margin ≥ 45°, gain margin ≥ 6 dB [CIT-076]                 |       |",
+        "doc_location":  ".\\docs\\test_protocols.md:8",
+        "code_reference":  "scripts/run_model_comparison.py:1",
+        "validation_status":  "missing_reference",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-077",
+        "doc_entity":  "| T‑003   | Fault detection (persistent residual) | FDI residual \u0026 status | FDI declares FAULT after persistence threshold (no safe‑state control) [CIT-077] |       |",
+        "doc_location":  ".\\docs\\test_protocols.md:9",
+        "code_reference":  "tests/test_fault_detection/test_fdi.py:45",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-048",
+        "doc_entity":  "threshold for **10** consecutive samples (100 ms at 100 Hz) [CIT-048].  Adaptive",
+        "doc_location":  ".\\docs\\test_protocols.md:27",
+        "code_reference":  "src/fault_detection/fdi.py:81",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-049",
+        "doc_entity":  "(default 5.0) to detect slow drifts [CIT-049].  Both adaptive and CUSUM features are",
+        "doc_location":  ".\\docs\\test_protocols.md:33",
+        "code_reference":  "src/fault_detection/fdi.py:87",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-043",
+        "doc_entity":  "reference and error signals at **100 Hz** (10 ms sampling) [CIT-043].  For each test ID, store the log",
+        "doc_location":  ".\\docs\\test_protocols.md:36",
+        "code_reference":  "config.yaml:222",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-032",
+        "doc_entity":  "\u003e **Note on state ordering:** the implementation orders the pendulum angles ahead of the velocities.  This $[x,\\theta_1,\\theta_2,\\dot{x},\\dot{\\theta}_1,\\dot{\\theta}_2]$ ordering matches the controllers in `src/controllers` where state unpacking uses indices 1â€“2 for the angles and 3â€“5 for the velocities.  Some texts use $[x,\\dot{x},\\theta_1,\\dot{\\theta}_1,\\theta_2,\\dot{\\theta}_2]$ instead; adjust your derivations accordingly when comparing with the code. [CIT-032]",
+        "doc_location":  ".\\docs\\theory_overview.md:10",
+        "code_reference":  "src/controllers/classic_smc.py:329",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-071",
+        "doc_entity":  "(cart tracking) and fault handling (sensor dropout, actuator saturation). [CIT-071]",
+        "doc_location":  ".\\docs\\theory_overview.md:20",
+        "code_reference":  "src/controllers/swing_up_smc.py:18",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-075",
+        "doc_entity":  "- **Overshoot:** $M_p \u003c 10\\%$. [CIT-075]",
+        "doc_location":  ".\\docs\\theory_overview.md:24",
+        "code_reference":  "tests/test_app/test_cli.py:392",
+        "validation_status":  "inconsistent",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-075",
+        "doc_entity":  "- **Settling time:** $t_s \u003c 2\\,\\text{s}$ (to 2Â % of the reference). [CIT-075]",
+        "doc_location":  ".\\docs\\theory_overview.md:25",
+        "code_reference":  "tests/test_app/test_cli.py:392",
+        "validation_status":  "inconsistent",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-076",
+        "doc_entity":  "- **Margins:** phase margin PM â‰¥Â 45Â°, gain margin GM â‰¥Â 6Â dB. [CIT-076]",
+        "doc_location":  ".\\docs\\theory_overview.md:27",
+        "code_reference":  "scripts/run_model_comparison.py:1",
+        "validation_status":  "missing_reference",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-072",
+        "doc_entity":  "SMC implementations referenced in this work: classical SMC, superâ€‘twisting SMC, and adaptive SMC are implemented in the codebase. [CIT-072][CIT-073][CIT-074]",
+        "doc_location":  ".\\docs\\theory_overview.md:36",
+        "code_reference":  "src/controllers/classic_smc.py:32",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-073",
+        "doc_entity":  "SMC implementations referenced in this work: classical SMC, superâ€‘twisting SMC, and adaptive SMC are implemented in the codebase. [CIT-072][CIT-073][CIT-074]",
+        "doc_location":  ".\\docs\\theory_overview.md:36",
+        "code_reference":  "src/controllers/sta_smc.py:140",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-074",
+        "doc_entity":  "SMC implementations referenced in this work: classical SMC, superâ€‘twisting SMC, and adaptive SMC are implemented in the codebase. [CIT-072][CIT-073][CIT-074]",
+        "doc_location":  ".\\docs\\theory_overview.md:36",
+        "code_reference":  "src/controllers/adaptive_smc.py:81",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-047",
+        "doc_entity":  "switch to the slidingâ€‘mode stabilising controllerÂ [CIT-047].",
+        "doc_location":  ".\\docs\\use_cases.md:22",
+        "code_reference":  "config.yaml:61",
+        "validation_status":  "inconsistent",
+        "proposed_update":  "Update angle thresholds in docs to 0.35 rad (switch) and 0.4 rad (reentry) to match config and controller.",
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-047",
+        "doc_entity":  "cart velocity is near zeroÂ [CIT-047].",
+        "doc_location":  ".\\docs\\use_cases.md:24",
+        "code_reference":  "config.yaml:61",
+        "validation_status":  "inconsistent",
+        "proposed_update":  "Update angle thresholds in docs to 0.35 rad (switch) and 0.4 rad (reentry) to match config and controller.",
+        "reasoning":  "Code line tagged with citation."
+    },
+    {
+        "citation_id":  "CIT-048",
+        "doc_entity":  "consecutive 100Â Hz samplesÂ [CIT-048].  Adaptive thresholding and CUSUM may adjust",
+        "doc_location":  ".\\docs\\use_cases.md:61",
+        "code_reference":  "src/fault_detection/fdi.py:81",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    },
+    {
+        "citation_id":  "CIT-049",
+        "doc_entity":  "this threshold dynamicallyÂ [CIT-049].",
+        "doc_location":  ".\\docs\\use_cases.md:62",
+        "code_reference":  "src/fault_detection/fdi.py:87",
+        "validation_status":  "ok",
+        "proposed_update":  null,
+        "reasoning":  "Code line found; no inline tag present."
+    }
+]

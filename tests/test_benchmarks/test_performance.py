@@ -78,7 +78,8 @@ def test_controller_compute_speed(ctrl_name, config, benchmark):
     if create_controller is None:
         pytest.skip("Controller factory not available to instantiate controllers.")
 
-    controller = create_controller(ctrl_name, config=config)
+    gains = _default_gains_for(ctrl_name, config)
+    controller = create_controller(ctrl_name, gains=gains, config=config)
 
     # Initialize controller's transient state
     try:
@@ -261,12 +262,12 @@ def _batch_convergence_time(
 # --- The pytest benchmark tests remain the same ---
 #@pytest.mark.usefixtures("long_simulation_config")
 @pytest.mark.benchmark(group="controller_convergence")
-def test_classical_smc_convergence(benchmark, physics_params):
+def test_classical_smc_convergence(benchmark, physics_cfg):
     result = benchmark.pedantic(
         _batch_convergence_time,
         kwargs=dict(
             controller_cls=ClassicalSMC,
-            physics_params=physics_params,
+            physics_params=physics_cfg,
             gains=[10.0, 8.0, 5.0, 4.0, 50.0, 1.0],
         ),
         iterations=5,
@@ -278,7 +279,7 @@ def test_classical_smc_convergence(benchmark, physics_params):
 @pytest.mark.parametrize("use_ueq", [False, True])
 #@pytest.mark.usefixtures("long_simulation_config")
 @pytest.mark.benchmark(group="controller_convergence")
-def test_sta_smc_convergence(benchmark, physics_params, use_ueq):
+def test_sta_smc_convergence(benchmark, physics_cfg, use_ueq):
     """
     Super-Twisting SMC should converge quickly without large σ overshoot
     with corrected sign conventions and validated gains.
@@ -287,7 +288,7 @@ def test_sta_smc_convergence(benchmark, physics_params, use_ueq):
         _batch_convergence_time,
         kwargs=dict(
             controller_cls=SuperTwistingSMC,
-            physics_params=physics_params,
+            physics_params=physics_cfg,
             # These are the validated gains for the corrected controller
             gains=[1.18495, 47.7040, 1.0807, 7.4019, 46.9200, 0.6699],
             # Ensure fast convergence from a consistent, perturbed start

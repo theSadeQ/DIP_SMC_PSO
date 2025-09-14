@@ -58,10 +58,10 @@ controllers:
     stabilizing_controller: classical_smc
     energy_gain: 50.0
     switch_energy_factor: 0.95
-    switch_angle_tolerance: 0.35
+    switch_angle_tolerance: 0.35 # [CIT-047]
     exit_energy_factor: 0.9
-    reentry_angle_tolerance: 0.4
-    max_force: 150.0
+    reentry_angle_tolerance: 0.4 # [CIT-047]
+    max_force: 150.0 # [CIT-045]
 
   # Hybrid adaptive super‑twisting sliding mode controller.  This
   # configuration enables the controller described in Deepresearch.md
@@ -150,45 +150,45 @@ pso:
   tune:
     cart_mass:
       min: 1.0
-      max: 2.0
+      max: 2.0 # [CIT-050]
     pendulum1_mass:
       min: 0.1
-      max: 0.3
+      max: 0.3 # [CIT-051]
     pendulum2_mass:
       min: 0.1
-      max: 0.2
+      max: 0.2 # [CIT-052]
     pendulum1_length:
       min: 0.3
-      max: 0.5
+      max: 0.5 # [CIT-053]
     pendulum2_length:
       min: 0.2
-      max: 0.4
+      max: 0.4 # [CIT-054]
     pendulum1_com:
       min: 0.15
-      max: 0.25
+      max: 0.25 # [CIT-055]
     pendulum2_com:
       min: 0.1
-      max: 0.2
+      max: 0.2 # [CIT-056]
     pendulum1_inertia:
       min: 0.0015
-      max: 0.004
+      max: 0.004 # [CIT-057]
     pendulum2_inertia:
       min: 0.0005
-      max: 0.002
+      max: 0.002 # [CIT-058]
     cart_friction:
       min: 0.1
-      max: 0.5
+      max: 0.5 # [CIT-060]
     joint1_friction:
       min: 0.001
-      max: 0.01
+      max: 0.01 # [CIT-061]
     joint2_friction:
       min: 0.001
-      max: 0.01
+      max: 0.01 # [CIT-062]
     boundary_layer:
       min: 0.01
-      max: 0.05
+      max: 0.05 # [CIT-059]
 physics:
-  cart_mass: 1.5
+  cart_mass: 1.5 # [CIT-063]
   pendulum1_mass: 0.2
   pendulum2_mass: 0.15
   pendulum1_length: 0.4
@@ -219,7 +219,7 @@ physics_uncertainty:
   joint2_friction: 0.1
 simulation:
   duration: 10.0
-  dt: 0.01
+  dt: 0.01 # [CIT-043]
   initial_state:
   - 0.0
   - 0.05
@@ -290,12 +290,12 @@ cost_function:
   # denominators.  Values below this threshold skip division to avoid
   # floating‑point noise.  The default of 1e-12 matches the original
   # implementation.
-  normalization_threshold: 1e-12
+  normalization_threshold: 0.000000000001
 sensors:
-  angle_noise_std: 0.005
-  position_noise_std: 0.001
-  quantization_angle: 0.01
-  quantization_position: 0.0005
+  angle_noise_std: 0.005 # [CIT-046]
+  position_noise_std: 0.001 # [CIT-046]
+  quantization_angle: 0.01 # [CIT-044]
+  quantization_position: 0.0005 # [CIT-044]
 hil:
   plant_ip: 127.0.0.1
   plant_port: 9000

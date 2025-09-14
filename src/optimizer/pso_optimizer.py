@@ -342,7 +342,7 @@ class PSOTuner:
         ``physics_uncertainty``.  When uncertainty is disabled or ``n_evals ≤ 1``
         only the nominal model is yielded.
         """
-        yield DIPParams(**self.physics_cfg.model_dump())
+        yield DIPParams.from_physics_config(self.physics_cfg)
         if not self.uncertainty_cfg or self.uncertainty_cfg.n_evals <= 1:
             return
         rng_local = np.random.default_rng(self.seed) if self.seed is not None else self.rng
@@ -364,7 +364,18 @@ class PSOTuner:
             if "pendulum2_com" in perturbed_params and "pendulum2_length" in perturbed_params:
                 if perturbed_params["pendulum2_com"] >= perturbed_params["pendulum2_length"]:
                     perturbed_params["pendulum2_com"] = 0.99 * perturbed_params["pendulum2_length"]
-            yield DIPParams(**perturbed_params)
+            # Handle field mapping for DIPParams
+            dipparams_dict = perturbed_params.copy()
+            if 'regularization' in dipparams_dict:
+                reg = dipparams_dict.pop('regularization')
+                dipparams_dict.setdefault('min_regularization', reg)
+                dipparams_dict.setdefault('regularization_alpha', 1e-4)
+            dipparams_dict.setdefault('max_condition_number', 1e10)
+            dipparams_dict.setdefault('use_fixed_regularization', False)
+            dipparams_dict.setdefault('det_threshold', 1e-12)
+            dipparams_dict.setdefault('condition_tol_factor', 1e-12)
+            dipparams_dict.setdefault('singularity_cond_threshold', 1e8)
+            yield DIPParams(**dipparams_dict)
 
     # ---------- Cost computation ----------
     def _compute_cost_from_traj(
@@ -395,18 +406,18 @@ class PSOTuner:
         temp[unstable_mask] = np.tile(np.arange(N + 1), (B, 1))[unstable_mask]
         failure_steps = np.min(temp, axis=1)
         time_mask = (np.arange(N)[None, :] < (failure_steps - 1)[:, None])
-        # State error: integrate squared error across all state variables
-        ise = np.sum((x_b[:, :-1, :] ** 2 * dt_b[:, :, None]) * time_mask[:, :, None], axis=(1, 2))
+        # State error: integrate squared error across all state variables  # [CIT-068]
+        ise = np.sum((x_b[:, :-1, :] ** 2 * dt_b[:, :, None]) * time_mask[:, :, None], axis=(1, 2))  # [CIT-068]
         ise_n = self._normalise(ise, self.norm_ise)
-        # Control effort
-        u_sq = np.sum((u_b ** 2 * dt_b) * time_mask, axis=1)
+        # Control effort  # [CIT-068]
+        u_sq = np.sum((u_b ** 2 * dt_b) * time_mask, axis=1)  # [CIT-068]
         u_n = self._normalise(u_sq, self.norm_u)
-        # Control slew
-        du = np.diff(u_b, axis=1, prepend=u_b[:, 0:1])
-        du_sq = np.sum((du ** 2 * dt_b) * time_mask, axis=1)
+        # Control slew  # [CIT-068]
+        du = np.diff(u_b, axis=1, prepend=u_b[:, 0:1])  # [CIT-068]
+        du_sq = np.sum((du ** 2 * dt_b) * time_mask, axis=1)  # [CIT-068]
         du_n = self._normalise(du_sq, self.norm_du)
-        # Sliding variable
-        sigma_sq = np.sum((sigma_b ** 2 * dt_b) * time_mask, axis=1)
+        # Sliding variable energy  # [CIT-068]
+        sigma_sq = np.sum((sigma_b ** 2 * dt_b) * time_mask, axis=1)  # [CIT-068]
         sigma_n = self._normalise(sigma_sq, self.norm_sigma)
         # Graded penalty for early failure
         failure_t = np.clip((failure_steps - 1) * dt_const, 0, self.sim_cfg.duration)
@@ -416,7 +427,7 @@ class PSOTuner:
             + self.weights.control_effort * u_n
             + self.weights.control_rate * du_n
             + self.weights.stability * sigma_n
-        ) + penalty
+        ) + penalty  # [CIT-068]
         # Explicitly penalise NaN trajectories
         if nan_traj_mask.any():
             J = J.astype(float, copy=True)

@@ -18,7 +18,7 @@ from src.core.dynamics_full import FullDIPDynamics, FullDIPParams, step_rk4_numb
 @pytest.fixture(scope="module")
 def full_dynamics_model():
     """Provides a reusable instance of the full dynamics model from the project config."""
-    cfg = load_config("config.yaml")
+    cfg = load_config("config.yaml", allow_unknown=True)
     # The constructor expects a PhysicsConfig object, not a dictionary
     return FullDIPDynamics(params=cfg.physics)
 

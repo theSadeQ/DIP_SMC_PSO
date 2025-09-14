@@ -39,7 +39,7 @@ class SwingUpSMC:
         energy_gain: float = 50.0,
         switch_energy_factor: float = 0.95,
         exit_energy_factor: float = 0.90,
-        switch_angle_tolerance: float = 0.35,
+        switch_angle_tolerance: float = 0.35,  # [CIT-047]
         reentry_angle_tolerance: Optional[float] = None,
         dt: float = 0.01,
         max_force: Optional[float] = None,

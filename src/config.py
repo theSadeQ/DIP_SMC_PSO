@@ -276,10 +276,16 @@ class CostFunctionWeights(StrictModel):
     control_rate: float = Field(0.1, ge=0.0)
     stability: float = Field(0.1, ge=0.0)
 
+class CombineWeights(StrictModel):
+    mean: float = Field(0.7, ge=0.0, le=1.0)
+    max: float = Field(0.3, ge=0.0, le=1.0)
+
 class CostFunctionConfig(StrictModel):
     weights: CostFunctionWeights
     baseline: Dict[str, Any]
     instability_penalty: float = Field(1000.0, ge=0.0)
+    combine_weights: CombineWeights = CombineWeights()
+    normalization_threshold: float = Field(1e-12, ge=0.0)
 
 # ------------------------------------------------------------------------------
 # Verification

@@ -35,7 +35,7 @@ class SimulationContext:
         """
         Initialize the simulation context by loading the configuration.
         """
-        self.config: ConfigSchema = load_config(config_path)
+        self.config: ConfigSchema = load_config(config_path, allow_unknown=True)
         self.dynamics_model = self._initialize_dynamics_model()
 
     def _initialize_dynamics_model(self) -> DIPDynamics | FullDIPDynamics:
@@ -75,8 +75,16 @@ class SimulationContext:
         """
         Create a controller using the shared, validated config and the project factory.
         If no name is provided, default to 'classical_smc'.
+        If no gains are provided, use defaults from config.
         """
         ctrl_name = name or "classical_smc"
+
+        # Use default gains from config if none provided
+        if gains is None:
+            ctrl_defaults = getattr(self.config.controller_defaults, ctrl_name, None)
+            if ctrl_defaults and hasattr(ctrl_defaults, 'gains'):
+                gains = ctrl_defaults.gains
+
         return _create_controller(ctrl_name, config=self.config, gains=gains)
 
     def create_fdi(self) -> Optional[Any]:

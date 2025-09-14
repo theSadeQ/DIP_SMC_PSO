@@ -26,10 +26,11 @@ def test_csv_export_includes_final_state(tmp_path):
     from streamlit_app.py to ensure data integrity.
     """
     # 1. Setup a minimal simulation
-    cfg = load_config()
+    cfg = load_config(allow_unknown=True)
     physics = cfg.physics.model_dump()
     dyn = DIPDynamics(physics)
-    ctrl = create_controller("classical_smc")
+    gains = cfg.controller_defaults.classical_smc.gains
+    ctrl = create_controller("classical_smc", gains=gains, config=cfg)
     sim_time = 0.1
     dt = 0.01
     n_steps = int(sim_time / dt)  # Should be 10 steps

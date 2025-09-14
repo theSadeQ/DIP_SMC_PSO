@@ -7,16 +7,16 @@ import yaml
 from pathlib import Path
 from pydantic import ValidationError
 try:
-    from src.config import load_config, ControllersConfig, ConfigSchema, PhysicsConfig, ControllerConfig
+    from src.config import load_config, ControllersConfig, ConfigSchema, PhysicsConfig, ControllerConfig, InvalidConfigurationError
 except Exception:
-    from config import load_config, ControllersConfig, ConfigSchema, PhysicsConfig, ControllerConfig
+    from config import load_config, ControllersConfig, ConfigSchema, PhysicsConfig, ControllerConfig, InvalidConfigurationError
 
 
 
 from src.config import load_config, ControllersConfig, ConfigSchema, PhysicsConfig
 
 def test_config_loads_and_maps_controllers():
-    cfg = load_config("config.yaml")
+    cfg = load_config("config.yaml", allow_unknown=True)
     assert isinstance(cfg, ConfigSchema)
     assert isinstance(cfg.controllers, ControllersConfig)
     keys = set(cfg.controllers.keys())
@@ -28,7 +28,7 @@ def test_config_loads_and_maps_controllers():
 @pytest.fixture
 def valid_physics_data() -> dict:
     """Baseline valid dict for physics config (assumes config.yaml exists)."""
-    return load_config("config.yaml").physics.model_dump()
+    return load_config("config.yaml", allow_unknown=True).physics.model_dump()
 
 def test_physics_config_rejects_zero_mass(valid_physics_data):
     invalid = dict(valid_physics_data)
@@ -70,8 +70,7 @@ def test_physics_config_rejects_nonpositive_com(valid_physics_data):
 def test_controller_config_forbids_extra_rate_weight_unit():
     with pytest.raises(ValidationError):
         ControllerConfig(
-            max_force=10.0,
-            boundary_layer=0.1,
+            gains=[1.0],  # required field
             rate_weight=1.0,  # forbidden
         )
 
@@ -91,6 +90,6 @@ def test_load_config_rejects_rate_weight_in_yaml(tmp_path: Path):
     }
     p = tmp_path / "config.yaml"
     p.write_text(yaml.safe_dump(cfg, sort_keys=False), encoding="utf-8")
-    with pytest.raises(ValidationError):
+    with pytest.raises(InvalidConfigurationError):
         load_config(str(p))
 #========================================================================\\\

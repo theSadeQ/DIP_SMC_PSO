@@ -91,10 +91,6 @@ def _create_config(n_evals: int) -> ConfigSchema:
         c1=1.0,
         c2=1.0,
         iters=1,
-        n_processes=1,
-        hyper_trials=1,
-        hyper_search={},
-        study_timeout=1,
         seed=1,
         tune={},
     )
@@ -144,34 +140,40 @@ def test_normalise_regular_division() -> None:
 
 def test_combine_costs_1d() -> None:
     """For a 1D array, _combine_costs should return 0.7*mean + 0.3*max."""
+    cfg = _create_config(n_evals=1)
+    tuner = PSOTuner(controller_factory=lambda *args, **kwargs: None, config=cfg)
     arr = np.array([1.0, 2.0, 3.0])
     expected = 0.7 * arr.mean() + 0.3 * arr.max()
-    out = PSOTuner._combine_costs(arr)
+    out = tuner._combine_costs(arr)
     assert np.isclose(out, expected)
 
 
 def test_combine_costs_2d() -> None:
     """For a 2D array, _combine_costs should operate column-wise."""
+    cfg = _create_config(n_evals=1)
+    tuner = PSOTuner(controller_factory=lambda *args, **kwargs: None, config=cfg)
     arr = np.array([[1.0, 2.0], [3.0, 4.0]])
     # mean over rows per column: [2, 3]; max per column: [3, 4]
     expected = 0.7 * np.array([2.0, 3.0]) + 0.3 * np.array([3.0, 4.0])
-    out = PSOTuner._combine_costs(arr)
+    out = tuner._combine_costs(arr)
     assert out.shape == expected.shape
     assert np.allclose(out, expected)
 
 
 def test_combine_costs_invalid_returns_penalty() -> None:
     """NaN or Inf in costs should trigger the instability penalty."""
+    cfg = _create_config(n_evals=1)
+    tuner = PSOTuner(controller_factory=lambda *args, **kwargs: None, config=cfg)
     # 1D with NaN
     arr_nan = np.array([1.0, np.nan, 2.0])
-    out = PSOTuner._combine_costs(arr_nan)
-    assert out == PSOTuner.INSTABILITY_PENALTY
+    out = tuner._combine_costs(arr_nan)
+    assert out == tuner.instability_penalty
     # 2D with Inf in one column
     arr_inf = np.array([[np.inf, 1.0], [2.0, 3.0]])
-    out2 = PSOTuner._combine_costs(arr_inf)
+    out2 = tuner._combine_costs(arr_inf)
     # Both columns should be penalized
     assert out2.shape == (2,)
-    assert np.allclose(out2, np.full(2, PSOTuner.INSTABILITY_PENALTY))
+    assert np.allclose(out2, np.full(2, tuner.instability_penalty))
 
 
 def test_iter_perturbed_physics_nominal() -> None:

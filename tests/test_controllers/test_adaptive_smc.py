@@ -16,21 +16,13 @@ class DisturbanceDynamics:
         return self._base.step(state, u + self.disturbance_force, dt)
 
 @pytest.fixture
-def cfg():
-    # Use the uploaded config path explicitly if needed
-    return load_config('config.yaml')
-
-@pytest.fixture
-def adaptive_controller(cfg):
+def adaptive_controller(config):
     # Build via factory so we exercise the config->factory->controller path
-    return create_controller("adaptive_smc", config=cfg)
+    gains = config.controller_defaults.adaptive_smc.gains
+    return create_controller("adaptive_smc", gains=gains, config=config)
 
-@pytest.fixture
-def dynamics(cfg):
-    return DIPDynamics(params=cfg.physics)
-
-def test_adaptive_smc_gains_are_configurable(cfg, adaptive_controller):
-    expected = cfg.controller_defaults.adaptive_smc.gains
+def test_adaptive_smc_gains_are_configurable(config, adaptive_controller):
+    expected = config.controller_defaults.adaptive_smc.gains
     assert adaptive_controller.k1 == pytest.approx(expected[0])
     assert adaptive_controller.k2 == pytest.approx(expected[1])
     assert adaptive_controller.lam1 == pytest.approx(expected[2])

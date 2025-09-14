@@ -19,9 +19,9 @@ expected responses and acceptance criteria.
   1. Engage the swing‑up routine to bring both pendulums toward the
      upright position using energy‑based control.
   2. When \(|\theta_1|,|\theta_2|<0.2\,\text{rad}\) and velocities are low,
-     switch to the sliding‑mode stabilising controller.
+     switch to the sliding‑mode stabilising controller [CIT-047].
   3. Continue stabilisation until both angles are within ±0.05 rad and
-     cart velocity is near zero.
+     cart velocity is near zero [CIT-047].
 - **Expected response:** pendulums reach upright and settle; cart remains
   near the origin; controller switches seamlessly between swing‑up and
   stabilising modes.
@@ -58,8 +58,8 @@ expected responses and acceptance criteria.
       fault.  In the default configuration (`FDIsystem` in
       `src/fault_detection/fdi.py`) the residual threshold is **0.5** and a
       fault is declared only after the residual norm exceeds 0.5 for ten
-      consecutive 100 Hz samples.  Adaptive thresholding and CUSUM may adjust
-      this threshold dynamically.
+      consecutive 100 Hz samples [CIT-048].  Adaptive thresholding and CUSUM may adjust
+      this threshold dynamically [CIT-049].
   3. Upon fault declaration the FDI system returns status "FAULT" and logs
       the detection time and residual norm.  The current implementation
       **does not automatically alter the control command**; external

@@ -7,9 +7,9 @@ sum of the **integral of squared error (ISE)**, **control effort**,
 **control rate (slew)** and the **energy of the sliding variable**.  These
 four terms constitute the cost function implemented in
 `src/optimizer/pso_optimizer.py` and are the only quantities used to rank
-candidate gains【732825508736690†screenshot】【CIT-044】.  Overshoot, settling time and the
+candidate gains【732825508736690†screenshot】.  Overshoot, settling time and the
 integral of absolute error (IAE) remain important performance metrics
-for validation, but they are **not** part of the optimisation cost【CIT-045】.
+for validation, but they are **not** part of the optimisation cost. [CIT-068]
 
 The contribution of each term in the cost function is scaled by a set of
 **weights** specified in the configuration.  Under
@@ -28,21 +28,21 @@ trajectories fail early.  These defaults are taken from the
 correspond exactly to the scaling performed in
 `PSOTuner._compute_cost_from_traj` via `self.weights.state_error`,
 `self.weights.control_effort`, `self.weights.control_rate` and
-`self.weights.stability`【CIT-046】.
+`self.weights.stability`.
 
 The search bounds for controller gains are defined under `pso.bounds` in
 `config.yaml` and correspond one‑to‑one with the gains required by the
- selected controller【CIT-047】.  Each controller class expects a specific length and ordering of gains, and the implementation enforces positivity constraints as follows:
+ selected controller.  Each controller class expects a specific length and ordering of gains, and the implementation enforces positivity constraints as follows:
 
-  * **Classical SMC** – accepts a six‑element vector `[k1, k2, λ1, λ2, K, kd]`.  Here `k1` and `k2` weight the pendulum velocity/angle terms in the sliding surface, `λ1` and `λ2` set the slope of the sliding surface (1/s), `K` is the switching (robust) gain on the saturated sliding variable and `kd` is an optional derivative gain used for damping.  The constructor validates that `k1`, `k2`, `λ1`, `λ2` and `K` are strictly positive and that `kd` is non‑negative; providing zero or negative values raises a `ValueError`.  Exactly six numbers are required; extra values are ignored【CIT-048】.
+  * **Classical SMC** – accepts a six‑element vector `[k1, k2, λ1, λ2, K, kd]`.  Here `k1` and `k2` weight the pendulum velocity/angle terms in the sliding surface, `λ1` and `λ2` set the slope of the sliding surface (1/s), `K` is the switching (robust) gain on the saturated sliding variable and `kd` is an optional derivative gain used for damping.  The constructor validates that `k1`, `k2`, `λ1`, `λ2` and `K` are strictly positive and that `kd` is non‑negative; providing zero or negative values raises a `ValueError`.  Exactly six numbers are required; extra values are ignored.
 
-  * **Super‑twisting SMC (STA)** – uses two algorithmic gains `K1` and `K2` together with sliding‑surface parameters `[k1, k2, λ1, λ2]`.  A six‑element vector `[K1, K2, k1, k2, λ1, λ2]` specifies all parameters explicitly.  A two‑element vector `[K1, K2]` is also accepted; in this case the sliding‑surface gains default to positive constants `[5.0, 3.0, 2.0, 1.0]`.  Any additional elements after the first six are ignored.  The implementation requires `K1`, `K2`, `k1`, `k2`, `λ1` and `λ2` to be strictly positive to guarantee finite‑time convergence【CIT-049】.
+  * **Super‑twisting SMC (STA)** – uses two algorithmic gains `K1` and `K2` together with sliding‑surface parameters `[k1, k2, λ1, λ2]`.  A six‑element vector `[K1, K2, k1, k2, λ1, λ2]` specifies all parameters explicitly.  A two‑element vector `[K1, K2]` is also accepted; in this case the sliding‑surface gains default to positive constants `[5.0, 3.0, 2.0, 1.0]`.  Any additional elements after the first six are ignored.  The implementation requires `K1`, `K2`, `k1`, `k2`, `λ1` and `λ2` to be strictly positive to guarantee finite‑time convergence【MorenoOsorio2012†L27-L40】.
 
-  * **Adaptive SMC** – expects at least five gains `[k1, k2, λ1, λ2, γ]`.  The first four define the sliding surface and must be strictly positive; `γ` is the adaptation rate that increases the switching gain when the sliding surface is large and must also be positive.  Fewer than five values cause a configuration error; additional entries are silently ignored to permit future extensions.  A separate proportional coefficient `α` multiplies the sliding surface (`u = u_sw - α·σ`) and is configured independently (default 0.5) outside of the PSO‑tuned vector【CIT-050】.
+  * **Adaptive SMC** – expects at least five gains `[k1, k2, λ1, λ2, γ]`.  The first four define the sliding surface and must be strictly positive; `γ` is the adaptation rate that increases the switching gain when the sliding surface is large and must also be positive.  Fewer than five values cause a configuration error; additional entries are silently ignored to permit future extensions.  A separate proportional coefficient `α` multiplies the sliding surface (`u = u_sw - α·σ`) and is configured independently (default 0.5) outside of the PSO‑tuned vector【462167782799487†L186-L195】.
 
-  * **Hybrid adaptive super‑twisting SMC** – requires at least four gains `[c1, λ1, c2, λ2]`.  Extra entries are ignored.  Positivity of `c1`, `c2` and the slope parameters `λ1`, `λ2` is enforced at construction.  Additional adaptation‑rate limits, damping gains and recentering parameters are configured via `config.yaml` and not part of the PSO‑tuned vector【CIT-051】.
+  * **Hybrid adaptive super‑twisting SMC** – requires at least four gains `[c1, λ1, c2, λ2]`.  Extra entries are ignored.  Positivity of `c1`, `c2` and the slope parameters `λ1`, `λ2` is enforced at construction.  Additional adaptation‑rate limits, damping gains and recentering parameters are configured via `config.yaml` and not part of the PSO‑tuned vector【895515998216162†L326-L329】.
 
-  Optional tuning of physical parameters—including masses, lengths, centre‑of‑mass distances, friction coefficients and the boundary‑layer width—is configured under `pso.tune`.  When enabled the PSO evaluates each candidate gain vector (and any drawn parameters) across a suite of step and disturbance scenarios before computing the cost【CIT-052】.
+  Optional tuning of physical parameters—including masses, lengths, centre‑of‑mass distances, friction coefficients and the boundary‑layer width—is configured under `pso.tune`.  When enabled the PSO evaluates each candidate gain vector (and any drawn parameters) across a suite of step and disturbance scenarios before computing the cost.
 
 **Metrics:** The optimisation and validation use several metrics:
 integral of squared error (ISE) over the simulation horizon (used in the
@@ -60,7 +60,7 @@ and inertias, and ±10 % variation on viscous friction coefficients.  These
 uncertainty draws, together with injected sensor noise, actuator
 saturation and unmodelled disturbances, test the robustness of the
 controller.  The controller must maintain stability and acceptable
-performance for all sampled variations【CIT-053】.
+performance for all sampled variations.
 
 ## 5.2 Datasets
 Identification: `/data/raw/step/*.csv`, `/data/raw/chirp/*.csv`,

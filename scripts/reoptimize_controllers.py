@@ -88,7 +88,7 @@ class ControllerReoptimizer:
 
     def _save_results(self, controller_type: str, results: Dict):
         """Save optimization results to a JSON file."""
-        filename = self.results_dir / f"{controller_type}_results.json"
+        filename = self.results_dir / f"{controller_type}_results.json"  # [CIT-070]
         with open(filename, 'w') as f:
             json.dump(results, f, indent=2, sort_keys=True)
         logging.info(f"Results saved to: {filename}")

@@ -68,9 +68,9 @@ class PlantServer:
     # CRC.  Including a sequence number enables detection of out‑of‑order
     # or duplicate packets, while the CRC provides integrity checking
     # against bit errors【401883805680716†L137-L149】.  See design review issue #44.
-    CMD_FMT = "!I d I"
+    CMD_FMT = "!I d I"  # [CIT-066]
     CMD_SIZE = struct.calcsize(CMD_FMT)
-    STATE_FMT = "!I 6d I"
+    STATE_FMT = "!I 6d I"  # [CIT-066]
     STATE_SIZE = struct.calcsize(STATE_FMT)
 
     def __init__(
@@ -168,8 +168,8 @@ class PlantServer:
                 except Exception:
                     continue
                 # Compute CRC over the sequence and command value (excluding the CRC field).
-                crc_payload = struct.pack("!I d", seq, cmd_val)
-                calc_crc = zlib.crc32(crc_payload) & 0xFFFFFFFF
+                crc_payload = struct.pack("!I d", seq, cmd_val)  # [CIT-066]
+                calc_crc = zlib.crc32(crc_payload) & 0xFFFFFFFF  # [CIT-066]
                 # Ignore packets with mismatched CRC or stale sequence numbers.
                 if recv_crc != calc_crc or seq < self.rx_seq:
                     continue
@@ -195,9 +195,9 @@ class PlantServer:
                 # last received sequence back to the controller as acknowledgement.
                 self.tx_seq = self.rx_seq
                 # Pack sequence and measurement values (6 floats).
-                payload = struct.pack("!I 6d", self.tx_seq, *[float(v) for v in meas[:6]])
-                state_crc = zlib.crc32(payload) & 0xFFFFFFFF
-                pkt = payload + struct.pack("!I", state_crc)
+                payload = struct.pack("!I 6d", self.tx_seq, *[float(v) for v in meas[:6]])  # [CIT-066]
+                state_crc = zlib.crc32(payload) & 0xFFFFFFFF  # [CIT-066]
+                pkt = payload + struct.pack("!I", state_crc)  # [CIT-066]
                 try:
                     self._sock.sendto(pkt, client_addr)
                 except Exception:

@@ -5,6 +5,20 @@
 """Controller factory with Pydantic v2 config alignment and robust error handling."""
 
 from typing import Optional, List, Any, Dict, Callable, Union, Type, Mapping
+
+# Exported public API
+__all__ = [
+    "build_controller",
+    "build_all",
+    "create_controller",
+    "_canonical",
+    "normalize_controller_name",
+    "apply_deprecation_mapping",
+    "register_controller",
+    "FactoryConfigurationError",
+    "ConfigValueError",
+    "UnknownConfigKeyError"
+]
 import numpy as np
 import math
 import logging
@@ -96,6 +110,9 @@ DEPRECATED_PARAM_MAP: Dict[str, Dict[str, str]] = {
         "smooth-switch": "smooth_switch",
         "boundaryLayer": "boundary_layer",
         "boundary-layer": "boundary_layer",
+        "k_min": "K_min",  # normalized lowercase to uppercase
+        "k_max": "K_max",  # normalized lowercase to uppercase
+        "k_init": "K_init",  # normalized lowercase to uppercase
     },
     "hybrid_adaptive_sta_smc": {
         "use_equivalent": "enable_equivalent",  # Special deprecated alias
@@ -161,14 +178,14 @@ def _try_import(primary_mod: str, fallback_mod: str, attr: str):
             )
 
 # ---- tolerant imports (controllers) ----
-ClassicalSMC = _try_import("controllers.classic_smc", "src.controllers.classic_smc", "ClassicalSMC")
-SuperTwistingSMC = _try_import("controllers.sta_smc", "src.controllers.sta_smc", "SuperTwistingSMC")
-AdaptiveSMC = _try_import("controllers.adaptive_smc", "src.controllers.adaptive_smc", "AdaptiveSMC")
-SwingUpSMC = _try_import("controllers.swing_up_smc", "src.controllers.swing_up_smc", "SwingUpSMC")
-MPCController = _try_import("controllers.mpc_controller", "src.controllers.mpc_controller", "MPCController")
-MPCWeights = _try_import("controllers.mpc_controller", "src.controllers.mpc_controller", "MPCWeights")
+ClassicalSMC = _try_import("src.controllers.classic_smc", "controllers.classic_smc", "ClassicalSMC")
+SuperTwistingSMC = _try_import("src.controllers.sta_smc", "controllers.sta_smc", "SuperTwistingSMC")
+AdaptiveSMC = _try_import("src.controllers.adaptive_smc", "controllers.adaptive_smc", "AdaptiveSMC")
+SwingUpSMC = _try_import("src.controllers.swing_up_smc", "controllers.swing_up_smc", "SwingUpSMC")
+MPCController = _try_import("src.controllers.mpc_controller", "controllers.mpc_controller", "MPCController")
+MPCWeights = _try_import("src.controllers.mpc_controller", "controllers.mpc_controller", "MPCWeights")
 HybridAdaptiveSTASMC = _try_import(
-    "controllers.hybrid_adaptive_sta_smc", "src.controllers.hybrid_adaptive_sta_smc", "HybridAdaptiveSTASMC"
+    "src.controllers.hybrid_adaptive_sta_smc", "controllers.hybrid_adaptive_sta_smc", "HybridAdaptiveSTASMC"
 )
 
 # ---- tolerant imports (config) ----
@@ -222,6 +239,12 @@ def normalize_param_key(key: str) -> str:
     """Normalize parameter key: lowercase, replace hyphens/spaces with underscores."""
     if not key:
         return ""
+    # Special case: preserve capitalization for K_ parameters
+    if key.startswith('K_'):
+        normalized = key.strip()
+        for char in ["-", " "]:
+            normalized = normalized.replace(char, "_")
+        return normalized
     normalized = key.lower().strip()
     for char in ["-", " "]:
         normalized = normalized.replace(char, "_")
@@ -1025,30 +1048,131 @@ def _build_mpc_controller(key, ctrl_cfg_dict, config, gains, shared_dt, shared_m
 
 # ---------- Backward Compatibility ----------
 # Keep create_controller for backward compatibility
-def create_controller(
-    ctrl_name: str,
-    config: Optional[Any] = None,
-    gains: Optional[List[float]] = None,
-    **override: Any,
-) -> Any:
+def create_controller(name: str, /, **kwargs: Any) -> Any:
     """
-    Legacy entry point for controller creation.
-    
-    Maintained for backward compatibility with existing code.
-    New code should use build_controller() instead.
+    Backwards-compatible convenience wrapper used by tests and the CLI.
+    Delegates to build_controller() so mapping/validation stays centralized.
+
+    Parameters
+    ----------
+    name : str
+        Controller name (aliases allowed).
+    **kwargs :
+        Per-controller constructor args (e.g., gains, dt, max_force).
     """
-    # Convert override dict to controller config
-    ctrl_cfg = override if override else {}
-    
-    return build_controller(
-        ctrl_name,
-        ctrl_cfg,
-        config=config,
-        gains=gains,
-        allow_unknown=False  # Legacy behavior was strict
-    )
+    # Unknown *controller names* must still raise.
+    # allow_unknown=True relaxes parameter filtering only.
+
+    # Normalize controller name
+    controller_name = normalize_controller_name(name)
+
+    # Check registry first
+    with CONTROLLER_REGISTRY_LOCK:
+        if controller_name in CONTROLLER_REGISTRY:
+            return build_controller(name, kwargs, allow_unknown=True)
+
+    # For tests and direct usage, try to create directly without config.yaml
+    # Apply deprecation mapping first
+    normalized_kwargs = apply_deprecation_mapping(controller_name, kwargs, allow_unknown=True)
+
+    # Handle direct controller construction for common cases
+    if controller_name == "classical_smc" and ClassicalSMC is not None:
+        # Extract required parameters
+        gains = normalized_kwargs.get('gains')
+        if gains is None:
+            raise ValueError(f"Controller '{name}': gains parameter is required")
+
+        max_force = normalized_kwargs.get('max_force', 20.0)
+        boundary_layer = normalized_kwargs.get('boundary_layer', 0.01)
+
+        # Filter known parameters
+        known_params = {
+            'gains': gains,
+            'max_force': max_force,
+            'boundary_layer': boundary_layer,
+            'dynamics_model': normalized_kwargs.get('dynamics_model'),
+            'regularization': normalized_kwargs.get('regularization', 1e-10),
+            'switch_method': normalized_kwargs.get('switch_method', 'tanh'),
+        }
+
+        # Remove None values
+        filtered_params = {k: v for k, v in known_params.items() if v is not None}
+
+        return ClassicalSMC(**filtered_params)
+
+    elif controller_name == "sta_smc" and SuperTwistingSMC is not None:
+        # Similar handling for SuperTwistingSMC
+        gains = normalized_kwargs.get('gains')
+        if gains is None:
+            raise ValueError(f"Controller '{name}': gains parameter is required")
+
+        max_force = normalized_kwargs.get('max_force', 20.0)
+        boundary_layer = normalized_kwargs.get('boundary_layer', 0.01)
+        dt = normalized_kwargs.get('dt', 0.01)
+
+        known_params = {
+            'gains': gains,
+            'max_force': max_force,
+            'boundary_layer': boundary_layer,
+            'dt': dt,
+            'dynamics_model': normalized_kwargs.get('dynamics_model'),
+            'damping_gain': normalized_kwargs.get('damping_gain', 0.0),
+            'regularization': normalized_kwargs.get('regularization', 1e-10),
+            'switch_method': normalized_kwargs.get('switch_method', 'tanh'),
+        }
+
+        # Handle optional anti_windup_gain
+        if 'anti_windup_gain' in normalized_kwargs:
+            known_params['anti_windup_gain'] = normalized_kwargs['anti_windup_gain']
+
+        filtered_params = {k: v for k, v in known_params.items() if v is not None}
+
+        return SuperTwistingSMC(**filtered_params)
+
+    elif controller_name == "adaptive_smc" and AdaptiveSMC is not None:
+        # Similar handling for AdaptiveSMC with required defaults
+        gains = normalized_kwargs.get('gains')
+        if gains is None:
+            raise ValueError(f"Controller '{name}': gains parameter is required")
+
+        known_params = {
+            'gains': gains,
+            'dt': normalized_kwargs.get('dt', 0.01),
+            'max_force': normalized_kwargs.get('max_force', 20.0),
+            'leak_rate': normalized_kwargs.get('leak_rate', 0.1),
+            'dead_zone': normalized_kwargs.get('dead_zone', 0.01),
+            'adapt_rate_limit': normalized_kwargs.get('adapt_rate_limit', 100.0),
+            'K_min': normalized_kwargs.get('K_min', 0.1),
+            'K_max': normalized_kwargs.get('K_max', 100.0),
+            'smooth_switch': normalized_kwargs.get('smooth_switch', True),
+            'boundary_layer': normalized_kwargs.get('boundary_layer', 0.01),
+            'K_init': normalized_kwargs.get('K_init', 10.0),
+            'alpha': normalized_kwargs.get('alpha', 0.5),
+        }
+
+        # All parameters have defaults, so just pass them all
+        return AdaptiveSMC(**known_params)
+
+    # For unknown controller names or when direct construction fails,
+    # fall back to full build_controller with config loading
+    try:
+        config = kwargs.pop('config', None)
+        gains = kwargs.pop('gains', None)
+
+        return build_controller(
+            name,
+            kwargs,
+            config=config,
+            gains=gains,
+            allow_unknown=True
+        )
+    except Exception:
+        # If all else fails, raise error for unknown controller
+        raise ValueError(f"Controller '{name}' is not a recognized type")
 
 # Expose the canonical name helper for backward compat
 def _canonical(name: str) -> str:
-    """Legacy name normalization function."""
+    """
+    Legacy/compat alias for tests. Mirrors normalize_controller_name().
+    """
     return normalize_controller_name(name)

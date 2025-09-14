@@ -97,8 +97,8 @@ class HILControllerClient:
     # checksum.  Including sequence numbers allows detection of stale or
     # duplicate packets, while the CRC verifies integrity over UDP
     # transport【401883805680716†L137-L149】.
-    CMD_FMT = "!I d I"
-    STATE_FMT = "!I 6d I"
+    CMD_FMT = "!I d I"  # [CIT-066]
+    STATE_FMT = "!I 6d I"  # [CIT-066]
     CMD_SIZE = struct.calcsize(CMD_FMT)
     STATE_SIZE = struct.calcsize(STATE_FMT)
 
@@ -169,10 +169,10 @@ class HILControllerClient:
             # valid sequence.  Compute CRC over the sequence and command value
             # and append it to the packet.  This protects against bit flips in
             # transit and allows the plant server to verify integrity.
-            self.tx_seq += 1
-            cmd_payload = struct.pack("!I d", self.tx_seq, u)
-            crc = zlib.crc32(cmd_payload) & 0xFFFFFFFF
-            pkt = cmd_payload + struct.pack("!I", crc)
+            self.tx_seq += 1  # [CIT-066]
+            cmd_payload = struct.pack("!I d", self.tx_seq, u)  # [CIT-066]
+            crc = zlib.crc32(cmd_payload) & 0xFFFFFFFF  # [CIT-066]
+            pkt = cmd_payload + struct.pack("!I", crc)  # [CIT-066]
             self.sock.sendto(pkt, self.plant_addr)
 
             # Receive measurement.  On timeout retain the previous state
@@ -195,8 +195,8 @@ class HILControllerClient:
                     meas_vals = vals[:-1]
                     recv_crc = int(vals[-1])
                     # Recompute CRC over sequence and measurement.
-                    payload = struct.pack("!I 6d", seq, *[float(v) for v in meas_vals])
-                    calc_crc = zlib.crc32(payload) & 0xFFFFFFFF
+                    payload = struct.pack("!I 6d", seq, *[float(v) for v in meas_vals])  # [CIT-066]
+                    calc_crc = zlib.crc32(payload) & 0xFFFFFFFF  # [CIT-066]
                     if recv_crc == calc_crc and seq >= self.rx_seq:
                         self.rx_seq = seq
                         self.xhat = np.asarray(meas_vals, dtype=float).reshape(6)

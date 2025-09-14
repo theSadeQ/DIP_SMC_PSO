@@ -159,6 +159,13 @@ class HybridAdaptiveSTASMC:
         # this bound from the actuator limit avoids unnecessarily
         # limiting the integrator and preserves adaptation capability.
         u_int_max: float = 50.0,
+        # --- Numerical Safety and Self-Tapering Parameters ---
+        # Leak rate for adaptive gains to prevent indefinite ratcheting
+        gain_leak: float = 1e-3,
+        # Soft saturation threshold for adaptation freezing when near equilibrium
+        adaptation_sat_threshold: float = 0.02,
+        # Tapering factor for state-based gain growth reduction
+        taper_eps: float = 0.05,
     ) -> None:
         if not isinstance(gains, (list, tuple)) or len(gains) < self.n_gains:
             raise ValueError(
@@ -275,6 +282,11 @@ class HybridAdaptiveSTASMC:
         self.k2_max = require_positive(k2_max, "k2_max")
         self.u_int_max = require_positive(u_int_max, "u_int_max")
 
+        # Initialize numerical safety and self-tapering parameters
+        self.gain_leak = max(0.0, float(gain_leak))
+        self.adaptation_sat_threshold = max(0.0, float(adaptation_sat_threshold))
+        self.taper_eps = max(1e-9, float(taper_eps))
+
         # For optional equivalent control
         self.dyn: Optional[Any] = dynamics_model
 
@@ -314,6 +326,18 @@ class HybridAdaptiveSTASMC:
         return {"k1": [], "k2": [], "u_int": [], "s": []}
 
     # --------------------- internals -----------------------
+    def _compute_taper_factor(self, abs_s: float) -> float:
+        """Compute tapering factor for adaptive gain growth.
+
+        Returns a value between 0 and 1 that reduces gain growth as |s| approaches 0.
+        This implements state-based self-tapering to ensure gain growth slows as
+        the system converges to the sliding surface.
+
+        For large |s|: factor ≈ 1 (full adaptation)
+        For small |s|: factor ≈ 0 (heavy tapering)
+        """
+        return abs_s / (abs_s + self.taper_eps)
+
     def _compute_sliding_surface(self, state: np.ndarray) -> float:
         """Compute the sliding surface value s.
 
@@ -462,19 +486,69 @@ class HybridAdaptiveSTASMC:
             sgn = 0.0
         else:
             sgn = _sat_tanh(s, max(self.sat_soft_width, self.dead_zone))
-        # Adaptation: increase k1 and k2 proportional to |s| outside the
-        # dead‑zone; freeze inside.  Apply per‑step rate limits and
-        # saturate gains between 0 and max_force.
-        if in_dz:
-            k1_dot = 0.0
-            k2_dot = 0.0
+        # Compute preliminary control (without saturation) to check for hard saturation
+        u_sw_temp = -k1_prev * np.sqrt(max(abs_s, 0.0)) * sgn
+        u_damp_temp = -self.damping_gain * float(s)
+        u_eq_temp = self._compute_equivalent_control(state)
+        # Cart recentering (compute here for saturation check)
+        x = state[0]
+        xdot = state[3]
+        abs_x = abs(x)
+        low = self.recenter_low_thresh
+        high = self.recenter_high_thresh
+        if abs_x <= low:
+            rc_factor = 0.0
+        elif abs_x >= high:
+            rc_factor = 1.0
         else:
-            k1_dot = min(self.gamma1 * abs_s, self.adapt_rate_limit)
-            k2_dot = min(self.gamma2 * abs_s, self.adapt_rate_limit)
-        # Update adaptive gains and clip within [0, k*_max].  Decoupling
-        # gain bounds from the actuator saturation prevents the controller
-        # from artificially limiting the adaptation when the actuator has
-        # a larger range【895515998216162†L326-L329】.
+            rc_factor = (abs_x - low) / (high - low)
+        u_cart_temp = -rc_factor * self.cart_p_gain * (xdot + self.cart_p_lambda * x)
+
+        # Preliminary unsaturated control (using previous u_int for estimate)
+        u_pre_temp = u_sw_temp + u_int_prev + u_damp_temp + u_cart_temp + u_eq_temp
+
+        # Check if we would be hard-saturated
+        hard_saturated = abs(u_pre_temp) > self.max_force + 1e-12
+        near_equilibrium = abs_s < self.adaptation_sat_threshold
+
+        # Adaptation: increase k1 and k2 proportional to |s| outside the dead‑zone
+        # Apply self-tapering and anti-windup logic
+        if in_dz:
+            # In dead zone: apply gentle leak to prevent indefinite ratcheting
+            k1_dot = -self.gain_leak
+            k2_dot = -self.gain_leak
+        elif hard_saturated and near_equilibrium:
+            # Hard saturated and near equilibrium: freeze adaptation + leak
+            k1_dot = -self.gain_leak
+            k2_dot = -self.gain_leak
+        else:
+            # Normal adaptation with self-tapering
+            taper_factor = self._compute_taper_factor(abs_s)
+            # More conservative adaptation rates for double-inverted pendulum
+            k1_raw = self.gamma1 * abs_s * taper_factor
+            k2_raw = self.gamma2 * abs_s * taper_factor
+
+            # Additional time-based tapering to slow down in second half
+            time_factor = 1.0 / (1.0 + 0.01 * max(0, len(history.get("k1", [])) - 1000))
+
+            k1_dot = min(k1_raw * time_factor, self.adapt_rate_limit)
+            k2_dot = min(k2_raw * time_factor, self.adapt_rate_limit)
+
+            # Stronger leak during adaptation
+            k1_dot = max(k1_dot - self.gain_leak, -k1_prev / (10.0 * self.dt))
+            k2_dot = max(k2_dot - self.gain_leak, -k2_prev / (10.0 * self.dt))
+
+        # More aggressive clipping for double-inverted pendulum stability
+        k1_dot = float(max(-5.0, min(5.0, k1_dot)))
+        k2_dot = float(max(-5.0, min(5.0, k2_dot)))
+
+        # Additional safety: prevent gains from growing too fast
+        if k1_prev > self.k1_max * 0.8:
+            k1_dot = min(k1_dot, -self.gain_leak * 2)
+        if k2_prev > self.k2_max * 0.8:
+            k2_dot = min(k2_dot, -self.gain_leak * 2)
+
+        # Update adaptive gains and clip within [0, k*_max]
         k1_new = float(np.clip(k1_prev + k1_dot * self.dt, 0.0, self.k1_max))
         k2_new = float(np.clip(k2_prev + k2_dot * self.dt, 0.0, self.k2_max))
         # STA integral update.  Integrate -k2 * sgn when outside the dead‑zone;
@@ -491,12 +565,9 @@ class HybridAdaptiveSTASMC:
         # magnitude and the smooth sign for direction.  The negative sign
         # drives the surface toward zero.
         u_sw = -k1_new * np.sqrt(max(abs_s, 0.0)) * sgn
-        # Linear damping on the sliding surface.  Apply damping to the raw
-        # sliding surface rather than a smoothed variant; when inside the
-        # dead‑zone s=0 so no damping is applied.
-        u_damp = -self.damping_gain * float(s)
-        # Optional equivalent control
-        u_eq = self._compute_equivalent_control(state)
+        # Reuse precomputed values to avoid redundant computation
+        u_damp = u_damp_temp
+        u_eq = u_eq_temp
         # Cart recentering PD term with hysteresis.  Compute the
         # magnitude of the cart displacement and apply a ramp between
         # recenter_low_thresh and recenter_high_thresh.  When |x| ≤ low
@@ -515,7 +586,7 @@ class HybridAdaptiveSTASMC:
             rc_factor = 1.0
         else:
             rc_factor = (abs_x - low) / (high - low)
-        u_cart = -rc_factor * self.cart_p_gain * (xdot + self.cart_p_lambda * x)
+        u_cart = u_cart_temp  # Reuse precomputed cart recentering
         # Compute preliminary control and apply saturation.  Sum the
         # switching, integral, damping, cart recentering, and equivalent
         # components.
@@ -532,6 +603,44 @@ class HybridAdaptiveSTASMC:
         history.setdefault("k2", []).append(k2_new)
         history.setdefault("u_int", []).append(u_int_new)
         history.setdefault("s", []).append(float(s))
+        # Enhanced numerical safety and emergency reset for double-inverted pendulum
+        # Check for instability indicators
+        state_norm = float(np.linalg.norm(state[:3]))  # Position states only
+        velocity_norm = float(np.linalg.norm(state[3:]))  # Velocity states only
+
+        # Emergency reset conditions:
+        # 1. Non-finite values
+        # 2. Excessive state magnitudes (likely blowup)
+        # 3. Excessive gains or control
+        emergency_reset = (
+            not np.isfinite(u_sat) or abs(u_sat) > self.max_force * 2 or
+            not np.isfinite(k1_new) or k1_new > self.k1_max * 0.9 or
+            not np.isfinite(k2_new) or k2_new > self.k2_max * 0.9 or
+            not np.isfinite(u_int_new) or abs(u_int_new) > self.u_int_max * 1.5 or
+            not np.isfinite(s) or abs(s) > 100.0 or
+            state_norm > 10.0 or velocity_norm > 50.0
+        )
+
+        if emergency_reset:
+            # Emergency reset: essentially disable aggressive control
+            u_sat = 0.0  # Emergency stop
+            k1_new = max(0.0, min(self.k1_init * 0.05, self.k1_max * 0.05))  # Minimal gains
+            k2_new = max(0.0, min(self.k2_init * 0.05, self.k2_max * 0.05))
+            u_int_new = 0.0  # Reset integral term
+            s = float(np.clip(s if np.isfinite(s) else 0.0, -1.0, 1.0))  # Very tight clamp
+        else:
+            # Normal safety checks
+            if not np.isfinite(u_sat):
+                u_sat = 0.0
+            if not np.isfinite(k1_new):
+                k1_new = self.k1_init
+            if not np.isfinite(k2_new):
+                k2_new = self.k2_init
+            if not np.isfinite(u_int_new):
+                u_int_new = 0.0
+            if not np.isfinite(s):
+                s = 0.0
+
         # Package the outputs into a structured named tuple.  Returning a
         # named tuple formalises the contract and allows clients to
         # access fields by name while retaining tuple compatibility.

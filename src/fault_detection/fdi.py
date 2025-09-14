@@ -76,18 +76,20 @@ class FDIsystem:
     * When both methods are enabled the residual must exceed either
       the adaptive threshold persistently or the CUSUM threshold to
       trigger a fault.
+    * The FDI system reports status only ("OK"/"FAULT") and does not modify
+      the control command path; external supervisors decide safe-state actions.  # [CIT-064]
     """
 
-    residual_threshold: float = 0.5
-    persistence_counter: int = 10
+    residual_threshold: float = 0.5  # [CIT-048]
+    persistence_counter: int = 10  # [CIT-048]
     use_ekf_residual: bool = False
     residual_states: List[int] = field(default_factory=lambda: [0, 1, 2])
     residual_weights: Optional[List[float]] = None
     adaptive: bool = False
-    window_size: int = 50
-    threshold_factor: float = 3.0
+    window_size: int = 50  # [CIT-049]
+    threshold_factor: float = 3.0  # [CIT-049]
     cusum_enabled: bool = False
-    cusum_threshold: float = 5.0
+    cusum_threshold: float = 5.0  # [CIT-049]
 
     # Internal state
     _counter: int = field(default=0, repr=False, init=False)

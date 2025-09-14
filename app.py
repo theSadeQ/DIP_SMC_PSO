@@ -50,7 +50,7 @@ from src.core.simulation_context import SimulationContext
 # commit, configuration hash and seed metadata to every log record.  We
 # configure logging once per entry point; repeated calls clear any
 # existing handlers and set a fresh configuration to avoid duplicate
-# messages【985132039892507†L364-L377】.
+# messages [985132039892507 L364-L377].
 from src.logging_config import configure_provenance_logging  # type: ignore
 
 # --------------------------------------------------------------------------------------
@@ -452,7 +452,7 @@ def _run_simulation_and_plot(args: argparse.Namespace) -> int:
     # compute a configuration dictionary from the validated context and
     # pass the user‑supplied seed (or zero if unset).  This call
     # injects commit, configuration hash and seed metadata into the log
-    # records so that results can be reproduced exactly【985132039892507†L364-L377】.
+    # records so that results can be reproduced exactly[985132039892507 L364-L377].
     try:
         cfg_dict = ctx.get_config().model_dump(mode="python")
     except Exception:
@@ -510,7 +510,7 @@ def _run_hil(cfg_path: Path, do_plot: bool) -> int:
         from pydantic import ValidationError  # type: ignore
 
         try:
-            cfg_obj = load_config(cfg_path)
+            cfg_obj = load_config(cfg_path, allow_unknown=True)
         except ValidationError as e:
             # Log validation errors and re‑raise to propagate. A validation
             # failure in the configuration should cause the application to

@@ -32,9 +32,10 @@ def test_app_fails_fast_on_invalid_controller():
     assert result.returncode != 0, \
         "app.py should exit with an error code on invalid controller, but it exited cleanly."
 
-    # 2. The stderr should contain a ValueError indicating the root cause.
-    assert "ValueError" in result.stderr, \
-        "Expected a ValueError in stderr for an unknown controller."
+    # 2. The stderr should contain an error indicating the root cause.
+    assert ("not found in config.controllers" in result.stderr or
+            "Validation error" in result.stderr), \
+        "Expected an error message in stderr for an unknown controller."
 
     # 3. The error message should mention the invalid controller name.
     assert invalid_controller_name in result.stderr, \

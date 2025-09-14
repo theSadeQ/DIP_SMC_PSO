@@ -5,48 +5,38 @@ from typing import Any
 from src.config import load_config, ControllersConfig, PermissiveControllerConfig
 from src.core.simulation_runner import run_simulation
 from src.core.dynamics_full import FullDIPDynamics
-from src.controllers.factory import create_controller
-
-
-@pytest.fixture
-def config() -> Any:
-    return load_config("config.yaml")
+from src.controllers.factory import build_controller, create_controller
 
 
 @pytest.fixture
 def hybrid_controller(config) -> Any:
     # Conservative, 1 kHz control, modest adaptation
-    ctrl_cfg = PermissiveControllerConfig(
-        gains=[5.0, 3.0, 5.0, 1.8],  # [c1, λ1, c2, λ2]
-        max_force=150.0,
-        dt=0.001,
-        k1_init=6.0,
-        k2_init=1.2,
-        gamma1=0.8,
-        gamma2=0.4,
-        dead_zone=0.02,
+    # Create controller configuration
+    ctrl_cfg = {
+        "gains": [5.0, 3.0, 5.0, 1.8],  # [c1, λ1, c2, λ2]
+        "max_force": 150.0,
+        "dt": 0.001,
+        "k1_init": 6.0,
+        "k2_init": 1.2,
+        "gamma1": 0.8,
+        "gamma2": 0.4,
+        "dead_zone": 0.02,
+    }
+    return build_controller(
+        "hybrid_adaptive_sta_smc",
+        ctrl_cfg,
+        allow_unknown=True,
+        config=config
     )
-    try:
-        config.controllers.hybrid_adaptive_sta_smc = ctrl_cfg  # type: ignore[attr-defined]
-    except Exception:
-        config.controllers = ControllersConfig(
-            **{
-                **config.controllers.model_dump(exclude_unset=False),
-                "hybrid_adaptive_sta_smc": ctrl_cfg,
-            }
-        )
-    return create_controller("hybrid_adaptive_sta_smc", config=config)
 
 
-@pytest.fixture
-def dynamics(config) -> Any:
-    return FullDIPDynamics(params=config.physics)
+# Use full_dynamics fixture from conftest.py
 
 
-def test_stabilization_and_adaptation(hybrid_controller, dynamics) -> None:
+def test_stabilization_and_adaptation(hybrid_controller, full_dynamics) -> None:
     # Attach dynamics (even though u_eq is disabled by default)
     if hasattr(hybrid_controller, "set_dynamics"):
-        hybrid_controller.set_dynamics(dynamics)
+        hybrid_controller.set_dynamics(full_dynamics)
 
     sim_time = 10.0
     dt = 0.001  # 1 kHz
@@ -54,7 +44,7 @@ def test_stabilization_and_adaptation(hybrid_controller, dynamics) -> None:
 
     t1, x1, u1 = run_simulation(
         controller=hybrid_controller,
-        dynamics_model=dynamics,
+        dynamics_model=full_dynamics,
         sim_time=sim_time,
         dt=dt,
         initial_state=initial_state,
@@ -78,7 +68,7 @@ def test_stabilization_and_adaptation(hybrid_controller, dynamics) -> None:
     assert rms_error_ang2 < 0.1, f"Pendulum 2 RMS error too high: {rms_error_ang2}"
 
     # Reproducibility
-    config2 = load_config("config.yaml")
+    config2 = load_config("config.yaml", allow_unknown=True)
     ctrl_cfg2 = PermissiveControllerConfig(
         gains=[5.0, 3.0, 5.0, 1.8],
         max_force=150.0,
@@ -100,11 +90,11 @@ def test_stabilization_and_adaptation(hybrid_controller, dynamics) -> None:
         )
     controller2 = create_controller("hybrid_adaptive_sta_smc", config=config2)
     if hasattr(controller2, "set_dynamics"):
-        controller2.set_dynamics(dynamics)
+        controller2.set_dynamics(full_dynamics)
 
     t2, x2, u2 = run_simulation(
         controller=controller2,
-        dynamics_model=dynamics,
+        dynamics_model=full_dynamics,
         sim_time=sim_time,
         dt=dt,
         initial_state=initial_state,

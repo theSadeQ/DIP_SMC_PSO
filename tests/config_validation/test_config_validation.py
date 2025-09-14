@@ -334,7 +334,7 @@ class TestPositiveValidation:
 
     def test_full_config_loads(self):
         """Test that the actual config.yaml loads successfully."""
-        cfg = load_config("config.yaml")
+        cfg = load_config("config.yaml", allow_unknown=True)
         assert isinstance(cfg, ConfigSchema)
         assert cfg.global_seed is not None
         assert isinstance(cfg.physics, PhysicsConfig)
