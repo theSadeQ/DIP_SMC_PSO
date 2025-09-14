@@ -24,13 +24,13 @@
   configurable residual threshold and persistence counter.  In the default
   configuration (`src/fault_detection/fdi.py`) the base residual threshold is
   **0.5** and a fault is declared only after the residual norm exceeds this
-  threshold for **10** consecutive samples (100 ms at 100 Hz).  Adaptive
+  threshold for **10** consecutive samples (100 ms at 100 Hz)【CIT-058】.  Adaptive
   thresholding and CUSUM drift detection can be enabled via the same
   configuration: when `adaptive` is set to `true` the threshold becomes
   `μ + threshold_factor · σ` over the last `window_size` residuals (defaults: window
-  of 50 samples and `threshold_factor = 3.0`); when `cusum_enabled` is `true` a
+  of 50 samples and `threshold_factor = 3.0`)【CIT-058】; when `cusum_enabled` is `true` a
   cumulative sum of residual deviations is compared against `cusum_threshold`
-  (default 5.0) to detect slow drifts.  Both adaptive and CUSUM features are
+  (default 5.0)【CIT-058】 to detect slow drifts.  Both adaptive and CUSUM features are
   disabled by default.  Logs are stored under `/data/raw/<test_id>/`.
  - **Data collection:** record the full state vector, control input, reference
   and error signals at **100 Hz** (10 ms sampling).  For each test ID, store the log under

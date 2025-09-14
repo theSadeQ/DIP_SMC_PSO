@@ -14,7 +14,10 @@
       "Bash(\"C:\\Users\\sadeg\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" -m pytest tests/test_core/test_dynamics_lowrank.py::TestSafety -v)",
       "Bash(\"C:\\Users\\sadeg\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" -m pytest tests/test_core/ -x -q)",
       "Bash(\"C:\\Users\\sadeg\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" -m pip install --upgrade pydantic)",
-      "Bash(\"C:\\Users\\sadeg\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" -m pip install --upgrade pydantic-core)"
+      "Bash(\"C:\\Users\\sadeg\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" -m pip install --upgrade pydantic-core)",
+      "Bash(git push:*)",
+      "Bash(git fetch:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

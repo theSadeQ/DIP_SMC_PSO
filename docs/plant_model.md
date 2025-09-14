@@ -47,7 +47,7 @@
 
     where $A=\left.\frac{\partial f}{\partial x}\right|_{(x^*,u^*)}$, $B=\left.\frac{\partial f}{\partial u}\right|_{(x^*,u^*)}$; $C,D$ reflect sensor/output selection.  Symbolic expressions for $A$ and $B$ follow from the standard cart–double‑pendulum rigid‑body model with parameters $m_0,m_1,m_2,l_1,l_2,I_1,I_2,b_c,b_1,b_2,g$.  **Numeric values for $A,B,C,D$ are generated programmatically**: the simulation code (e.g. `src/core/dynamics_full.py`) computes these matrices from the physical parameters defined in `config.yaml`.  Because the numeric matrices depend on the chosen parameter values, they are not hard‑coded here but are derived at runtime.
 
-    > **State ordering:** the internal implementation orders the six state variables as $[x,\theta_1,\theta_2,\dot{x},\dot{\theta}_1,\dot{\theta}_2]^\top$.  This differs from the $[x,\dot{x},\theta_1,\dot{\theta}_1,\theta_2,\dot{\theta}_2]$ ordering sometimes used in literature.  The chosen ordering matches the state unpacking in the controllers (see `AdaptiveSMC.compute_control()` and the super‑twisting controller in `sta_smc.py`), where the second and third entries are the pendulum angles and the remaining entries are velocities.  When computing Jacobians or linearising the dynamics one should therefore map the symbolic state vector to this ordering.
+    > **State ordering:** the internal implementation orders the six state variables as $[x,\theta_1,\theta_2,\dot{x},\dot{\theta}_1,\dot{\theta}_2]^\top$.  This differs from the $[x,\dot{x},\theta_1,\dot{\theta}_1,\theta_2,\dot{\theta}_2]$ ordering sometimes used in literature.  The chosen ordering matches the state unpacking in the controllers (see `AdaptiveSMC.compute_control()` and the super‑twisting controller in `sta_smc.py`), where the second and third entries are the pendulum angles and the remaining entries are velocities.  When computing Jacobians or linearising the dynamics one should therefore map the symbolic state vector to this ordering. [CIT-032]
 
 * **Linearization assumptions & regions of validity**
 
@@ -60,17 +60,17 @@
 model are drawn from `config.yaml`.  The list below now includes the
 viscous friction coefficients, which were absent in earlier drafts:
 
-* Cart mass \(m_0 = 1.5\,\text{kg}\)
-* First pendulum mass \(m_1 = 0.2\,\text{kg}\)
-* Second pendulum mass \(m_2 = 0.15\,\text{kg}\)
-* First pendulum length \(l_1 = 0.4\,\text{m}\)
-* Second pendulum length \(l_2 = 0.3\,\text{m}\)
+* Cart mass \(m_0 = 1.5\,\text{kg}\) [CIT-033]
+* First pendulum mass \(m_1 = 0.2\,\text{kg}\) [CIT-034]
+* Second pendulum mass \(m_2 = 0.15\,\text{kg}\) [CIT-035]
+* First pendulum length \(l_1 = 0.4\,\text{m}\) [CIT-036]
+* Second pendulum length \(l_2 = 0.3\,\text{m}\) [CIT-037]
 * Centre‑of‑mass distances \(l_{1,\mathrm{com}} = 0.2\,\text{m}\),
-  \(l_{2,\mathrm{com}} = 0.15\,\text{m}\)
+  \(l_{2,\mathrm{com}} = 0.15\,\text{m}\) [CIT-038]
 * Pendulum inertias \(I_1 = 2.65\times10^{-3}\,\text{kg·m}^2\),
-  \(I_2 = 1.15\times10^{-3}\,\text{kg·m}^2\)
-* Gravity \(g=9.81\,\text{m/s}^2\)
-* Viscous friction coefficients \(b_c=0.2\), \(b_1=0.005\) and \(b_2=0.004\)【359986572901373†screenshot】
+  \(I_2 = 1.15\times10^{-3}\,\text{kg·m}^2\) [CIT-039]
+* Gravity \(g=9.81\,\text{m/s}^2\) [CIT-040]
+* Viscous friction coefficients \(b_c=0.2\), \(b_1=0.005\) and \(b_2=0.004\) [CIT-041]
 
 These parameters define the linearised matrices \(A,B,C,D\).  For example,
 the top‑left block of \(A\) captures the cart dynamics, while off‑diagonal
