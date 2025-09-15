@@ -1,3 +1,6 @@
+#==========================================================================================\\\
+#================================= src/logging_config.py ================================\\\
+#==========================================================================================\\\
 """
 Centralised logging configuration with provenance stamping.
 
@@ -134,24 +137,21 @@ def configure_provenance_logging(config: Dict[str, Any], seed: int, *, level: in
     cfg_hash = _compute_config_hash(config)
     seed_val = int(seed) if seed is not None else 0
 
-    # Reset existing handlers to avoid duplicate logs when
-    # reconfiguring.  Without clearing handlers, repeated calls can
-    # accumulate multiple handlers and duplicate messages.
+    # Do NOT call logging.basicConfig here (tests assert no basicConfig on import).
+    # Instead, attach a provenance filter to the root logger so records carry fields.
     root_logger = logging.getLogger()
-    for h in list(root_logger.handlers):
-        root_logger.removeHandler(h)
-
-    # Set basic configuration.  The format string uses the record
-    # attributes ``commit``, ``cfg_hash`` and ``seed`` injected by the
-    # ProvenanceFilter.  Time is formatted in ISO format; message and
-    # level name follow.
-    logging.basicConfig(
-        level=level,
-        format="[%(commit)s|%(cfg_hash)s|seed=%(seed)s] %(asctime)s %(levelname)s %(message)s",
-    )
-    # Install filter on the root logger so that all child loggers
-    # inherit the provenance fields.
-    root_logger.addFilter(ProvenanceFilter(commit, cfg_hash, seed_val))
+    root_logger.setLevel(level)
+    # Avoid duplicate filters on repeated calls
+    have_filter = any(isinstance(f, ProvenanceFilter) for f in root_logger.filters)
+    if not have_filter:
+        root_logger.addFilter(ProvenanceFilter(commit, cfg_hash, seed_val))
+    # If no handlers are configured, attach a minimal StreamHandler with a formatter
+    if not root_logger.handlers:
+        handler = logging.StreamHandler()
+        fmt = logging.Formatter("[%(commit)s|%(cfg_hash)s|seed=%(seed)s] %(asctime)s %(levelname)s %(message)s")
+        handler.setFormatter(fmt)
+        handler.setLevel(level)
+        root_logger.addHandler(handler)
 
     # Log a startup message summarising the provenance.  This makes
     # provenance visible at the beginning of the log and aids in

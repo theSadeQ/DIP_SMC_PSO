@@ -8,7 +8,7 @@ The pursuit of high‑performance, robust control for complex nonlinear systems 
 
 **A Comprehensive Software Framework**
 
-In addition to the algorithmic contributions, the project provides a complete software framework for interactive exploration and deployment. A command‑line interface (`app.py`) exposes tasks such as running simulations, tuning controllers using PSO, performing hardware‑in‑the‑loop (HIL) experiments and exporting results. For non‑experts, an intuitive Streamlit dashboard (`streamlit_app.py`) offers sliders and drop‑downs to select the controller type, modify physical parameters, adjust optimization weights and inject disturbances, all while visualizing state trajectories and control signals in real time. This dual interface lowers the barrier to entry and allows both researchers and practitioners to explore the effects of controller design choices without writing code.
+In addition to the algorithmic contributions, the project provides a complete software framework for interactive exploration and deployment. A command‑line interface (`simulate.py`) exposes tasks such as running simulations, tuning controllers using PSO, performing hardware‑in‑the‑loop (HIL) experiments and exporting results. For non‑experts, an intuitive Streamlit dashboard (`streamlit_app.py`) offers sliders and drop‑downs to select the controller type, modify physical parameters, adjust optimization weights and inject disturbances, all while visualizing state trajectories and control signals in real time. This dual interface lowers the barrier to entry and allows both researchers and practitioners to explore the effects of controller design choices without writing code.
 
 **Bridging Simulation and Deployment**
 

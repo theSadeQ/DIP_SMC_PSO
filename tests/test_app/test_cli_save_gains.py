@@ -1,3 +1,6 @@
+#==========================================================================================\\\
+#========================== tests/test_app/test_cli_save_gains.py =======================\\\
+#==========================================================================================\\\
 """
 CLI PSO flow — persistence & logging of saved gains.
 
@@ -121,9 +124,9 @@ def _create_fast_config(dst_config: Path):
 
 @pytest.mark.slow
 def test_cli_save_gains_creates_file_and_logs(tmp_path: Path):
-    app = Path("app.py").resolve()
+    app = Path("simulate.py").resolve()
     if not app.exists():
-        pytest.skip("app.py not found; skipping CLI save-gains test.")
+        pytest.skip("simulate.py not found; skipping CLI save-gains test.")
 
     cfg = tmp_path / "config.yaml"
     _create_fast_config(cfg)
@@ -156,7 +159,7 @@ def test_cli_save_gains_creates_file_and_logs(tmp_path: Path):
             "    def __init__(self, *a, **k): pass\n"
             "    def optimise(self): return {'best_cost':1.23,'best_pos':[1,2,3,4,5,6]}\n"
             "p.PSOTuner = _Dummy\n"
-            "sys.argv = ['app.py', '--run-pso', '--controller','classical_smc','--config', r'%s','--seed','123','--save-gains', r'%s']\n" % (str(cfg), str(out_path)) +
+            "sys.argv = ['simulate.py', '--run-pso', '--controller','classical_smc','--config', r'%s','--seed','123','--save-gains', r'%s']\n" % (str(cfg), str(out_path)) +
             "runpy.run_path(r'%s', run_name='__main__')\n" % str(app)
         ),
         encoding="utf-8",

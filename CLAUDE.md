@@ -47,7 +47,7 @@ A comprehensive Python simulation environment for designing, tuning, and analyzi
 │   ├── test_optimizer/          # PSO optimization tests
 │   ├── test_benchmarks/         # Performance benchmarks
 │   └── conftest.py              # Test fixtures and configuration
-├── app.py                       # Main CLI application
+├── simulate.py                  # Main CLI application
 ├── streamlit_app.py            # Web interface
 ├── run_tests.py                # Test runner script
 ├── config.yaml                 # Main configuration file
@@ -59,37 +59,37 @@ A comprehensive Python simulation environment for designing, tuning, and analyzi
 ### Running Simulations
 ```bash
 # Basic simulation with classical controller
-python app.py --ctrl classical_smc --plot
+python simulate.py --ctrl classical_smc --plot
 
 # Use super-twisting controller with full dynamics
-python app.py --ctrl sta_smc --plot
+python simulate.py --ctrl sta_smc --plot
 
 # Load pre-tuned gains and run simulation
-python app.py --load tuned_gains.json --plot
+python simulate.py --load tuned_gains.json --plot
 
 # Print current configuration
-python app.py --print-config
+python simulate.py --print-config
 ```
 
 ### PSO Optimization
 ```bash
 # Optimize classical SMC gains
-python app.py --ctrl classical_smc --run-pso --save gains_classical.json
+python simulate.py --ctrl classical_smc --run-pso --save gains_classical.json
 
 # Optimize adaptive SMC with specific seed
-python app.py --ctrl adaptive_smc --run-pso --seed 42 --save gains_adaptive.json
+python simulate.py --ctrl adaptive_smc --run-pso --seed 42 --save gains_adaptive.json
 
 # Optimize hybrid adaptive controller
-python app.py --ctrl hybrid_adaptive_sta_smc --run-pso --save gains_hybrid.json
+python simulate.py --ctrl hybrid_adaptive_sta_smc --run-pso --save gains_hybrid.json
 ```
 
 ### Hardware-in-the-Loop (HIL)
 ```bash
 # Run HIL simulation (spawns server and client)
-python app.py --run-hil --plot
+python simulate.py --run-hil --plot
 
 # HIL with custom configuration
-python app.py --config custom_config.yaml --run-hil
+python simulate.py --config custom_config.yaml --run-hil
 ```
 
 ### Testing
@@ -208,3 +208,38 @@ pytest --benchmark-only --benchmark-compare --benchmark-compare-fail=mean:5%
 5. **Scientific Rigor**: Verify control-theoretic properties
 
 This project emphasizes scientific reproducibility, performance, and robust engineering practices for control systems research and development.
+
+## Code Style Guidelines
+
+### ASCII Header Style
+All Python files should include a distinctive ASCII art header for visual identification and professionalism:
+
+```python
+#==========================================================================================\\\
+#========================================= filename.py ===================================\\\
+#==========================================================================================\\\
+```
+
+**Header Rules:**
+- Use exactly 90 characters wide (`=` characters)
+- Center the file path (relative to project root) with padding `=` characters
+- Include `.py` extension in the filename
+- For root-level files, use just the filename (e.g., `simulate.py`)
+- For files in subdirectories, use the full path (e.g., `src/controllers/factory.py`)
+- End each line with `\\\`
+- Place at the very top of each Python file
+- Use 3 lines total (top border, file path, bottom border)
+
+**Example Implementation:**
+```python
+#==========================================================================================\\\
+#======================================== simulate.py ===================================\\\
+#==========================================================================================\\\
+
+"""Main CLI application for double-inverted pendulum simulation."""
+
+import argparse
+# ... rest of file
+```
+
+This creates a banner-style header that makes files visually distinctive and easier to identify in editors and version control diffs.

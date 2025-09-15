@@ -1,3 +1,6 @@
+#==========================================================================================\\
+#=============================== src/core/vector_sim.py ===============================\\
+#==========================================================================================\\
 """
 Unified simulation façade with vectorized safety guards.
 
@@ -37,7 +40,7 @@ def simulate(
     dt: float,
     horizon: Optional[int] = None,
     *,
-    energy_limits: Optional[float] = None,
+    energy_limits: Optional[float | dict] = None,
     state_bounds: Optional[Tuple[Any, Any]] = None,
     stop_fn: Optional[Callable[[np.ndarray], bool]] = None,
     t0: float = 0.0,
@@ -194,7 +197,8 @@ def simulate(
         # Post‑step guards
         _guard_no_nan(x_next, step_idx=i)
         if energy_limits is not None:
-            _guard_energy(x_next, limits={"max": float(energy_limits)})
+            limits = energy_limits if isinstance(energy_limits, dict) else {"max": float(energy_limits)}
+            _guard_energy(x_next, limits=limits)
         if state_bounds is not None:
             _guard_bounds(x_next, bounds=state_bounds, t=t + dt)
         # Record and update state

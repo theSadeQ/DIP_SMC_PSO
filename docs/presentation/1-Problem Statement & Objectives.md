@@ -36,7 +36,7 @@ Classical controllers (e.g., PID or linear quadratic regulators) have been appli
 
 . This motivates the use of more robust nonlinear control laws.
 
-To address model uncertainty and facilitate controller development, this project provides two physics models: a simplified dynamics implementation (`src/core/dynamics.py`) for rapid gain tuning and a high‑fidelity model (`src/core/dynamics_full.py`) derived from the full Lagrangian. Controllers can be tuned quickly on the simplified model and then validated on the high‑fidelity model, ensuring that algorithms generalise beyond the idealised dynamics. The project also exposes both a command‑line interface (`app.py`) and an interactive Streamlit dashboard (`streamlit_app.py`), allowing users to configure simulations, run optimisation routines, visualise trajectories and verify the challenges described above without modifying code.
+To address model uncertainty and facilitate controller development, this project provides two physics models: a simplified dynamics implementation (`src/core/dynamics.py`) for rapid gain tuning and a high‑fidelity model (`src/core/dynamics_full.py`) derived from the full Lagrangian. Controllers can be tuned quickly on the simplified model and then validated on the high‑fidelity model, ensuring that algorithms generalise beyond the idealised dynamics. The project also exposes both a command‑line interface (`simulate.py`) and an interactive Streamlit dashboard (`streamlit_app.py`), allowing users to configure simulations, run optimisation routines, visualise trajectories and verify the challenges described above without modifying code.
 
 ### 2 Sliding‑Mode Control (SMC) and Its Limitations
 
@@ -194,7 +194,7 @@ A key feature of the PSO tuner (`src/optimizer/pso_optimizer.py`) in this projec
 
 4.  **Validate controllers on multiple dynamics models.** Controllers tuned on the simplified model are validated on the high‑fidelity model (`dynamics_full.py`) to assess performance under more realistic dynamics. Disturbance rejection and noise robustness are also evaluated.
 
-5.  **Provide interactive user interfaces.** A command‑line interface (`app.py`) allows batch simulations and data export, while the Streamlit dashboard (`streamlit_app.py`) enables users to modify configuration parameters, run the PSO tuner, visualise trajectories and compute performance metrics interactively. These tools facilitate reproducible experimentation and make the algorithms accessible to practitioners.
+5.  **Provide interactive user interfaces.** A command‑line interface (`simulate.py`) allows batch simulations and data export, while the Streamlit dashboard (`streamlit_app.py`) enables users to modify configuration parameters, run the PSO tuner, visualise trajectories and compute performance metrics interactively. These tools facilitate reproducible experimentation and make the algorithms accessible to practitioners.
 
 6.  **Develop an integrated system for experimentation and reliability.**
 

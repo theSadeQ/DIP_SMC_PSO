@@ -1,5 +1,6 @@
-#benchmarks/integration_comparison.py============================================\\\
-#
+#==========================================================================================\\\
+#========================== benchmarks/integration_comparison.py ==========================\\\
+#==========================================================================================\\\
 """
 Compares the performance and accuracy of different numerical integration methods
 for the double inverted pendulum dynamics, specifically Euler, RK4, and RK45.
@@ -221,4 +222,3 @@ def test_energy_conservation_bound(benchmark: IntegrationBenchmark):
     # Assert max drift < 1% of initial energy
     tolerance = 0.01 * initial_energy
     assert max_drift < tolerance, f"Max energy drift {max_drift:.6f} exceeds tolerance {tolerance:.6f}"
-#===========================================================================================================\\\

@@ -1,3 +1,6 @@
+#==========================================================================================\\
+#============================= src/core/safety_guards.py =============================\\
+#==========================================================================================\\
 """Vectorized safety guard functions for simulation.
 
 These helpers implement pure checks on state tensors.  They operate on

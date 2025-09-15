@@ -61,7 +61,7 @@ This project provides a comprehensive Python-based simulation environment for de
     -   **Adaptive SMC:** An adaptive controller that tunes its gains online to handle uncertainties.
 -   **Automated Gain Tuning:** Utilizes Particle Swarm Optimization (PSO) to automatically find optimal controller gains based on a multi-objective cost function.
 -   **Dual Dynamics Models:** Includes both a simplified nonlinear model for rapid iteration and a full, high-fidelity nonlinear model for accurate final validation.
--   **Command-Line Interface:** A powerful CLI (`app.py`) allows for running simulations, launching PSO optimizations, and saving/loading gains from the terminal.
+-   **Command-Line Interface:** A powerful CLI (`simulate.py`) allows for running simulations, launching PSO optimizations, and saving/loading gains from the terminal.
 -   **Interactive Web Application:** A Streamlit-based dashboard (`streamlit_app.py`) provides an interactive way to run simulations, tune controllers, and visualize results in real-time.
 
 ### New in Step 3
@@ -137,30 +137,30 @@ You can interact with the simulation environment in two primary ways: through th
 
 ### Command-Line Interface (CLI)
 
-The `app.py` script is the main entry point for command-line operations.
+The `simulate.py` script is the main entry point for command-line operations.
 
 To run a basic simulation with the classical controller and plot the results:
 
 ```bash
-python app.py --ctrl classical --plot
+python simulate.py --ctrl classical --plot
 ```
 
 To run a PSO optimization for the Super-Twisting controller:
 
 ```bash
-python app.py --ctrl sta --save tuned_sta_gains.json
+python simulate.py --ctrl sta --save tuned_sta_gains.json
 ```
 
 To run a simulation using pre-tuned gains and the full dynamics model:
 
 ```bash
-python app.py --load tuned_sta_gains.json --full-dynamics --plot
+python simulate.py --load tuned_sta_gains.json --full-dynamics --plot
 ```
 
 For a full list of commands and options, run:
 
 ```bash
-python app.py --help
+python simulate.py --help
 ```
 
 ### Interactive Web Application

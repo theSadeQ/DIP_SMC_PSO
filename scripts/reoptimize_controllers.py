@@ -1,4 +1,6 @@
-# scripts/reoptimize_controllers.py ========================================================\\\
+#==========================================================================================\\\
+#=========================== scripts/reoptimize_controllers.py ===========================\\\
+#==========================================================================================\\\
 """
 Main script to perform systematic re-optimization of all controller types
 using the consolidated PSO tuner.

@@ -1,3 +1,6 @@
+#==========================================================================================\\\
+#======================= src/controllers/hybrid_adaptive_sta_smc.py =====================\\\
+#==========================================================================================\\\
 from __future__ import annotations
 from typing import Dict, Tuple, Any, List, Optional
 # robust import for utils.* to support both import styles

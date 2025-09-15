@@ -1,3 +1,6 @@
+#==========================================================================================\\\
+#========================= docs/scripts/validate_io_contracts.py =========================\\\
+#==========================================================================================\\\
 #!/usr/bin/env python3
 # Validates docs/io_contracts.csv for required columns and basic sanity:
 # - required headers present

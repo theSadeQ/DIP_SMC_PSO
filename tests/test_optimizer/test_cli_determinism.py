@@ -2,7 +2,7 @@
 #======================= tests/test_optimizer/test_cli_determinism.py =================================\\\
 #======================================================================================================\\\
 """
-Verifies PSO determinism through the CLI (app.py).
+Verifies PSO determinism through the CLI (simulate.py).
 Runs the PSO twice with the same --seed and checks identical results.
 
 Notes:
@@ -211,10 +211,10 @@ def _run_cli(app: Path, config: Path) -> str:
 
 @pytest.mark.slow
 def test_cli_stdout_is_deterministic(tmp_path: Path):
-    app = _find_repo_file("app.py")
+    app = _find_repo_file("simulate.py")
     cfg_src = _find_repo_file("config.yaml")
     if not app.exists():
-        pytest.skip("app.py not found; skipping CLI determinism test.")
+        pytest.skip("simulate.py not found; skipping CLI determinism test.")
 
     # Create a fast config for testing
     cfg = tmp_path / "config.yaml"

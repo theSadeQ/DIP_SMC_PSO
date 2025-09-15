@@ -1,21 +1,25 @@
 
-    import argparse
-    import os
-    from pathlib import Path
-    import sys
-    import urllib.request
-    import urllib.error
-    import json
-    import zipfile
-    import tempfile
+#==========================================================================================\\\
+#=============================== scripts/make_c04_zip.py ===============================\\\
+#==========================================================================================\\\
 
-    REPO = "theSadeQ/DIP_SMC_PSO"
-    DEFAULT_REF = "main"
-    FILES = [
+import argparse
+import os
+from pathlib import Path
+import sys
+import urllib.request
+import urllib.error
+import json
+import zipfile
+import tempfile
+
+REPO = "theSadeQ/DIP_SMC_PSO"
+DEFAULT_REF = "main"
+FILES = [
   "src/config.py",
   "config.yaml",
   "src/controllers/factory.py",
-  "app.py",
+  "simulate.py",
   "streamlit_app.py",
   "src/core/vector_sim.py",
   "tests/test_app/test_streamlit_app.py",

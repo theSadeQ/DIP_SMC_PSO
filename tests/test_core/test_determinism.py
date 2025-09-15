@@ -2,9 +2,9 @@
 #///============== tests/test_core/test_determinism.py ================\\\
 #///===================================================================\\\
 """
-Verifies PSO determinism when launched from the CLI entrypoint (app.py).
+Verifies PSO determinism when launched from the CLI entrypoint (simulate.py).
 
-This test runs `python app.py --run-pso --controller classical_smc` twice
+This test runs `python simulate.py --run-pso --controller classical_smc` twice
 and asserts that the stdout lines reporting final "Best Cost" and "Best Gains"
 are identical across runs.
 """
@@ -59,8 +59,8 @@ def _create_fast_pso_config(tmp_path: Path) -> Path:
     return dst_cfg
 
 
-# The seeding logic is now handled inside app.py.  The wrapper script is no longer
-# required; instead, we run app.py directly with a seed argument.
+# The seeding logic is now handled inside simulate.py.  The wrapper script is no longer
+# required; instead, we run simulate.py directly with a seed argument.
 
 def _create_seeded_wrapper(*args, **kwargs):
     raise RuntimeError("_create_seeded_wrapper is unused in the updated test suite")
@@ -70,25 +70,25 @@ BEST_COST_RE = re.compile(r"^\s*Best Cost:\s*(?P<val>[-+Ee0-9\.]+)\s*$")
 BEST_GAINS_RE = re.compile(r"^\s*Best Gains:\s*(?P<val>.+)\s*$")
 
 
-def _find_app_py() -> Path:
-    """Walk up from this file to locate the repository's app.py."""
+def _find_simulate_py() -> Path:
+    """Walk up from this file to locate the repository's simulate.py."""
     here = Path(__file__).resolve()
     for parent in [here, *here.parents]:
-        cand = parent / "app.py"
+        cand = parent / "simulate.py"
         if cand.exists():
             return cand
-    return Path("app.py").resolve()
+    return Path("simulate.py").resolve()
 
 
 def _run_cli(config: Path, seed: int = 42) -> str:
     """
     Run the CLI directly and return captured stdout as text.
-    The seeding logic is handled inside app.py; this helper
+    The seeding logic is handled inside simulate.py; this helper
     simply forwards the seed argument to the CLI entrypoint.
     """
     env = os.environ.copy()
     env["PYTHONUNBUFFERED"] = "1"
-    app_path = _find_app_py()
+    app_path = _find_simulate_py()
     cmd = [
         sys.executable,
         str(app_path),

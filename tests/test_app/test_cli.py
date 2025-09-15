@@ -1,6 +1,6 @@
-#===================================================================================\\\
-#========================== tests/test_app/test_cli.py =============================\\\
-#===================================================================================\\\
+#==========================================================================================\\\
+#============================== tests/test_app/test_cli.py =============================\\\
+#==========================================================================================\\\
 
 import subprocess
 import sys
@@ -18,19 +18,19 @@ from unittest.mock import patch, MagicMock
 
 def test_app_fails_fast_on_invalid_controller():
     """
-    Verify that app.py exits with a non-zero code and logs a ValueError
+    Verify that simulate.py exits with a non-zero code and logs a ValueError
     when an unknown controller name is provided, instead of silently falling back.
     """
     # Arrange: Use a controller name that does not exist in config.yaml
     invalid_controller_name = "this_controller_does_not_exist"
 
-    # Act: Run the app.py CLI with the invalid controller argument
+    # Act: Run the simulate.py CLI with the invalid controller argument
     result = _run_cli(["--controller", invalid_controller_name])
 
     # Assert
     # 1. The process should fail (non-zero exit code).
     assert result.returncode != 0, \
-        "app.py should exit with an error code on invalid controller, but it exited cleanly."
+        "simulate.py should exit with an error code on invalid controller, but it exited cleanly."
 
     # 2. The stderr should contain an error indicating the root cause.
     assert ("not found in config.controllers" in result.stderr or
@@ -89,14 +89,14 @@ with patch('app._get_run_simulation', return_value=boom):
 
     # Assert: the process should have exited with a non-zero code and the
     # injected TypeError should be visible in stderr.
-    assert result.returncode != 0, "app.py should fail when the baseline simulation fails."
+    assert result.returncode != 0, "simulate.py should fail when the baseline simulation fails."
     assert "TypeError: A critical backend error occurred" in result.stderr, \
         "The specific backend error should be propagated to stderr."
 
 def _run_cli(args: list[str]) -> subprocess.CompletedProcess:
-    """Run app.py with given arguments and capture output."""
+    """Run simulate.py with given arguments and capture output."""
     # Correct path: go up two levels from tests/test_app/ to reach project root
-    app_path = (Path(__file__).resolve().parents[2] / "app.py").resolve()
+    app_path = (Path(__file__).resolve().parents[2] / "simulate.py").resolve()
     cmd = [sys.executable, str(app_path), *args]
 
     result = subprocess.run(
@@ -114,7 +114,7 @@ class TestDynamicsFailFast:
 
     def test_dynamics_import_error_propagates(self):
         """Verify that ImportError in _build_dynamics causes app to fail."""
-        # Create a temporary app.py that will fail on dynamics import
+        # Create a temporary simulate.py that will fail on dynamics import
         test_script = """
 import sys
 import logging
@@ -156,7 +156,7 @@ except Exception as e:
     def test_dynamics_syntax_error_propagates(self):
         """Verify that syntax errors in dynamics module cause immediate failure."""
         # Corrected: Patch the import function specifically within the 'app' module's scope.
-        # This prevents the patch from affecting imports of app.py's dependencies.
+        # This prevents the patch from affecting imports of simulate.py's dependencies.
         with patch('app.importlib.import_module', side_effect=SyntaxError("Invalid syntax in module")):
             # Now, importing from app will succeed, but calling the function that
             # USES the patched import will fail as intended.
@@ -255,14 +255,14 @@ class TestGeneralFailFast:
     def test_no_broad_exception_handlers(self):
         """Verify no broad 'except Exception:' blocks remain in critical paths."""
         # Resolve application modules relative to the project root.  Using
-        # ``parents[2]`` here ensures the top‑level ``app.py`` and
+        # ``parents[2]`` here ensures the top‑level ``simulate.py`` and
         # ``streamlit_app.py`` files are located correctly even when the
         # test file resides in a nested directory.  This avoids accidental
         # references to non‑existent modules under the ``tests`` folder.
-        app_path = Path(__file__).resolve().parents[2] / "app.py"
+        app_path = Path(__file__).resolve().parents[2] / "simulate.py"
         streamlit_path = Path(__file__).resolve().parents[2] / "streamlit_app.py"
 
-        # Check app.py
+        # Check simulate.py
         with open(app_path, 'r') as f:
             app_content = f.read()
 
@@ -294,10 +294,10 @@ class TestGeneralFailFast:
                 f"Found bare 'except:' in {func}"
 
     def test_app_crashes_on_missing_numpy(self):
-        """Verify app.py fails fast if numpy is not installed."""
-        app_path = (Path(__file__).resolve().parents[2] / "app.py").resolve()
+        """Verify simulate.py fails fast if numpy is not installed."""
+        app_path = (Path(__file__).resolve().parents[2] / "simulate.py").resolve()
 
-        # A script that blocks numpy and tries to import app.py
+        # A script that blocks numpy and tries to import simulate.py
         test_script = f"""
 import sys
 import os
@@ -325,7 +325,7 @@ except (ImportError, ModuleNotFoundError, RuntimeError, AttributeError):
 
 def test_app_fails_fast_on_invalid_fdi_config(tmp_path):
     """
-    Verify that app.py exits with a non-zero code if FDI is enabled but misconfigured.
+    Verify that simulate.py exits with a non-zero code if FDI is enabled but misconfigured.
     """
     # Create a config file with an invalid FDI parameter type
     config_content = """
@@ -410,11 +410,11 @@ hil:
     config_path = tmp_path / "invalid_fdi_config.yaml"
     config_path.write_text(config_content)
 
-    # Act: Run the app.py CLI with the invalid config
+    # Act: Run the simulate.py CLI with the invalid config
     result = _run_cli(["--config", str(config_path)])
 
     # Assert
-    assert result.returncode != 0, "app.py should fail with a misconfigured FDI"
+    assert result.returncode != 0, "simulate.py should fail with a misconfigured FDI"
     # Depending on validation implementation, Pydantic's ValidationError is typical
     assert ("ValidationError" in result.stderr) or ("TypeError" in result.stderr) or ("ValueError" in result.stderr)
     assert "residual_threshold" in result.stderr or "FDIsystem" in result.stderr

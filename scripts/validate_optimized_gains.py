@@ -1,3 +1,6 @@
+#==========================================================================================\\
+#======================== scripts/validate_optimized_gains.py ========================\\
+#==========================================================================================\\
 """Comprehensive validation of optimized controller gains.
 This script validates the optimized gains by comparing the behavior
 of the simplified vs. the full dynamics models.

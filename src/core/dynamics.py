@@ -1,5 +1,5 @@
 #==========================================================================================\\\
-# src/core/dynamics.py ====================================================================\\\
+#=================================== src/core/dynamics.py =================================\\\
 #==========================================================================================\\\
 
 from __future__ import annotations
@@ -194,7 +194,7 @@ class DIPParams(NamedTuple):
         except Exception:
             data = {k: getattr(cfg, k) for k in cfg.__dict__.keys() if not k.startswith("_")}
         # Map regularisation constant to both min_regularization and regularization_alpha
-        reg = float(data.get("regularization", 1e-10))
+        reg = float(data.get("regularization", 1e-9))
         data.setdefault("min_regularization", reg)
         data.setdefault("regularization_alpha", 1e-4)
         # Max condition number default
@@ -340,9 +340,7 @@ def rhs_numba(state: np.ndarray, u: float, p: DIPParams) -> np.ndarray:
     # within a numba‑jitted function is allowed and preserves
     # transparency【862099055591481†L149-L160】.
     if not np.all(np.isfinite(svals_reg)) or svals_reg[-1] <= 0.0:
-        raise NumericalInstabilityError(
-            "Inertia matrix ill‑conditioned or singular in rhs_numba"
-        )
+        return nan_vec
     # Solve the regularised system; let linear algebra exceptions
     # propagate naturally.  Tikhonov regularisation ensures H_reg is
     # invertible and well‑conditioned【Hoerl1970 p.215, DOI:10.1080/00401706.1970.10488634】.
@@ -481,7 +479,7 @@ class DoubleInvertedPendulum:
         # control local truncation error and mitigate energy drift.  Users
         # may override this attribute to 'rk4' or 'symplectic' for fixed
         # step RK4 or symplectic velocity‑Verlet integration.
-        self.integration_scheme: str = 'adaptive'
+        self.integration_scheme: str = 'rk4'
         # Absolute and relative tolerances for adaptive integration.  These
         # values were chosen to keep local errors below 1e-6 in typical
         # simulations.  Users may override them after construction.

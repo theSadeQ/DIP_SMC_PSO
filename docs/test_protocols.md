@@ -14,13 +14,13 @@
   nominal parameters from `config.yaml` and that the controller gains are
   set to the baseline values or those produced by the PSO tuner.  Initialise
   the state at the upright equilibrium with small perturbations.
-- **Equipment/scripts:** use `python app.py --controller classical_smc` (or another
+- **Equipment/scripts:** use `python simulate.py --controller classical_smc` (or another
   controller name such as `sta_smc`, `adaptive_smc`, etc.) to run the step and
   robustness tests.  For a detailed frequency‑domain comparison, run
   `python scripts/run_model_comparison.py`, which linearises the plant and computes
   Bode plots and phase/gain margins.  For fault‑detection testing, enable the
   FDI system by setting `fdi.enabled: true` in `config.yaml` and optionally pass
-  `--plot-fdi` to `app.py` to display the residuals.  The FDI module uses a
+  `--plot-fdi` to `simulate.py` to display the residuals.  The FDI module uses a
   configurable residual threshold and persistence counter.  In the default
   configuration (`src/fault_detection/fdi.py`) the base residual threshold is
   **0.5** and a fault is declared only after the residual norm exceeds this
