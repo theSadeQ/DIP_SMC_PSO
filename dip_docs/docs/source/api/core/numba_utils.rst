@@ -11,8 +11,14 @@ Examples
 --------
 .. doctest::
 
-   >>> from src.core.numba_utils import *
-   >>> # Utility functions for analysis and computation
+   >>> import os, tempfile
+   >>> from src.core.numba_utils import configure_numba
+   >>> tmp = tempfile.mkdtemp()
+   >>> configure_numba(cache_dir=tmp, threading_layer="workqueue")
+   >>> os.environ.get("NUMBA_CACHE_DIR", "").startswith(tmp)
+   True
+   >>> os.environ.get("NUMBA_THREADING_LAYER")
+   'workqueue'
 
 API Summary
 -----------
