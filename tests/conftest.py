@@ -8,6 +8,16 @@ This file MUST be imported before any test that imports matplotlib.pyplot.
 import os
 import warnings
 import matplotlib
+import sys
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+SCRIPTS_DIR = PROJECT_ROOT / "scripts"
+if SCRIPTS_DIR.exists():
+    scripts_path = str(SCRIPTS_DIR)
+    if scripts_path not in sys.path:
+        sys.path.insert(0, scripts_path)
+
 
 # 1) Enforce backend as early as possible.
 os.environ.setdefault("MPLBACKEND", "Agg")

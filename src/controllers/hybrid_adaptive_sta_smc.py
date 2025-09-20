@@ -151,8 +151,8 @@ class HybridAdaptiveSTASMC:
         # Hysteresis thresholds for cart recentering.  Must satisfy
         # 0 ≤ recenter_low_thresh < recenter_high_thresh.  No silent
         # clipping is performed; invalid values raise an error.
-        recenter_high_thresh: float = 0.2,
-        recenter_low_thresh: float = 0.1,
+        recenter_high_thresh: float = 0.04,
+        recenter_low_thresh: float = 0.0,
         # Maximum values for the adaptive gains k1 and k2.  Decoupled
         # from the actuator saturation to allow gains to adapt within a
         # physically meaningful range【895515998216162†L326-L329】.
@@ -382,7 +382,7 @@ class HybridAdaptiveSTASMC:
         else:
             pendulum_term = self.c1 * (th1dot + self.lambda1 * th1) + self.c2 * (th2dot + self.lambda2 * th2)
         cart_term = self.cart_gain * (xdot + self.cart_lambda * x)
-        s_raw = pendulum_term + cart_term
+        s_raw = pendulum_term - cart_term
         # Apply a negative sign to harmonise with the super‑twisting law
         return float(-s_raw)
 
