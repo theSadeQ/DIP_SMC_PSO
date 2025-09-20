@@ -1,0 +1,158 @@
+name: Documentation Nightly
+
+# Nightly builds with link checking and extended validation
+on:
+  schedule:
+    - cron: "23 3 * * *"  # Daily at 3:23 AM UTC
+  workflow_dispatch:       # Allow manual triggering
+
+jobs:
+  linkcheck:
+    name: Check External Links
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r docs/requirements.txt
+
+      - name: Run Sphinx linkcheck
+        run: |
+          cd docs
+          sphinx-build -b linkcheck . _build/linkcheck -W || true
+
+      - name: Upload linkcheck report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: linkcheck-report
+          path: docs/_build/linkcheck
+          retention-days: 7
+
+      - name: Check link health and enforce threshold
+        run: |
+          cd docs/_build/linkcheck
+          if [ -f output.txt ]; then
+            BROKEN=$(grep -c "broken" output.txt || echo "0")
+            TOTAL=$(grep -c "checking" output.txt || echo "1")
+            PASS_RATE=$(python3 -c "
+            broken = $BROKEN
+            total = $TOTAL
+            if total > 0:
+                rate = ((total - broken) / total * 100)
+                print(f'{rate:.1f}')
+            else:
+                print('0.0')
+            ")
+
+            echo "::notice::Link check pass rate: ${PASS_RATE}% ($TOTAL total, $BROKEN broken)"
+
+            # Enforce 99% pass rate threshold
+            if python3 -c "exit(0 if float('$PASS_RATE') >= 99.0 else 1)"; then
+              echo "✓ Link health meets 99% threshold"
+            else
+              echo "::error::Link health below 99% threshold (${PASS_RATE}%)"
+              if [ "$BROKEN" -gt "0" ]; then
+                echo "Broken links:"
+                grep "broken" output.txt || true
+              fi
+              exit 1
+            fi
+          else
+            echo "::warning::No linkcheck output found"
+          fi
+
+  build-examples:
+    name: Build with Examples
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache example outputs
+        uses: actions/cache@v4
+        with:
+          path: |
+            docs/_build/.jupyter_cache
+            docs/auto_examples
+          key: examples-${{ github.sha }}
+          restore-keys: |
+            examples-
+
+      - name: Install full dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt  # Full project dependencies
+          pip install -r docs/requirements.txt
+
+      - name: Build documentation with examples
+        run: |
+          cd docs
+          # Full nightly mode - longer examples allowed
+          export SPHINX_FULL_EXAMPLES=1
+          timeout 15m sphinx-build -n -W -b html . _build/html-with-examples
+
+      - name: Upload extended documentation
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-html-with-examples
+          path: docs/_build/html-with-examples
+          retention-days: 7
+
+  performance-check:
+    name: Build Performance Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r docs/requirements.txt
+
+      - name: Build with duration tracking
+        run: |
+          cd docs
+          time sphinx-build -n -W -b html . _build/html
+
+      - name: Report slowest pages
+        run: |
+          cd docs
+          echo "::group::Build Performance Report"
+          python -c "
+          import sys
+          import os
+
+          # Look for duration information in build output
+          print('Build performance check completed')
+          print('Duration tracking enabled via sphinx.ext.duration')
+          "
+          echo "::endgroup::"

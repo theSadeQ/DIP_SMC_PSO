@@ -1,0 +1,41 @@
+# Markdownlint configuration for documentation
+# https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+
+# Disable rules that conflict with MyST syntax
+MD013: false  # Line length - MyST can have long math expressions
+MD033: false  # HTML in Markdown - MyST supports HTML directives
+MD034: false  # Bare URLs - MyST auto-links URLs
+MD040: false  # Fenced code blocks should have a language - sometimes not needed
+MD046: false  # Code block style - MyST uses various block styles
+
+# Line length - increase limit for mathematical expressions
+MD013:
+  line_length: 120
+  heading_line_length: 120
+  code_block_line_length: 120
+
+# Headings
+MD003:
+  style: "atx"  # Use # style headings
+
+MD025:
+  front_matter_title: ""  # Allow first heading to be h1
+
+# Lists
+MD029:
+  style: "ordered"  # Use 1. 2. 3. for ordered lists
+
+MD030:
+  ul_single: 1  # Single space after list markers
+  ol_single: 1
+  ul_multi: 1
+  ol_multi: 1
+
+# Emphasis
+MD036: false  # Allow emphasis for admonitions
+
+# Links
+MD034: false  # Allow bare URLs in MyST
+
+# Code
+MD040: false  # Allow code blocks without language specification

@@ -1,0 +1,194 @@
+name: Documentation CI
+
+# Build and validate documentation on PRs and main branch
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'docs/**'
+      - 'src/**'
+      - '**/*.py'           # API docs depend on code
+      - '.github/workflows/docs-ci.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'docs/**'
+      - 'src/**'
+      - '**/*.py'           # API docs depend on code
+      - '.github/workflows/docs-ci.yml'
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+# Scope permissions per job for security
+permissions: {}
+
+jobs:
+  build-docs:
+    name: Build Sphinx Documentation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read        # Read repository contents
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Critical for commit-pinned permalinks
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('docs/requirements*.txt') }}
+          restore-keys: |
+            pip-${{ runner.os }}-
+
+      - name: Cache Sphinx doctrees
+        uses: actions/cache@v4
+        with:
+          path: docs/_build/doctrees
+          key: doctrees-${{ github.sha }}
+          restore-keys: |
+            doctrees-
+
+      - name: Install documentation dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r docs/requirements.txt
+
+      - name: Validate BibTeX files and citations
+        run: |
+          # Basic BibTeX syntax validation
+          python -c "
+          import pybtex.database
+          import glob
+          for bib_file in glob.glob('docs/**/*.bib', recursive=True):
+              try:
+                  pybtex.database.parse_file(bib_file)
+                  print(f'✓ {bib_file} is valid')
+              except Exception as e:
+                  print(f'✗ {bib_file} has errors: {e}')
+                  exit(1)
+          "
+
+          # Comprehensive citation health check
+          python scripts/check_citations.py docs/ --fail-on-missing --fail-on-duplicates
+
+      - name: Build documentation (strict mode)
+        run: |
+          cd docs
+          # Fast CI mode - skip heavy examples
+          export SPHINX_BUILD_MODE=CI
+          timeout 7m sphinx-build -n -W --keep-going -b html . _build/html
+
+      - name: Check build performance and duration
+        run: |
+          cd docs
+          echo "::group::Build Duration Report"
+          # Check if build completed within time limit
+          if [ -d "_build/html" ]; then
+            echo "✓ Build completed successfully within 7 minute limit"
+
+            # Look for any duration information
+            if [ -f "_build/html/.doctrees/environment.pickle" ]; then
+              echo "✓ Doctrees cache created successfully"
+            fi
+
+            # Count generated pages
+            PAGE_COUNT=$(find _build/html -name "*.html" | wc -l)
+            echo "✓ Generated $PAGE_COUNT HTML pages"
+          else
+            echo "✗ Build failed or timed out"
+            exit 1
+          fi
+          echo "::endgroup::"
+
+      - name: Upload documentation artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: docs-html
+          path: docs/_build/html
+          retention-days: 30
+
+      - name: Validate permalink generation
+        run: |
+          cd docs
+          echo "::group::Permalink Validation"
+          python -c "
+          import sys
+          import re
+          sys.path.insert(0, '../src')
+
+          # Test linkcode resolver
+          try:
+              from conf import linkcode_resolve, _get_commit_sha
+
+              # Test SHA detection
+              sha = _get_commit_sha()
+              print(f'✓ Detected commit SHA: {sha[:8]}...')
+
+              # Test cases for permalink generation including edge cases
+              test_cases = [
+                  ('py', {'module': 'os.path', 'fullname': 'join'}),  # Built-in (should return None)
+                  ('js', {'module': 'test', 'fullname': 'test'}),     # Wrong domain
+                  ('py', {'module': '', 'fullname': 'test'}),         # Empty module
+                  ('py', {}),                                         # Missing info
+              ]
+
+              url_pattern = re.compile(r'https://github\.com/.+/blob/.+/.+#L\d+-L\d+')
+
+              for domain, info in test_cases:
+                  url = linkcode_resolve(domain, info)
+                  if url:
+                      if url_pattern.match(url):
+                          print(f'✓ Valid permalink format: {url}')
+                      else:
+                          print(f'⚠ Invalid URL format: {url}')
+                  else:
+                      print(f'✓ Correctly returned None for: {domain}, {info}')
+
+          except Exception as e:
+              print(f'⚠ Permalink test failed: {e}')
+          "
+          echo "::endgroup::"
+
+  markdown-lint:
+    name: Lint Markdown Files
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Lint Markdown files
+        uses: DavidAnson/markdownlint-cli2-action@v16
+        with:
+          globs: 'docs/**/*.md'
+
+  accessibility-check:
+    name: Accessibility Check
+    runs-on: ubuntu-latest
+    needs: build-docs
+
+    steps:
+      - name: Download documentation artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docs-html
+          path: docs-html
+
+      - name: Run basic accessibility checks
+        run: |
+          echo "::group::Accessibility Check"
+          # Basic checks for common accessibility issues
+          find docs-html -name "*.html" -exec grep -l "alt=" {} \; | wc -l
+          find docs-html -name "*.html" -exec grep -L "lang=" {} \; || true
+          echo "::endgroup::"

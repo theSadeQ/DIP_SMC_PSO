@@ -1,0 +1,28 @@
+# Sphinx Documentation Requirements
+# Production-ready versions based on expert recommendations
+
+# Core Sphinx
+sphinx>=8.2.0,<9.0
+sphinx-autobuild>=2024.10.3  # For development
+
+# Extensions
+sphinxcontrib-bibtex>=2.6.0   # Academic citations
+myst-parser>=2.0.0            # Markdown support
+sphinx-copybutton>=0.5.2      # Copy code buttons
+sphinx-design>=0.6.0          # Design components
+sphinx-togglebutton>=0.3.2   # Collapsible content
+sphinxext-opengraph>=0.9.1    # Social media previews
+sphinx-sitemap>=2.5.1        # SEO sitemap generation
+
+# Theme
+furo>=2024.5.13               # Modern responsive theme
+
+# Math and advanced features
+sphinx-proof>=0.1.3          # Theorem/proof environments
+sphinx-external-toc>=1.0.1   # External TOC support
+
+# Development and validation
+pybtex>=0.24.0               # BibTeX validation
+lxml>=5.0.0                  # XML processing for various builders
+mdformat>=0.7.17             # Markdown formatting
+mdformat-myst>=0.1.5         # MyST support for mdformat

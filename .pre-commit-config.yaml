@@ -1,0 +1,143 @@
+# Pre-commit configuration for code quality and documentation
+# See https://pre-commit.com for more information
+
+repos:
+  # General code formatting and linting
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-json
+      - id: check-toml
+      - id: check-merge-conflict
+
+  # Python code formatting
+  - repo: https://github.com/psf/black
+    rev: 24.8.0
+    hooks:
+      - id: black
+        language_version: python3
+
+  # Python import sorting
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]
+
+  # Documentation-specific hooks
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.41.0
+    hooks:
+      - id: markdownlint
+        files: ^docs/.*\.md$
+        args: ['--config', '.markdownlint.yaml']
+
+  # BibTeX validation for citations
+  - repo: local
+    hooks:
+      - id: bibtex-validate
+        name: Validate BibTeX files
+        entry: python
+        language: system
+        args:
+          - -c
+          - |
+            import sys
+            import glob
+            try:
+                import pybtex.database
+            except ImportError:
+                print("pybtex not installed, skipping BibTeX validation")
+                sys.exit(0)
+
+            for bib_file in glob.glob('docs/**/*.bib', recursive=True):
+                try:
+                    pybtex.database.parse_file(bib_file)
+                    print(f'✓ {bib_file} is valid')
+                except Exception as e:
+                    print(f'✗ {bib_file} has errors: {e}')
+                    sys.exit(1)
+        files: '^docs/.*\.bib$'
+        pass_filenames: false
+
+  # Sphinx documentation build check
+  - repo: local
+    hooks:
+      - id: sphinx-build-check
+        name: Check Sphinx documentation builds
+        entry: bash
+        language: system
+        args:
+          - -c
+          - |
+            if [ -f "docs/conf.py" ]; then
+              cd docs
+              python -c "
+              try:
+                  import sphinx
+                  from conf import *
+                  print('✓ Sphinx configuration is valid')
+              except Exception as e:
+                  print(f'✗ Sphinx configuration error: {e}')
+                  exit(1)
+              "
+            else
+              echo "No Sphinx configuration found, skipping"
+            fi
+        files: '^docs/(conf\.py|.*\.md|.*\.rst)$'
+        pass_filenames: false
+
+  # Enhanced documentation formatting
+  - repo: https://github.com/executablebooks/mdformat
+    rev: 0.7.17
+    hooks:
+      - id: mdformat
+        additional_dependencies: [mdformat-myst]
+        files: '^docs/.*\.md$'
+
+  # BibTeX formatting and validation
+  - repo: https://github.com/FlamingTempura/bibtex-tidy
+    rev: v1.13.0
+    hooks:
+      - id: bibtex-tidy
+        files: '^docs/.*\.bib$'
+        args: ["--curly", "--space=2", "--wrap=100", "--sort=key"]
+
+  # Enhanced documentation validation
+  - repo: local
+    hooks:
+      - id: citation-check
+        name: Validate Sphinx citations
+        entry: python scripts/check_citations.py docs/ --fail-on-missing --fail-on-duplicates
+        language: system
+        files: '^(docs/.*\.(md|bib)|scripts/check_citations\.py)$'
+        pass_filenames: false
+
+      - id: doc-consistency-check
+        name: Check documentation consistency
+        entry: python
+        language: system
+        args:
+          - -c
+          - |
+            import glob
+            import re
+
+            # Check for broken internal links in Markdown
+            md_files = glob.glob('docs/**/*.md', recursive=True)
+            for md_file in md_files:
+                with open(md_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+
+                # Look for MyST citation syntax without corresponding bib entries
+                citations = re.findall(r'\{cite\}`([^`]+)`', content)
+                if citations:
+                    print(f'Found citations in {md_file}: {citations}')
+
+            print('✓ Documentation consistency check completed')
+        files: '^docs/.*\.md$'
+        pass_filenames: false

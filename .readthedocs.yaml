@@ -1,0 +1,43 @@
+# Read the Docs configuration file
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+
+# Required
+version: 2
+
+# Build documentation with OS and tools
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "3.12"
+  jobs:
+    pre_build:
+      # Install requirements
+      - pip install --upgrade pip
+      - pip install -r docs/requirements.txt
+    post_build:
+      # Optional: run link check after build
+      - cd docs && sphinx-build -b linkcheck . _build/linkcheck || true
+
+# Sphinx configuration
+sphinx:
+  configuration: docs/conf.py
+  fail_on_warning: true
+
+# Python requirements
+python:
+  install:
+    - requirements: docs/requirements.txt
+    - method: pip
+      path: .
+      extra_requirements:
+        - docs
+
+# Format and output (disable PDF until HTML stabilizes)
+formats: []
+
+# Search configuration
+search:
+  ranking:
+    docs/index.md: 10
+    docs/theory_overview.md: 8
+    docs/controllers/index.md: 8
