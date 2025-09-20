@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Factory &#8212; DIP_SMC_PSO Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=fb9458d3" />
+    <script src="../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Hybrid Adaptive STA SMC" href="hybrid_adaptive_sta_smc.html" />
+    <link rel="prev" title="Classical SMC" href="classical_smc.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="hybrid_adaptive_sta_smc.html" title="Hybrid Adaptive STA SMC"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="classical_smc.html" title="Classical SMC"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >API Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" accesskey="U">Controllers</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Factory</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="factory">
+<h1>Factory<a class="headerlink" href="#factory" title="Link to this heading">¶</a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>Controller factory with Pydantic v2 config alignment and robust error handling.</p>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">src.controllers.factory</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create controller instances using factory methods</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">controller</span> <span class="o">=</span> <span class="n">create_controller</span><span class="p">(</span><span class="s1">&#39;classical_smc&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="api-summary">
+<h2>API Summary<a class="headerlink" href="#api-summary" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#module-src.controllers.factory" title="src.controllers.factory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">src.controllers.factory</span></code></a></p></td>
+<td><p>Controller factory with Pydantic v2 config alignment and robust error handling.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-src.controllers.factory">
+<span id="detailed-api"></span><h2>Detailed API<a class="headerlink" href="#module-src.controllers.factory" title="Link to this heading">¶</a></h2>
+<p>Controller factory with Pydantic v2 config alignment and robust error handling.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="src.controllers.factory.build_controller">
+<span class="sig-prename descclassname"><span class="pre">src.controllers.factory.</span></span><span class="sig-name descname"><span class="pre">build_controller</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfg</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_unknown</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gains</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/src/controllers/factory.html#build_controller"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.controllers.factory.build_controller" title="Link to this definition">¶</a></dt>
+<dd><p>Build a single controller from configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Controller name (will be normalized and aliased).</p></li>
+<li><p><strong>cfg</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em> or </em><em>Mapping</em><em> or </em><em>ControllerConfig</em>) – Controller-specific configuration.</p></li>
+<li><p><strong>allow_unknown</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – If True, unknown parameters are stored as unknown_params on the instance.
+If False, unknown parameters raise FactoryConfigurationError.</p></li>
+<li><p><strong>config</strong> (<em>optional</em>) – Full configuration object (for backward compatibility).</p></li>
+<li><p><strong>gains</strong> (<em>optional</em>) – Explicit gains override.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Controller instance</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#src.controllers.factory.FactoryConfigurationError" title="src.controllers.factory.FactoryConfigurationError"><strong>FactoryConfigurationError</strong></a> – If controller name is unknown or configuration is invalid.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.controllers.factory.build_all">
+<span class="sig-prename descclassname"><span class="pre">src.controllers.factory.</span></span><span class="sig-name descname"><span class="pre">build_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">controllers_cfg</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_unknown</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/src/controllers/factory.html#build_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.controllers.factory.build_all" title="Link to this definition">¶</a></dt>
+<dd><p>Build all controllers from a ControllersConfig.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>controllers_cfg</strong> (<em>ControllersConfig</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – Configuration for all controllers.</p></li>
+<li><p><strong>allow_unknown</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – If True, unknown parameters are stored on instances.
+If False, unknown parameters raise errors.</p></li>
+<li><p><strong>config</strong> (<em>optional</em>) – Full configuration object for defaults.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mapping of controller names to instances.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Controller]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#src.controllers.factory.FactoryConfigurationError" title="src.controllers.factory.FactoryConfigurationError"><strong>FactoryConfigurationError</strong></a> – If any controller fails to build (aggregates all errors).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.controllers.factory.create_controller">
+<span class="sig-prename descclassname"><span class="pre">src.controllers.factory.</span></span><span class="sig-name descname"><span class="pre">create_controller</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/src/controllers/factory.html#create_controller"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.controllers.factory.create_controller" title="Link to this definition">¶</a></dt>
+<dd><p>Backwards-compatible convenience wrapper used by tests and the CLI.
+Delegates to build_controller() so mapping/validation stays centralized.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Controller name (aliases allowed).</p></li>
+<li><p><strong>**kwargs</strong> – Per-controller constructor args (e.g., gains, dt, max_force).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.controllers.factory.normalize_controller_name">
+<span class="sig-prename descclassname"><span class="pre">src.controllers.factory.</span></span><span class="sig-name descname"><span class="pre">normalize_controller_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/src/controllers/factory.html#normalize_controller_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.controllers.factory.normalize_controller_name" title="Link to this definition">¶</a></dt>
+<dd><p>Normalize controller name and apply aliases.</p>
+<p>Lowercase, trim, replace hyphens/spaces/dots with underscores,
+then check alias map.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.controllers.factory.apply_deprecation_mapping">
+<span class="sig-prename descclassname"><span class="pre">src.controllers.factory.</span></span><span class="sig-name descname"><span class="pre">apply_deprecation_mapping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">controller_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_unknown</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/src/controllers/factory.html#apply_deprecation_mapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.controllers.factory.apply_deprecation_mapping" title="Link to this definition">¶</a></dt>
+<dd><p>Apply deprecation mapping for a controller’s parameters.</p>
+<p>Returns normalized params dict with deprecated keys mapped to current ones.
+Emits DeprecationWarning for each deprecated key found.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>controller_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
+<li><p><strong>params</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a><em>]</em>)</p></li>
+<li><p><strong>allow_unknown</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><em>Dict</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.controllers.factory.register_controller">
+<span class="sig-prename descclassname"><span class="pre">src.controllers.factory.</span></span><span class="sig-name descname"><span class="pre">register_controller</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/src/controllers/factory.html#register_controller"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.controllers.factory.register_controller" title="Link to this definition">¶</a></dt>
+<dd><p>Decorator for registering controller constructors.</p>
+<p>Registration is idempotent - re-registering the same name overwrites.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.13)"><em>Callable</em></a>[[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.13)"><em>Type</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a>]], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.13)"><em>Type</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="src.controllers.factory.FactoryConfigurationError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.controllers.factory.</span></span><span class="sig-name descname"><span class="pre">FactoryConfigurationError</span></span><a class="reference internal" href="../../_modules/src/controllers/factory.html#FactoryConfigurationError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.controllers.factory.FactoryConfigurationError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+<p>Raised when controller configuration or resolution fails.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="src.controllers.factory.ConfigValueError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.controllers.factory.</span></span><span class="sig-name descname"><span class="pre">ConfigValueError</span></span><a class="reference internal" href="../../_modules/src/controllers/factory.html#ConfigValueError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.controllers.factory.ConfigValueError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+<p>Raised when a config value is out of the accepted range.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="src.controllers.factory.UnknownConfigKeyError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.controllers.factory.</span></span><span class="sig-name descname"><span class="pre">UnknownConfigKeyError</span></span><a class="reference internal" href="../../_modules/src/controllers/factory.html#UnknownConfigKeyError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.controllers.factory.UnknownConfigKeyError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+<p>Raised when unexpected/unknown keys appear in a controller config block.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Factory</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#api-summary">API Summary</a></li>
+<li><a class="reference internal" href="#module-src.controllers.factory">Detailed API</a><ul>
+<li><a class="reference internal" href="#src.controllers.factory.build_controller"><code class="docutils literal notranslate"><span class="pre">build_controller()</span></code></a></li>
+<li><a class="reference internal" href="#src.controllers.factory.build_all"><code class="docutils literal notranslate"><span class="pre">build_all()</span></code></a></li>
+<li><a class="reference internal" href="#src.controllers.factory.create_controller"><code class="docutils literal notranslate"><span class="pre">create_controller()</span></code></a></li>
+<li><a class="reference internal" href="#src.controllers.factory.normalize_controller_name"><code class="docutils literal notranslate"><span class="pre">normalize_controller_name()</span></code></a></li>
+<li><a class="reference internal" href="#src.controllers.factory.apply_deprecation_mapping"><code class="docutils literal notranslate"><span class="pre">apply_deprecation_mapping()</span></code></a></li>
+<li><a class="reference internal" href="#src.controllers.factory.register_controller"><code class="docutils literal notranslate"><span class="pre">register_controller()</span></code></a></li>
+<li><a class="reference internal" href="#src.controllers.factory.FactoryConfigurationError"><code class="docutils literal notranslate"><span class="pre">FactoryConfigurationError</span></code></a></li>
+<li><a class="reference internal" href="#src.controllers.factory.ConfigValueError"><code class="docutils literal notranslate"><span class="pre">ConfigValueError</span></code></a></li>
+<li><a class="reference internal" href="#src.controllers.factory.UnknownConfigKeyError"><code class="docutils literal notranslate"><span class="pre">UnknownConfigKeyError</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="classical_smc.html"
+                          title="previous chapter">Classical SMC</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="hybrid_adaptive_sta_smc.html"
+                          title="next chapter">Hybrid Adaptive STA SMC</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/api/controllers/factory.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="hybrid_adaptive_sta_smc.html" title="Hybrid Adaptive STA SMC"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="classical_smc.html" title="Classical SMC"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >API Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" >Controllers</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Factory</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Research Team.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    </div>
+  </body>
+</html>

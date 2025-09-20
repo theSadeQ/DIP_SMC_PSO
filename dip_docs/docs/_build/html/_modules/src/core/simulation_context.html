@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.core.simulation_context &#8212; DIP_SMC_PSO Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=fb9458d3" />
+    <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">src.core.simulation_context</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for src.core.simulation_context</h1><div class="highlight"><pre>
+<span></span><span class="c1">#==========================================================================================\\\</span>
+<span class="c1">#========================== src/core/simulation_context.py ==========================\\\</span>
+<span class="c1">#==========================================================================================\\\</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Manages the simulation setup, including configuration loading and</span>
+<span class="sd">dynamic selection of the physics model.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span>
+
+<span class="c1"># Import the necessary components</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_config</span><span class="p">,</span> <span class="n">ConfigSchema</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.core.dynamics</span><span class="w"> </span><span class="kn">import</span> <span class="n">DIPDynamics</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.core.dynamics_full</span><span class="w"> </span><span class="kn">import</span> <span class="n">FullDIPDynamics</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.controllers.factory</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_controller</span> <span class="k">as</span> <span class="n">_create_controller</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># Optional: FDI system may not be present in some builds</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">src.fault_detection.fdi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FDIsystem</span>  <span class="c1"># type: ignore</span>
+<span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="n">FDIsystem</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: ignore</span>
+
+
+<div class="viewcode-block" id="SimulationContext">
+<a class="viewcode-back" href="../../../api/core/simulation_context.html#src.core.simulation_context.SimulationContext">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SimulationContext</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initializes and holds the context for a simulation run.</span>
+
+<span class="sd">    This class centralizes the setup logic by loading the configuration</span>
+<span class="sd">    and selecting the appropriate dynamics model based on that config.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="SimulationContext.__init__">
+<a class="viewcode-back" href="../../../api/core/simulation_context.html#src.core.simulation_context.SimulationContext.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;config.yaml&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the simulation context by loading the configuration.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span> <span class="n">ConfigSchema</span> <span class="o">=</span> <span class="n">load_config</span><span class="p">(</span><span class="n">config_path</span><span class="p">,</span> <span class="n">allow_unknown</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dynamics_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_dynamics_model</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_initialize_dynamics_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DIPDynamics</span> <span class="o">|</span> <span class="n">FullDIPDynamics</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the correct dynamics model based on the configuration.</span>
+
+<span class="sd">        This is the central point for model selection logic.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># The use_full_dynamics flag in config.yaml controls this selection</span>
+        <span class="n">use_full</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">use_full_dynamics</span>
+        
+        <span class="c1"># Always pass the validated PhysicsConfig object directly to the dynamics</span>
+        <span class="c1"># constructors.  Passing a raw dict causes attribute errors inside the</span>
+        <span class="c1"># dynamics classes when they attempt to call `model_dump()` again.  The</span>
+        <span class="c1"># dynamics classes expect a PhysicsConfig instance and handle any</span>
+        <span class="c1"># required conversion internally.</span>
+        <span class="k">if</span> <span class="n">use_full</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Initializing Full Nonlinear Dynamics Model.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">FullDIPDynamics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">physics</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Initializing Simplified Dynamics Model.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">DIPDynamics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">physics</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SimulationContext.get_dynamics_model">
+<a class="viewcode-back" href="../../../api/core/simulation_context.html#src.core.simulation_context.SimulationContext.get_dynamics_model">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_dynamics_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DIPDynamics</span> <span class="o">|</span> <span class="n">FullDIPDynamics</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the initialized dynamics model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dynamics_model</span></div>
+
+
+<div class="viewcode-block" id="SimulationContext.get_config">
+<a class="viewcode-back" href="../../../api/core/simulation_context.html#src.core.simulation_context.SimulationContext.get_config">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ConfigSchema</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the validated configuration model for reuse by callers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span></div>
+
+
+<div class="viewcode-block" id="SimulationContext.create_controller">
+<a class="viewcode-back" href="../../../api/core/simulation_context.html#src.core.simulation_context.SimulationContext.create_controller">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_controller</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">gains</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a controller using the shared, validated config and the project factory.</span>
+<span class="sd">        If no name is provided, default to &#39;classical_smc&#39;.</span>
+<span class="sd">        If no gains are provided, use defaults from config.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ctrl_name</span> <span class="o">=</span> <span class="n">name</span> <span class="ow">or</span> <span class="s2">&quot;classical_smc&quot;</span>
+
+        <span class="c1"># Use default gains from config if none provided</span>
+        <span class="k">if</span> <span class="n">gains</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ctrl_defaults</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">controller_defaults</span><span class="p">,</span> <span class="n">ctrl_name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ctrl_defaults</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ctrl_defaults</span><span class="p">,</span> <span class="s1">&#39;gains&#39;</span><span class="p">):</span>
+                <span class="n">gains</span> <span class="o">=</span> <span class="n">ctrl_defaults</span><span class="o">.</span><span class="n">gains</span>
+
+        <span class="k">return</span> <span class="n">_create_controller</span><span class="p">(</span><span class="n">ctrl_name</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">gains</span><span class="o">=</span><span class="n">gains</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SimulationContext.create_fdi">
+<a class="viewcode-back" href="../../../api/core/simulation_context.html#src.core.simulation_context.SimulationContext.create_fdi">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_fdi</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create the FDI system if enabled in config; otherwise return None.</span>
+<span class="sd">        Mirrors the previous app-level behavior (non-fatal if missing).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fdi_cfg</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;fdi&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">fdi_cfg</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">fdi_cfg</span><span class="p">,</span> <span class="s2">&quot;enabled&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">FDIsystem</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;FDIsystem is enabled but not importable; continuing without FDI.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="n">fdi_cfg</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">exclude</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;enabled&quot;</span><span class="p">},</span> <span class="n">exclude_unset</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">FDIsystem</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># Keep parity with prior behavior: warn and continue without FDI</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Failed to instantiate FDIsystem (</span><span class="si">%s</span><span class="s2">); continuing without FDI.&quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+</div>
+
+<span class="c1">#=================================================================================\\\</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">src.core.simulation_context</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Research Team.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    </div>
+  </body>
+</html>

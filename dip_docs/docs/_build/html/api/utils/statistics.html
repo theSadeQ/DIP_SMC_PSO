@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Statistics &#8212; DIP_SMC_PSO Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=fb9458d3" />
+    <script src="../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Statistics</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="statistics">
+<h1>Statistics<a class="headerlink" href="#statistics" title="Link to this heading">¶</a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>Statistical utilities for performance analysis.</p>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">src.utils.statistics</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Utility functions for analysis and computation</span>
+</pre></div>
+</div>
+</section>
+<section id="api-summary">
+<h2>API Summary<a class="headerlink" href="#api-summary" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#module-src.utils.statistics" title="src.utils.statistics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">src.utils.statistics</span></code></a></p></td>
+<td><p>Statistical utilities for performance analysis.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-src.utils.statistics">
+<span id="detailed-api"></span><h2>Detailed API<a class="headerlink" href="#module-src.utils.statistics" title="Link to this heading">¶</a></h2>
+<p>Statistical utilities for performance analysis.</p>
+<p>This module introduces functions for computing confidence intervals and
+summarising simulation results.  When comparing controllers or tuning
+parameters it is essential to run multiple trials and report confidence
+intervals on performance metrics.  The central limit theorem states that
+the distribution of sample means approaches a normal distribution as the
+number of trials increases; conventionally 30 or more samples are
+considered sufficient for the approximation to hold【539941773593996†L291-L352】.</p>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>confidence_interval</dt><dd><p>Compute the mean and half‑width of a confidence interval using the
+Student’s t‑distribution.</p>
+</dd>
+</dl>
+</section>
+<dl class="py function">
+<dt class="sig sig-object py" id="src.utils.statistics.confidence_interval">
+<span class="sig-prename descclassname"><span class="pre">src.utils.statistics.</span></span><span class="sig-name descname"><span class="pre">confidence_interval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">confidence</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.95</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/src/utils/statistics.html#confidence_interval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.utils.statistics.confidence_interval" title="Link to this definition">¶</a></dt>
+<dd><p>Return the mean and half‑width of a Student‑t confidence interval.</p>
+<p>Given an array of samples, compute the sample mean and the half‑width
+of the two‑sided confidence interval at the specified confidence
+level.  The half‑width is <code class="docutils literal notranslate"><span class="pre">tcrit</span> <span class="pre">*</span> <span class="pre">s</span> <span class="pre">/</span> <span class="pre">sqrt(n)</span></code>, where <code class="docutils literal notranslate"><span class="pre">tcrit</span></code> is
+the t‑distribution critical value, <code class="docutils literal notranslate"><span class="pre">s</span></code> is the sample standard
+deviation (ddof=1) and <code class="docutils literal notranslate"><span class="pre">n</span></code> is the number of samples.  When fewer
+than two samples are provided the half‑width is returned as NaN.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>np.ndarray</em>) – One‑dimensional array of observations.</p></li>
+<li><p><strong>confidence</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Desired confidence level in (0,1).  Defaults to 0.95.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>mean</strong> (<em>float</em>) – Sample mean.</p></li>
+<li><p><strong>half_width</strong> (<em>float</em>) – Half‑width of the confidence interval.  <code class="docutils literal notranslate"><span class="pre">NaN</span></code> when <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">&lt;</span> <span class="pre">2</span></code>.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.13)"><em>Tuple</em></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Statistics</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#api-summary">API Summary</a></li>
+<li><a class="reference internal" href="#module-src.utils.statistics">Detailed API</a><ul>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#src.utils.statistics.confidence_interval"><code class="docutils literal notranslate"><span class="pre">confidence_interval()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/api/utils/statistics.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Statistics</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Research Team.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    </div>
+  </body>
+</html>

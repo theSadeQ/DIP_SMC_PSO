@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.controllers.hybrid_adaptive_sta_smc &#8212; DIP_SMC_PSO Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=fb9458d3" />
+    <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">src.controllers.hybrid_adaptive_sta_smc</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for src.controllers.hybrid_adaptive_sta_smc</h1><div class="highlight"><pre>
+<span></span><span class="c1">#==========================================================================================\\\</span>
+<span class="c1">#======================= src/controllers/hybrid_adaptive_sta_smc.py =====================\\\</span>
+<span class="c1">#==========================================================================================\\\</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="c1"># robust import for utils.* to support both import styles</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">src.utils.control_outputs</span><span class="w"> </span><span class="kn">import</span> <span class="n">HybridSTAOutput</span>  <span class="c1"># when repo root on sys.path</span>
+<span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..utils.control_outputs</span><span class="w"> </span><span class="kn">import</span> <span class="n">HybridSTAOutput</span>  <span class="c1"># when importing as src.controllers.*</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">utils.control_outputs</span><span class="w"> </span><span class="kn">import</span> <span class="n">HybridSTAOutput</span>    <span class="c1"># when src itself on sys.path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># Changed: migrate from deprecated &#39;use_equivalent&#39; to &#39;enable_equivalent&#39;; added</span>
+<span class="c1"># DeprecationWarning handling when the alias is provided and allow overriding</span>
+<span class="c1"># behaviour; enforce positivity of sliding‑surface gains and ensure</span>
+<span class="c1"># sat_soft_width ≥ dead_zone and initial adaptive gains do not exceed their</span>
+<span class="c1"># maxima.  Updated docstring to document gain and boundary relationships.</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_sat_tanh</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Smooth sign via tanh with width&gt;0; behaves like sign(x) for |x|&gt;&gt;width.&quot;&quot;&quot;</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">width</span><span class="p">),</span> <span class="mf">1e-9</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="n">w</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="HybridAdaptiveSTASMC">
+<a class="viewcode-back" href="../../../api/controllers/hybrid_adaptive_sta_smc.html#src.controllers.hybrid_adaptive_sta_smc.HybridAdaptiveSTASMC">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">HybridAdaptiveSTASMC</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Hybrid Adaptive Super–Twisting SMC for a double‑inverted pendulum.</span>
+
+<span class="sd">    This controller combines an adaptive gain law with a second‑order</span>
+<span class="sd">    sliding‑mode algorithm.  The sliding surface</span>
+
+<span class="sd">        ``s = c1*(θ̇1 + λ1 θ1) + c2*(θ̇2 + λ2 θ2) + k_c*(ẋ + λ_c x)``</span>
+
+<span class="sd">    uses positive weights ``c1, c2, λ1, λ2`` for the pendulum joints and</span>
+<span class="sd">    optional cart gains ``k_c, λ_c``.  The default formulation uses **absolute</span>
+<span class="sd">    coordinates** for the second pendulum (``θ2`` and ``θ̇2``) because this</span>
+<span class="sd">    simplifies stability proofs【895515998216162†L326-L329】.  Setting</span>
+<span class="sd">    ``use_relative_surface=True`` switches to a **relative formulation**</span>
+<span class="sd">    ``θ2−θ1`` and ``θ̇2−θ̇1`` that can decouple the pendula.  Exposing this</span>
+<span class="sd">    toggle allows users to explore both designs without modifying code.</span>
+
+<span class="sd">    Control law:</span>
+
+<span class="sd">        ``u = −k1 * sqrt(|s|) * sat(s) + u_int − k_d * s + u_eq``</span>
+<span class="sd">        ``u̇_int = −k2 * sat(s)``</span>
+
+<span class="sd">    where ``sat(s)`` is a continuous approximation to ``sign(s)`` over a</span>
+<span class="sd">    boundary layer of width ``sat_soft_width``.  The gains ``k1`` and</span>
+<span class="sd">    ``k2`` adapt online using piecewise‑linear laws with a dead zone</span>
+<span class="sd">    ``dead_zone``; when ``|s|`` lies within the dead zone, adaptation halts</span>
+<span class="sd">    and the integral term ``u_int`` freezes.  External parameters</span>
+<span class="sd">    ``k1_max`` and ``k2_max`` bound the adaptive gains to avoid runaway</span>
+<span class="sd">    growth, and ``u_int_max`` limits the integral state.  Separating these</span>
+<span class="sd">    bounds from the actuator saturation ``max_force`` preserves adaptation</span>
+<span class="sd">    capability even when the actuator saturates【895515998216162†L326-L329】.</span>
+
+<span class="sd">    The model‑based equivalent control ``u_eq`` can reduce steady‑state</span>
+<span class="sd">    error by cancelling nominal dynamics.  This implementation enables</span>
+<span class="sd">    ``u_eq`` by default; its computation is controlled via the</span>
+<span class="sd">    ``enable_equivalent`` parameter.  Setting ``enable_equivalent=False``</span>
+<span class="sd">    disables the feedforward term entirely.  A deprecated alias</span>
+<span class="sd">    ``use_equivalent`` remains supported for backward compatibility: when</span>
+<span class="sd">    both flags are provided, the alias takes precedence and a</span>
+<span class="sd">    deprecation warning is emitted.  Earlier versions disabled the</span>
+<span class="sd">    equivalent control by default; however, the revised design enables it</span>
+<span class="sd">    because the second‑order sliding law and adaptive gain ensure</span>
+<span class="sd">    robustness even with the model term【895515998216162†L326-L329】.</span>
+
+<span class="sd">    **Gain and boundary relationships (F‑4.HybridController.4 / RC‑04)**:  The</span>
+<span class="sd">    sliding‑surface coefficients ``c1``, ``c2``, ``λ1`` and ``λ2`` must be strictly</span>
+<span class="sd">    positive to define a valid Lyapunov surface【OkstateThesis2013†L1415-L1419】.  The</span>
+<span class="sd">    soft saturation width ``sat_soft_width`` acts as a boundary layer for the</span>
+<span class="sd">    continuous sign function and should not be smaller than the dead zone</span>
+<span class="sd">    ``dead_zone``; choosing ``sat_soft_width ≥ dead_zone`` prevents chattering by</span>
+<span class="sd">    ensuring the approximation remains smooth throughout the dead zone【OkstateThesis2013†L1415-L1419】.</span>
+<span class="sd">    Initial adaptive gains ``k1_init`` and ``k2_init`` must lie within the</span>
+<span class="sd">    prescribed maxima ``k1_max`` and ``k2_max`` to avoid runaway adaptation and</span>
+<span class="sd">    guarantee that adaptation begins in a feasible region【OkstateThesis2013†L1415-L1419】.</span>
+
+<span class="sd">    **Cart recentering hysteresis:**</span>
+<span class="sd">    A PD term drives the cart back toward the origin when the cart</span>
+<span class="sd">    displacement exceeds a configurable high threshold.  Once engaged, the</span>
+<span class="sd">    recentering term disengages when the displacement falls below a lower</span>
+<span class="sd">    threshold.  This hysteresis prevents rapid switching of the</span>
+<span class="sd">    recentering action when the cart oscillates near the origin.  The</span>
+<span class="sd">    recentering behaviour is tuned via ``cart_gain``, ``cart_lambda``,</span>
+<span class="sd">    ``cart_p_gain`` and ``cart_p_lambda``, and the thresholds</span>
+<span class="sd">    ``recenter_high_thresh`` and ``recenter_low_thresh`` must satisfy</span>
+<span class="sd">    ``0 ≤ low &lt; high``; invalid values raise an error instead of being</span>
+<span class="sd">    silently clipped.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">n_gains</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span>  <span class="c1"># [c1, λ1, c2, λ2]</span>
+
+<div class="viewcode-block" id="HybridAdaptiveSTASMC.__init__">
+<a class="viewcode-back" href="../../../api/controllers/hybrid_adaptive_sta_smc.html#src.controllers.hybrid_adaptive_sta_smc.HybridAdaptiveSTASMC.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">gains</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+        <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">max_force</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">k1_init</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">k2_init</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">gamma1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">gamma2</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">dead_zone</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">dynamics_model</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="c1"># When False (default) the sliding surface is formed in absolute</span>
+        <span class="c1"># coordinates using θ̇₁, θ₁, θ̇₂ and θ₂.  When True the surface</span>
+        <span class="c1"># uses relative angular motion (θ₂−θ₁ and θ̇₂−θ̇₁).  Providing</span>
+        <span class="c1"># both options allows the user to select a conventional design</span>
+        <span class="c1"># or the original relative formulation.  See discussion in</span>
+        <span class="c1"># the design review (finding #12).</span>
+        <span class="n">use_relative_surface</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># Enable the model‑based equivalent control term (u_eq).  When True the controller</span>
+        <span class="c1"># computes an approximate feedforward input using the inertia matrix.  Enabled by default</span>
+        <span class="c1"># to reduce steady‑state error.  A deprecated alias ``use_equivalent`` is still</span>
+        <span class="c1"># accepted for backward compatibility; if both ``enable_equivalent`` and</span>
+        <span class="c1"># ``use_equivalent`` are provided, the alias takes precedence and a</span>
+        <span class="c1"># deprecation warning is emitted (see design review finding #13).</span>
+        <span class="n">enable_equivalent</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="c1"># Deprecated alias for enable_equivalent.  In earlier versions the</span>
+        <span class="c1"># ``use_equivalent`` parameter mirrored ``enable_equivalent`` and</span>
+        <span class="c1"># allowed older configurations to toggle the model‑based</span>
+        <span class="c1"># feedforward term.  Maintaining multiple names for the same</span>
+        <span class="c1"># concept led to confusion and violated the principle of least</span>
+        <span class="c1"># surprise (design review finding #14).  The alias is no longer</span>
+        <span class="c1"># accepted; passing ``use_equivalent`` will raise a</span>
+        <span class="c1"># ``ValueError``.  Users must specify the desired behaviour via</span>
+        <span class="c1"># ``enable_equivalent`` only.</span>
+        <span class="n">use_equivalent</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="c1"># Damping gain on the sliding surface.  Positive value applies</span>
+        <span class="c1"># linear damping to the sliding surface, improving convergence and</span>
+        <span class="c1"># reducing oscillations.  Recommended range 2–5.</span>
+        <span class="n">damping_gain</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span><span class="p">,</span>
+        <span class="c1"># Maximum rate of change for the adaptive gains per step.  A</span>
+        <span class="c1"># smaller value slows down adaptation and avoids sudden jumps.</span>
+        <span class="n">adapt_rate_limit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.0</span><span class="p">,</span>
+        <span class="c1"># Width for the smooth tanh sign function.  Should be ≥ dead_zone.</span>
+        <span class="n">sat_soft_width</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.03</span><span class="p">,</span>
+        <span class="c1"># Cart recentering gains.  These parameters weight the cart</span>
+        <span class="c1"># velocity and position in the PD term that drives the cart back</span>
+        <span class="c1"># toward x=0.  Exposed via the factory so that PSO can tune them.</span>
+        <span class="n">cart_gain</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">cart_lambda</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">cart_p_gain</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">80.0</span><span class="p">,</span>
+        <span class="n">cart_p_lambda</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
+        <span class="c1"># Hysteresis thresholds for cart recentering.  Must satisfy</span>
+        <span class="c1"># 0 ≤ recenter_low_thresh &lt; recenter_high_thresh.  No silent</span>
+        <span class="c1"># clipping is performed; invalid values raise an error.</span>
+        <span class="n">recenter_high_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.04</span><span class="p">,</span>
+        <span class="n">recenter_low_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="c1"># Maximum values for the adaptive gains k1 and k2.  Decoupled</span>
+        <span class="c1"># from the actuator saturation to allow gains to adapt within a</span>
+        <span class="c1"># physically meaningful range【895515998216162†L326-L329】.</span>
+        <span class="n">k1_max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">50.0</span><span class="p">,</span>
+        <span class="n">k2_max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">50.0</span><span class="p">,</span>
+        <span class="c1"># Maximum absolute value for the integral term u_int.  Separating</span>
+        <span class="c1"># this bound from the actuator limit avoids unnecessarily</span>
+        <span class="c1"># limiting the integrator and preserves adaptation capability.</span>
+        <span class="n">u_int_max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">50.0</span><span class="p">,</span>
+        <span class="c1"># --- Numerical Safety and Self-Tapering Parameters ---</span>
+        <span class="c1"># Leak rate for adaptive gains to prevent indefinite ratcheting</span>
+        <span class="n">gain_leak</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span><span class="p">,</span>
+        <span class="c1"># Soft saturation threshold for adaptation freezing when near equilibrium</span>
+        <span class="n">adaptation_sat_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.02</span><span class="p">,</span>
+        <span class="c1"># Tapering factor for state-based gain growth reduction</span>
+        <span class="n">taper_eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gains</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">gains</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_gains</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;HybridAdaptiveSTASMC requires ≥</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_gains</span><span class="si">}</span><span class="s2"> gains: [c1, lambda1, c2, lambda2]&quot;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda2</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">gains</span><span class="p">[:</span><span class="mi">4</span><span class="p">])</span>
+
+        <span class="c1"># Validate core parameters using shared utility.  This centralises</span>
+        <span class="c1"># positivity and non‑negativity checks to avoid duplication and</span>
+        <span class="c1"># inconsistent error messages across controllers【676964782857750†L146-L149】.</span>
+        <span class="c1"># robust import for utils.* to support both import styles</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">src.utils.control_primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">require_positive</span>  <span class="c1"># when repo root on sys.path</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">..utils.control_primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">require_positive</span>  <span class="c1"># when importing as src.controllers.*</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">utils.control_primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">require_positive</span>    <span class="c1"># when src itself on sys.path</span>
+
+        <span class="c1"># Time step and actuator saturation must be strictly positive.  A</span>
+        <span class="c1"># zero or negative time step would break discrete integration and</span>
+        <span class="c1"># saturating at zero would render the controller ineffective.  Use</span>
+        <span class="c1"># require_positive to enforce these conditions consistently</span>
+        <span class="c1">#【675644021986605†L385-L388】.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dt</span> <span class="o">=</span> <span class="n">require_positive</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="s2">&quot;dt&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_force</span> <span class="o">=</span> <span class="n">require_positive</span><span class="p">(</span><span class="n">max_force</span><span class="p">,</span> <span class="s2">&quot;max_force&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Initial gains and adaptation limits must be non‑negative.  Allow</span>
+        <span class="c1"># zero values for the leak rate (gamma) and dead zone, as these</span>
+        <span class="c1"># parameters may legitimately be zero in some designs.  The</span>
+        <span class="c1"># require_positive function with allow_zero=True centralises</span>
+        <span class="c1"># validation and ensures finite numeric values are used.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k1_init</span> <span class="o">=</span> <span class="n">require_positive</span><span class="p">(</span><span class="n">k1_init</span><span class="p">,</span> <span class="s2">&quot;k1_init&quot;</span><span class="p">,</span> <span class="n">allow_zero</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k2_init</span> <span class="o">=</span> <span class="n">require_positive</span><span class="p">(</span><span class="n">k2_init</span><span class="p">,</span> <span class="s2">&quot;k2_init&quot;</span><span class="p">,</span> <span class="n">allow_zero</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gamma1</span> <span class="o">=</span> <span class="n">require_positive</span><span class="p">(</span><span class="n">gamma1</span><span class="p">,</span> <span class="s2">&quot;gamma1&quot;</span><span class="p">,</span> <span class="n">allow_zero</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gamma2</span> <span class="o">=</span> <span class="n">require_positive</span><span class="p">(</span><span class="n">gamma2</span><span class="p">,</span> <span class="s2">&quot;gamma2&quot;</span><span class="p">,</span> <span class="n">allow_zero</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dead_zone</span> <span class="o">=</span> <span class="n">require_positive</span><span class="p">(</span><span class="n">dead_zone</span><span class="p">,</span> <span class="s2">&quot;dead_zone&quot;</span><span class="p">,</span> <span class="n">allow_zero</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Adaptation rate limit must be strictly positive to avoid</span>
+        <span class="c1"># freezing the adaptation law.  Use require_positive here and store</span>
+        <span class="c1"># the validated value.  Without a positive adaptation rate the</span>
+        <span class="c1"># adaptive gains would stall and violate finite‑time convergence</span>
+        <span class="c1"># guarantees【OkstateThesis2013†L1415-L1419】.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">adapt_rate_limit</span> <span class="o">=</span> <span class="n">require_positive</span><span class="p">(</span><span class="n">adapt_rate_limit</span><span class="p">,</span> <span class="s2">&quot;adapt_rate_limit&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Enforce positive sliding‑surface gains to satisfy stability</span>
+        <span class="c1"># conditions【895515998216162†L326-L329】.  The sliding surface is a</span>
+        <span class="c1"># linear combination of state variables with positive weights.  Use</span>
+        <span class="c1"># require_positive to centralise validation and provide a</span>
+        <span class="c1"># consistent error message when a gain is non‑positive.</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+            <span class="p">(</span><span class="s2">&quot;c1&quot;</span><span class="p">,</span> <span class="s2">&quot;lambda1&quot;</span><span class="p">,</span> <span class="s2">&quot;c2&quot;</span><span class="p">,</span> <span class="s2">&quot;lambda2&quot;</span><span class="p">,</span> <span class="s2">&quot;cart_gain&quot;</span><span class="p">,</span> <span class="s2">&quot;cart_lambda&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda2</span><span class="p">,</span> <span class="n">cart_gain</span><span class="p">,</span> <span class="n">cart_lambda</span><span class="p">),</span>
+        <span class="p">):</span>
+            <span class="n">require_positive</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gains</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">gains</span><span class="p">)</span>
+
+        <span class="c1"># Internal behaviour knobs</span>
+        <span class="c1"># Assign internal behaviour knobs and recentering gains.  All</span>
+        <span class="c1"># parameters below are exposed via the factory and configuration to</span>
+        <span class="c1"># permit systematic tuning.  The default values mirror the</span>
+        <span class="c1"># original implementation.</span>
+        <span class="c1"># The equivalent control flag will be set below.  Initialise to False.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_equivalent</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">damping_gain</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">damping_gain</span><span class="p">)</span>
+        <span class="c1"># sat_soft_width is stored as float; validation of its relationship</span>
+        <span class="c1"># to dead_zone occurs after parameter assignments below.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sat_soft_width</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">sat_soft_width</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cart_gain</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">cart_gain</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cart_lambda</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">cart_lambda</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cart_p_gain</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">cart_p_gain</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cart_p_lambda</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">cart_p_lambda</span><span class="p">)</span>
+
+        <span class="c1"># Validate recentering thresholds.  Do not silently adjust</span>
+        <span class="c1"># ordering; raise an error if the constraints 0 ≤ low &lt; high are</span>
+        <span class="c1"># violated.  This makes the behaviour explicit and helps the</span>
+        <span class="c1"># user tune hysteresis correctly.</span>
+        <span class="n">low</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">recenter_low_thresh</span><span class="p">)</span>
+        <span class="n">high</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">recenter_high_thresh</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">low</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;recenter_low_thresh must be ≥ 0&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">high</span> <span class="o">&lt;=</span> <span class="n">low</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;recenter_high_thresh must be greater than recenter_low_thresh&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">recenter_low_thresh</span> <span class="o">=</span> <span class="n">low</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">recenter_high_thresh</span> <span class="o">=</span> <span class="n">high</span>
+
+        <span class="c1"># Assign sliding surface mode.  The flag ``use_relative_surface`` toggles</span>
+        <span class="c1"># between absolute and relative formulations of the sliding surface.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_relative_surface</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">use_relative_surface</span><span class="p">)</span>
+        <span class="c1"># Determine whether to compute the model‑based feedforward term.  A</span>
+        <span class="c1"># deprecated alias ``use_equivalent`` is still accepted for backward</span>
+        <span class="c1"># compatibility; when both ``enable_equivalent`` and ``use_equivalent``</span>
+        <span class="c1"># are provided the alias takes precedence.  Emit a DeprecationWarning</span>
+        <span class="c1"># when the alias is used to encourage migration to the canonical</span>
+        <span class="c1"># parameter.  This implements Step‑2 action A‑01.【FuzzyAdaptiveSMC2012†L421-L439】</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>  <span class="c1"># local import to avoid global side effects</span>
+        <span class="k">if</span> <span class="n">use_equivalent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">eq_flag</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">use_equivalent</span><span class="p">)</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;The &#39;use_equivalent&#39; parameter is deprecated; use &#39;enable_equivalent&#39; instead.&quot;</span><span class="p">,</span>
+                <span class="ne">DeprecationWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">enable_equivalent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">eq_flag</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">enable_equivalent</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Default to True when neither flag is provided to preserve backward compatibility</span>
+            <span class="n">eq_flag</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_equivalent</span> <span class="o">=</span> <span class="n">eq_flag</span>
+
+        <span class="c1"># Validate and store maximum adaptation gains and integral bound.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k1_max</span> <span class="o">=</span> <span class="n">require_positive</span><span class="p">(</span><span class="n">k1_max</span><span class="p">,</span> <span class="s2">&quot;k1_max&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k2_max</span> <span class="o">=</span> <span class="n">require_positive</span><span class="p">(</span><span class="n">k2_max</span><span class="p">,</span> <span class="s2">&quot;k2_max&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u_int_max</span> <span class="o">=</span> <span class="n">require_positive</span><span class="p">(</span><span class="n">u_int_max</span><span class="p">,</span> <span class="s2">&quot;u_int_max&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Initialize numerical safety and self-tapering parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gain_leak</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">gain_leak</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">adaptation_sat_threshold</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">adaptation_sat_threshold</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">taper_eps</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">1e-9</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">taper_eps</span><span class="p">))</span>
+
+        <span class="c1"># For optional equivalent control</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dyn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">dynamics_model</span>
+
+        <span class="c1"># ---- Additional validations (F‑4.HybridController.4 / RC‑04) ----</span>
+        <span class="c1"># Ensure the soft saturation width is at least as large as the dead zone.</span>
+        <span class="c1"># A boundary layer narrower than the dead zone would behave like a</span>
+        <span class="c1"># discontinuous sign inside the dead zone and induce chattering.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sat_soft_width</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">dead_zone</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;sat_soft_width (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sat_soft_width</span><span class="si">}</span><span class="s2">) must be ≥ dead_zone (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dead_zone</span><span class="si">}</span><span class="s2">).&quot;</span>
+            <span class="p">)</span>
+        <span class="c1"># Ensure initial adaptive gains do not exceed their maximum bounds.</span>
+        <span class="c1"># Adaptive SMC theory requires that the gains remain within prescribed</span>
+        <span class="c1"># limits to avoid runaway adaptation【OkstateThesis2013†L1415-L1419】.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">k1_init</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">k1_max</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;k1_init (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">k1_init</span><span class="si">}</span><span class="s2">) must not exceed k1_max (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">k1_max</span><span class="si">}</span><span class="s2">).&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">k2_init</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">k2_max</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;k2_init (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">k2_init</span><span class="si">}</span><span class="s2">) must not exceed k2_max (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">k2_max</span><span class="si">}</span><span class="s2">).&quot;</span>
+            <span class="p">)</span></div>
+
+
+    <span class="c1"># ------------------------- API -------------------------</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">gains</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_gains</span><span class="p">)</span>
+
+<div class="viewcode-block" id="HybridAdaptiveSTASMC.set_dynamics">
+<a class="viewcode-back" href="../../../api/controllers/hybrid_adaptive_sta_smc.html#src.controllers.hybrid_adaptive_sta_smc.HybridAdaptiveSTASMC.set_dynamics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dynamics_model</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Attach dynamics model providing _compute_physics_matrices(state)-&gt;(M,C,G).&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dyn</span> <span class="o">=</span> <span class="n">dynamics_model</span></div>
+
+
+<div class="viewcode-block" id="HybridAdaptiveSTASMC.initialize_state">
+<a class="viewcode-back" href="../../../api/controllers/hybrid_adaptive_sta_smc.html#src.controllers.hybrid_adaptive_sta_smc.HybridAdaptiveSTASMC.initialize_state">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize_state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k1_init</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k2_init</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="HybridAdaptiveSTASMC.initialize_history">
+<a class="viewcode-back" href="../../../api/controllers/hybrid_adaptive_sta_smc.html#src.controllers.hybrid_adaptive_sta_smc.HybridAdaptiveSTASMC.initialize_history">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize_history</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;k1&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;k2&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;u_int&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;s&quot;</span><span class="p">:</span> <span class="p">[]}</span></div>
+
+
+    <span class="c1"># --------------------- internals -----------------------</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_taper_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">abs_s</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute tapering factor for adaptive gain growth.</span>
+
+<span class="sd">        Returns a value between 0 and 1 that reduces gain growth as |s| approaches 0.</span>
+<span class="sd">        This implements state-based self-tapering to ensure gain growth slows as</span>
+<span class="sd">        the system converges to the sliding surface.</span>
+
+<span class="sd">        For large |s|: factor ≈ 1 (full adaptation)</span>
+<span class="sd">        For small |s|: factor ≈ 0 (heavy tapering)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">abs_s</span> <span class="o">/</span> <span class="p">(</span><span class="n">abs_s</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">taper_eps</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_sliding_surface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the sliding surface value s.</span>
+
+<span class="sd">        The state ordering is [x, θ1, θ2, ẋ, θ̇1, θ̇2].  In the original</span>
+<span class="sd">        implementation the sliding surface combined the joint velocities and</span>
+<span class="sd">        positions directly:</span>
+
+<span class="sd">            s = c1*(θ̇₁ + λ₁ θ₁) + c2*(θ̇₂ + λ₂ θ₂)</span>
+
+<span class="sd">        However, the full double inverted pendulum dynamics model uses an</span>
+<span class="sd">        absolute coordinate for the second pendulum angle q2.  To more</span>
+<span class="sd">        effectively decouple the dynamics and drive both pendulums upright we</span>
+<span class="sd">        instead form a sliding surface that includes the relative motion of</span>
+<span class="sd">        the second pendulum with respect to the first.  The second term uses</span>
+<span class="sd">        (θ2̇ − θ1̇) for the velocity difference and (θ2 − θ1) for the angle</span>
+<span class="sd">        difference.  This modification reduces the coupling of the control</span>
+<span class="sd">        action on the first pendulum when stabilising the second pendulum.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            state: Full state vector [x, θ1, θ2, ẋ, θ̇1, θ̇2].</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The scalar sliding surface value s.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Unpack state: x, θ₁, θ₂, ẋ, θ̇₁, θ̇₂</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">th1</span><span class="p">,</span> <span class="n">th2</span><span class="p">,</span> <span class="n">xdot</span><span class="p">,</span> <span class="n">th1dot</span><span class="p">,</span> <span class="n">th2dot</span> <span class="o">=</span> <span class="n">state</span>
+        <span class="c1"># Compute the sliding surface.  Two formulations are supported:</span>
+        <span class="c1">#</span>
+        <span class="c1"># - Absolute coordinates (default): s = c1*(θ̇₁ + λ₁ θ₁) + c2*(θ̇₂ + λ₂ θ₂) + cart_term.</span>
+        <span class="c1">#   This is the conventional sliding surface for coupled pendulums and</span>
+        <span class="c1">#   facilitates Lyapunov analysis【895515998216162†L326-L329】.</span>
+        <span class="c1"># - Relative coordinates: s = c1*(θ̇₁ + λ₁ θ₁) + c2*((θ̇₂−θ̇₁) + λ₂ (θ₂−θ₁)) + cart_term.</span>
+        <span class="c1">#   The relative formulation decouples the pendulums but can complicate</span>
+        <span class="c1">#   proofs.  The mode is selected by ``use_relative_surface``.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_relative_surface</span><span class="p">:</span>
+            <span class="n">rel_dot</span> <span class="o">=</span> <span class="n">th2dot</span> <span class="o">-</span> <span class="n">th1dot</span>
+            <span class="n">rel_ang</span> <span class="o">=</span> <span class="n">th2</span> <span class="o">-</span> <span class="n">th1</span>
+            <span class="n">pendulum_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">c1</span> <span class="o">*</span> <span class="p">(</span><span class="n">th1dot</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda1</span> <span class="o">*</span> <span class="n">th1</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">c2</span> <span class="o">*</span> <span class="p">(</span><span class="n">rel_dot</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda2</span> <span class="o">*</span> <span class="n">rel_ang</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pendulum_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">c1</span> <span class="o">*</span> <span class="p">(</span><span class="n">th1dot</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda1</span> <span class="o">*</span> <span class="n">th1</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">c2</span> <span class="o">*</span> <span class="p">(</span><span class="n">th2dot</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda2</span> <span class="o">*</span> <span class="n">th2</span><span class="p">)</span>
+        <span class="n">cart_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cart_gain</span> <span class="o">*</span> <span class="p">(</span><span class="n">xdot</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">cart_lambda</span> <span class="o">*</span> <span class="n">x</span><span class="p">)</span>
+        <span class="n">s_raw</span> <span class="o">=</span> <span class="n">pendulum_term</span> <span class="o">-</span> <span class="n">cart_term</span>
+        <span class="c1"># Apply a negative sign to harmonise with the super‑twisting law</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="o">-</span><span class="n">s_raw</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_equivalent_control</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute an approximate equivalent control based on the system</span>
+<span class="sd">        dynamics.  When the equivalent control is enabled (``self.use_equivalent``) and</span>
+<span class="sd">        the dynamics model provides inertia, Coriolis, and gravity matrices,</span>
+<span class="sd">        the controller solves the linear equation</span>
+
+<span class="sd">            M(q)·\\\\ddot{q} + C(q,\\\\dot{q})·\\\\dot{q} + G(q) = B·u</span>
+
+<span class="sd">        for the control input ``u`` that maintains \\\\dot{s}=0 on the</span>
+<span class="sd">        sliding surface.  To improve numerical stability, the inertia</span>
+<span class="sd">        matrix ``M`` is regularised by adding a small diagonal term</span>
+<span class="sd">        (Tikhonov regularisation) before inversion.  This technique,</span>
+<span class="sd">        sometimes called **diagonal jitter**, ensures that the matrix is</span>
+<span class="sd">        positive definite and invertible even when the original inertia</span>
+<span class="sd">        matrix is nearly singular【385796022798831†L145-L149】.  If the</span>
+<span class="sd">        regularised system is still ill‑conditioned or any operation</span>
+<span class="sd">        fails, the method returns 0.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_equivalent</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dyn</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dyn</span><span class="p">,</span> <span class="s2">&quot;_compute_physics_matrices&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">M</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">G</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dyn</span><span class="o">.</span><span class="n">_compute_physics_matrices</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>  <span class="c1"># type: ignore[attr-defined]</span>
+            <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">state</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">state</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">state</span><span class="p">[</span><span class="mi">5</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="c1"># C may be a matrix or vector</span>
+            <span class="k">if</span> <span class="n">C</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">Cvec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                <span class="n">Cvec</span> <span class="o">=</span> <span class="n">C</span> <span class="o">@</span> <span class="n">v</span> <span class="k">if</span> <span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span> <span class="k">else</span> <span class="n">C</span>
+            <span class="c1"># Define row vectors corresponding to the sliding surface</span>
+            <span class="n">L</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c2</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">Llam</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c1</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lambda1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lambda2</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">B</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="c1"># Regularise inertia matrix.  Use a small diagonal bias to</span>
+            <span class="c1"># guarantee invertibility【385796022798831†L145-L149】.</span>
+            <span class="n">M_reg</span> <span class="o">=</span> <span class="n">M</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e-10</span>
+            <span class="c1"># Solve linear systems directly; avoid explicit inversion</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">Minv_B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">M_reg</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+                <span class="n">Minv_rhs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">M_reg</span><span class="p">,</span> <span class="n">Cvec</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mf">0.0</span>
+            <span class="n">denom</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">L</span> <span class="o">@</span> <span class="n">Minv_B</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">denom</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">abs</span><span class="p">(</span><span class="n">denom</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-6</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mf">0.0</span>
+            <span class="n">num</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">L</span> <span class="o">@</span> <span class="n">Minv_rhs</span> <span class="o">-</span> <span class="n">Llam</span> <span class="o">@</span> <span class="n">v</span><span class="p">)</span>
+            <span class="n">ueq</span> <span class="o">=</span> <span class="n">num</span> <span class="o">/</span> <span class="n">denom</span>
+            <span class="c1"># Clamp the model‑based equivalent control to a moderate range.</span>
+            <span class="c1"># Earlier revisions clipped at ±10×max_force to prevent the feedforward</span>
+            <span class="c1"># term from dominating the switching and integral terms.  Without</span>
+            <span class="c1"># clamping, large model‑based estimates can saturate the actuator</span>
+            <span class="c1"># before the adaptive and sliding components engage, leading to</span>
+            <span class="c1"># sluggish or oscillatory behaviour.  Restricting the equivalent</span>
+            <span class="c1"># control preserves robustness while still providing steady‑state</span>
+            <span class="c1"># compensation.  Use ±10×max_force as a</span>
+            <span class="c1"># guideline; users can adjust this multiplier if needed.</span>
+            <span class="n">clamp</span> <span class="o">=</span> <span class="mf">10.0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_force</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">ueq</span><span class="p">,</span> <span class="o">-</span><span class="n">clamp</span><span class="p">,</span> <span class="n">clamp</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+
+    <span class="c1"># -------------------- main control ---------------------</span>
+<div class="viewcode-block" id="HybridAdaptiveSTASMC.compute_control">
+<a class="viewcode-back" href="../../../api/controllers/hybrid_adaptive_sta_smc.html#src.controllers.hybrid_adaptive_sta_smc.HybridAdaptiveSTASMC.compute_control">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_control</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">state_vars</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">history</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HybridSTAOutput</span><span class="p">:</span>
+
+        <span class="c1"># Defensive: if sensor provided a bad vector, do no harm.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">state</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="mf">0.0</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k1_init</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k2_init</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="p">(</span><span class="n">history</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialize_history</span><span class="p">())</span>
+
+        <span class="c1"># Unpack internal vars</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">k1_prev</span><span class="p">,</span> <span class="n">k2_prev</span><span class="p">,</span> <span class="n">u_int_prev</span> <span class="o">=</span> <span class="n">state_vars</span>  <span class="c1"># type: ignore[misc]</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">k1_prev</span><span class="p">,</span> <span class="n">k2_prev</span><span class="p">,</span> <span class="n">u_int_prev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialize_state</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">history</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">history</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialize_history</span><span class="p">()</span>
+
+        <span class="c1"># ------------------------------------------------------------------</span>
+        <span class="c1"># Single sliding surface</span>
+        <span class="c1">#</span>
+        <span class="c1"># Compute the sliding surface.  This unified formulation combines</span>
+        <span class="c1"># the relative pendulum motion and cart recentering into a single</span>
+        <span class="c1"># variable.  See `_compute_sliding_surface` for details.</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_sliding_surface</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="n">abs_s</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="c1"># Determine whether we are inside the dead‑zone.  When |s| ≤ dead_zone</span>
+        <span class="c1"># adaptation and the integral term are frozen to prevent wind‑up.</span>
+        <span class="n">in_dz</span> <span class="o">=</span> <span class="n">abs_s</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dead_zone</span>
+        <span class="c1"># Smooth sign of the sliding surface using tanh; inside the dead‑zone</span>
+        <span class="c1"># the sign is forced to zero to freeze the controller.</span>
+        <span class="k">if</span> <span class="n">in_dz</span><span class="p">:</span>
+            <span class="n">sgn</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sgn</span> <span class="o">=</span> <span class="n">_sat_tanh</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sat_soft_width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dead_zone</span><span class="p">))</span>
+        <span class="c1"># Compute preliminary control (without saturation) to check for hard saturation</span>
+        <span class="n">u_sw_temp</span> <span class="o">=</span> <span class="o">-</span><span class="n">k1_prev</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">abs_s</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span> <span class="o">*</span> <span class="n">sgn</span>
+        <span class="n">u_damp_temp</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">damping_gain</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="n">u_eq_temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_equivalent_control</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="c1"># Cart recentering (compute here for saturation check)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">xdot</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">abs_x</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">low</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recenter_low_thresh</span>
+        <span class="n">high</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recenter_high_thresh</span>
+        <span class="k">if</span> <span class="n">abs_x</span> <span class="o">&lt;=</span> <span class="n">low</span><span class="p">:</span>
+            <span class="n">rc_factor</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">elif</span> <span class="n">abs_x</span> <span class="o">&gt;=</span> <span class="n">high</span><span class="p">:</span>
+            <span class="n">rc_factor</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rc_factor</span> <span class="o">=</span> <span class="p">(</span><span class="n">abs_x</span> <span class="o">-</span> <span class="n">low</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">high</span> <span class="o">-</span> <span class="n">low</span><span class="p">)</span>
+        <span class="n">u_cart_temp</span> <span class="o">=</span> <span class="o">-</span><span class="n">rc_factor</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cart_p_gain</span> <span class="o">*</span> <span class="p">(</span><span class="n">xdot</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">cart_p_lambda</span> <span class="o">*</span> <span class="n">x</span><span class="p">)</span>
+
+        <span class="c1"># Preliminary unsaturated control (using previous u_int for estimate)</span>
+        <span class="n">u_pre_temp</span> <span class="o">=</span> <span class="n">u_sw_temp</span> <span class="o">+</span> <span class="n">u_int_prev</span> <span class="o">+</span> <span class="n">u_damp_temp</span> <span class="o">+</span> <span class="n">u_cart_temp</span> <span class="o">+</span> <span class="n">u_eq_temp</span>
+
+        <span class="c1"># Check if we would be hard-saturated</span>
+        <span class="n">hard_saturated</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">u_pre_temp</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_force</span> <span class="o">+</span> <span class="mf">1e-12</span>
+        <span class="n">near_equilibrium</span> <span class="o">=</span> <span class="n">abs_s</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">adaptation_sat_threshold</span>
+
+        <span class="c1"># Adaptation: increase k1 and k2 proportional to |s| outside the dead‑zone</span>
+        <span class="c1"># Apply self-tapering and anti-windup logic</span>
+        <span class="k">if</span> <span class="n">in_dz</span><span class="p">:</span>
+            <span class="c1"># In dead zone: apply gentle leak to prevent indefinite ratcheting</span>
+            <span class="n">k1_dot</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">gain_leak</span>
+            <span class="n">k2_dot</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">gain_leak</span>
+        <span class="k">elif</span> <span class="n">hard_saturated</span> <span class="ow">and</span> <span class="n">near_equilibrium</span><span class="p">:</span>
+            <span class="c1"># Hard saturated and near equilibrium: freeze adaptation + leak</span>
+            <span class="n">k1_dot</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">gain_leak</span>
+            <span class="n">k2_dot</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">gain_leak</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Normal adaptation with self-tapering</span>
+            <span class="n">taper_factor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_taper_factor</span><span class="p">(</span><span class="n">abs_s</span><span class="p">)</span>
+            <span class="c1"># More conservative adaptation rates for double-inverted pendulum</span>
+            <span class="n">k1_raw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma1</span> <span class="o">*</span> <span class="n">abs_s</span> <span class="o">*</span> <span class="n">taper_factor</span>
+            <span class="n">k2_raw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma2</span> <span class="o">*</span> <span class="n">abs_s</span> <span class="o">*</span> <span class="n">taper_factor</span>
+
+            <span class="c1"># Additional time-based tapering to slow down in second half</span>
+            <span class="n">time_factor</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="mf">0.01</span> <span class="o">*</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">history</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;k1&quot;</span><span class="p">,</span> <span class="p">[]))</span> <span class="o">-</span> <span class="mi">1000</span><span class="p">))</span>
+
+            <span class="n">k1_dot</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">k1_raw</span> <span class="o">*</span> <span class="n">time_factor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">adapt_rate_limit</span><span class="p">)</span>
+            <span class="n">k2_dot</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">k2_raw</span> <span class="o">*</span> <span class="n">time_factor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">adapt_rate_limit</span><span class="p">)</span>
+
+            <span class="c1"># Stronger leak during adaptation</span>
+            <span class="n">k1_dot</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">k1_dot</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">gain_leak</span><span class="p">,</span> <span class="o">-</span><span class="n">k1_prev</span> <span class="o">/</span> <span class="p">(</span><span class="mf">10.0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">))</span>
+            <span class="n">k2_dot</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">k2_dot</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">gain_leak</span><span class="p">,</span> <span class="o">-</span><span class="n">k2_prev</span> <span class="o">/</span> <span class="p">(</span><span class="mf">10.0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">))</span>
+
+        <span class="c1"># More aggressive clipping for double-inverted pendulum stability</span>
+        <span class="n">k1_dot</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="o">-</span><span class="mf">5.0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">k1_dot</span><span class="p">)))</span>
+        <span class="n">k2_dot</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="o">-</span><span class="mf">5.0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">k2_dot</span><span class="p">)))</span>
+
+        <span class="c1"># Additional safety: prevent gains from growing too fast</span>
+        <span class="k">if</span> <span class="n">k1_prev</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">k1_max</span> <span class="o">*</span> <span class="mf">0.8</span><span class="p">:</span>
+            <span class="n">k1_dot</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">k1_dot</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">gain_leak</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">k2_prev</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">k2_max</span> <span class="o">*</span> <span class="mf">0.8</span><span class="p">:</span>
+            <span class="n">k2_dot</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">k2_dot</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">gain_leak</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># Update adaptive gains and clip within [0, k*_max]</span>
+        <span class="n">k1_new</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">k1_prev</span> <span class="o">+</span> <span class="n">k1_dot</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k1_max</span><span class="p">))</span>
+        <span class="n">k2_new</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">k2_prev</span> <span class="o">+</span> <span class="n">k2_dot</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k2_max</span><span class="p">))</span>
+        <span class="c1"># STA integral update.  Integrate -k2 * sgn when outside the dead‑zone;</span>
+        <span class="c1"># freeze the integrator inside.  Clamp within ±u_int_max to</span>
+        <span class="c1"># prevent runaway.  Separating this bound from the actuator</span>
+        <span class="c1"># saturation allows the integral to accumulate an offset even</span>
+        <span class="c1"># when the control saturates.</span>
+        <span class="k">if</span> <span class="n">in_dz</span><span class="p">:</span>
+            <span class="n">u_int_new</span> <span class="o">=</span> <span class="n">u_int_prev</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">u_int_new</span> <span class="o">=</span> <span class="n">u_int_prev</span> <span class="o">+</span> <span class="p">(</span><span class="o">-</span><span class="n">k2_new</span> <span class="o">*</span> <span class="n">sgn</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span>
+            <span class="n">u_int_new</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">u_int_new</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">u_int_max</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">u_int_max</span><span class="p">))</span>
+        <span class="c1"># Switching term: super‑twisting continuous part.  Use |s| for the</span>
+        <span class="c1"># magnitude and the smooth sign for direction.  The negative sign</span>
+        <span class="c1"># drives the surface toward zero.</span>
+        <span class="n">u_sw</span> <span class="o">=</span> <span class="o">-</span><span class="n">k1_new</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">abs_s</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span> <span class="o">*</span> <span class="n">sgn</span>
+        <span class="c1"># Reuse precomputed values to avoid redundant computation</span>
+        <span class="n">u_damp</span> <span class="o">=</span> <span class="n">u_damp_temp</span>
+        <span class="n">u_eq</span> <span class="o">=</span> <span class="n">u_eq_temp</span>
+        <span class="c1"># Cart recentering PD term with hysteresis.  Compute the</span>
+        <span class="c1"># magnitude of the cart displacement and apply a ramp between</span>
+        <span class="c1"># recenter_low_thresh and recenter_high_thresh.  When |x| ≤ low</span>
+        <span class="c1"># threshold the recentering term is disabled; when |x| ≥ high</span>
+        <span class="c1"># threshold the term is fully applied.  Between these values</span>
+        <span class="c1"># scale linearly.  This implements a simple hysteresis to</span>
+        <span class="c1"># prevent chattering (issue #36).</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">xdot</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">abs_x</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">low</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recenter_low_thresh</span>
+        <span class="n">high</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recenter_high_thresh</span>
+        <span class="k">if</span> <span class="n">abs_x</span> <span class="o">&lt;=</span> <span class="n">low</span><span class="p">:</span>
+            <span class="n">rc_factor</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">elif</span> <span class="n">abs_x</span> <span class="o">&gt;=</span> <span class="n">high</span><span class="p">:</span>
+            <span class="n">rc_factor</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rc_factor</span> <span class="o">=</span> <span class="p">(</span><span class="n">abs_x</span> <span class="o">-</span> <span class="n">low</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">high</span> <span class="o">-</span> <span class="n">low</span><span class="p">)</span>
+        <span class="n">u_cart</span> <span class="o">=</span> <span class="n">u_cart_temp</span>  <span class="c1"># Reuse precomputed cart recentering</span>
+        <span class="c1"># Compute preliminary control and apply saturation.  Sum the</span>
+        <span class="c1"># switching, integral, damping, cart recentering, and equivalent</span>
+        <span class="c1"># components.</span>
+        <span class="n">u_pre</span> <span class="o">=</span> <span class="n">u_sw</span> <span class="o">+</span> <span class="n">u_int_new</span> <span class="o">+</span> <span class="n">u_damp</span> <span class="o">+</span> <span class="n">u_cart</span> <span class="o">+</span> <span class="n">u_eq</span>
+        <span class="n">u_sat</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">u_pre</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">max_force</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_force</span><span class="p">))</span>
+        <span class="c1"># Anti‑windup: if saturation occurs, roll back the integral term and</span>
+        <span class="c1"># recompute the preliminary control without updating the integral.</span>
+        <span class="k">if</span> <span class="n">u_sat</span> <span class="o">!=</span> <span class="n">u_pre</span><span class="p">:</span>
+            <span class="n">u_int_new</span> <span class="o">=</span> <span class="n">u_int_prev</span>
+            <span class="n">u_pre</span> <span class="o">=</span> <span class="n">u_sw</span> <span class="o">+</span> <span class="n">u_int_new</span> <span class="o">+</span> <span class="n">u_damp</span> <span class="o">+</span> <span class="n">u_cart</span> <span class="o">+</span> <span class="n">u_eq</span>
+            <span class="n">u_sat</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">u_pre</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">max_force</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_force</span><span class="p">))</span>
+        <span class="c1"># Log the adaptive gains, integrator and sliding surface.</span>
+        <span class="n">history</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;k1&quot;</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k1_new</span><span class="p">)</span>
+        <span class="n">history</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;k2&quot;</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k2_new</span><span class="p">)</span>
+        <span class="n">history</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;u_int&quot;</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">u_int_new</span><span class="p">)</span>
+        <span class="n">history</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+        <span class="c1"># Enhanced numerical safety and emergency reset for double-inverted pendulum</span>
+        <span class="c1"># Check for instability indicators</span>
+        <span class="n">state_norm</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">state</span><span class="p">[:</span><span class="mi">3</span><span class="p">]))</span>  <span class="c1"># Position states only</span>
+        <span class="n">velocity_norm</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="mi">3</span><span class="p">:]))</span>  <span class="c1"># Velocity states only</span>
+
+        <span class="c1"># Emergency reset conditions:</span>
+        <span class="c1"># 1. Non-finite values</span>
+        <span class="c1"># 2. Excessive state magnitudes (likely blowup)</span>
+        <span class="c1"># 3. Excessive gains or control</span>
+        <span class="n">emergency_reset</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">u_sat</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">abs</span><span class="p">(</span><span class="n">u_sat</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_force</span> <span class="o">*</span> <span class="mi">2</span> <span class="ow">or</span>
+            <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">k1_new</span><span class="p">)</span> <span class="ow">or</span> <span class="n">k1_new</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">k1_max</span> <span class="o">*</span> <span class="mf">0.9</span> <span class="ow">or</span>
+            <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">k2_new</span><span class="p">)</span> <span class="ow">or</span> <span class="n">k2_new</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">k2_max</span> <span class="o">*</span> <span class="mf">0.9</span> <span class="ow">or</span>
+            <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">u_int_new</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">abs</span><span class="p">(</span><span class="n">u_int_new</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">u_int_max</span> <span class="o">*</span> <span class="mf">1.5</span> <span class="ow">or</span>
+            <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">abs</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">100.0</span> <span class="ow">or</span>
+            <span class="n">state_norm</span> <span class="o">&gt;</span> <span class="mf">10.0</span> <span class="ow">or</span> <span class="n">velocity_norm</span> <span class="o">&gt;</span> <span class="mf">50.0</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">emergency_reset</span><span class="p">:</span>
+            <span class="c1"># Emergency reset: essentially disable aggressive control</span>
+            <span class="n">u_sat</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># Emergency stop</span>
+            <span class="n">k1_new</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k1_init</span> <span class="o">*</span> <span class="mf">0.05</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k1_max</span> <span class="o">*</span> <span class="mf">0.05</span><span class="p">))</span>  <span class="c1"># Minimal gains</span>
+            <span class="n">k2_new</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k2_init</span> <span class="o">*</span> <span class="mf">0.05</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k2_max</span> <span class="o">*</span> <span class="mf">0.05</span><span class="p">))</span>
+            <span class="n">u_int_new</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># Reset integral term</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">s</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>  <span class="c1"># Very tight clamp</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Normal safety checks</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">u_sat</span><span class="p">):</span>
+                <span class="n">u_sat</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">k1_new</span><span class="p">):</span>
+                <span class="n">k1_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k1_init</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">k2_new</span><span class="p">):</span>
+                <span class="n">k2_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k2_init</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">u_int_new</span><span class="p">):</span>
+                <span class="n">u_int_new</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="c1"># Package the outputs into a structured named tuple.  Returning a</span>
+        <span class="c1"># named tuple formalises the contract and allows clients to</span>
+        <span class="c1"># access fields by name while retaining tuple compatibility.</span>
+        <span class="k">return</span> <span class="n">HybridSTAOutput</span><span class="p">(</span><span class="n">u_sat</span><span class="p">,</span> <span class="p">(</span><span class="n">k1_new</span><span class="p">,</span> <span class="n">k2_new</span><span class="p">,</span> <span class="n">u_int_new</span><span class="p">),</span> <span class="n">history</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">))</span></div>
+</div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">src.controllers.hybrid_adaptive_sta_smc</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Research Team.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    </div>
+  </body>
+</html>

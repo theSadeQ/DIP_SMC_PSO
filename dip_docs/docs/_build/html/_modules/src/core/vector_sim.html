@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.core.vector_sim &#8212; DIP_SMC_PSO Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=fb9458d3" />
+    <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">src.core.vector_sim</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for src.core.vector_sim</h1><div class="highlight"><pre>
+<span></span><span class="c1">#==========================================================================================\\</span>
+<span class="c1">#=============================== src/core/vector_sim.py ===============================\\</span>
+<span class="c1">#==========================================================================================\\</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Unified simulation façade with vectorized safety guards.</span>
+
+<span class="sd">This module provides a high‑level ``simulate`` function that accepts either</span>
+<span class="sd">scalar or batched initial states and control inputs.  It dispatches the</span>
+<span class="sd">underlying dynamics step through ``src.core.simulation_runner.step`` and</span>
+<span class="sd">invokes safety guards after each step and before returning results.  The</span>
+<span class="sd">interface maintains shape parity between scalar and batch modes: a single</span>
+<span class="sd">simulation returns an array of shape ``(H+1, D)`` while a batch of B</span>
+<span class="sd">simulations returns a tensor of shape ``(B, H+1, D)``.  The initial state is</span>
+<span class="sd">always included at index ``0`` of the time dimension.</span>
+
+<span class="sd">Early stopping is supported via a simple stop callback: if ``stop_fn`` is</span>
+<span class="sd">provided and returns True given the current state, all remaining steps are</span>
+<span class="sd">skipped and the output is truncated to the elapsed horizon plus one.  To</span>
+<span class="sd">preserve uniform batch shapes, the earliest stopping time across batch</span>
+<span class="sd">elements truncates the entire batch.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.simulation_runner</span><span class="w"> </span><span class="kn">import</span> <span class="n">step</span> <span class="k">as</span> <span class="n">_step_fn</span>  <span class="c1"># dispatches on config flag</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.safety_guards</span><span class="w"> </span><span class="kn">import</span> <span class="n">_guard_no_nan</span><span class="p">,</span> <span class="n">_guard_energy</span><span class="p">,</span> <span class="n">_guard_bounds</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">src.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>  <span class="c1"># type: ignore</span>
+<span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleNamespace</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">SimpleNamespace</span><span class="p">(</span><span class="n">simulation</span><span class="o">=</span><span class="n">SimpleNamespace</span><span class="p">(</span><span class="n">safety</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="simulate">
+<a class="viewcode-back" href="../../../api/core/vector_sim.html#src.core.vector_sim.simulate">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">simulate</span><span class="p">(</span>
+    <span class="n">initial_state</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">control_inputs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">horizon</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">energy_limits</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">state_bounds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">stop_fn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">t0</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Simulate a dynamical system forward in time.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    initial_state : array-like</span>
+<span class="sd">        Initial state of shape ``(D,)`` or ``(B, D)``.  A missing batch</span>
+<span class="sd">        dimension implies ``B=1``.</span>
+<span class="sd">    control_inputs : array-like</span>
+<span class="sd">        Control sequence with shape ``(H,)`` or ``(H, U)`` for scalar runs or</span>
+<span class="sd">        ``(B, H)``/``(B, H, U)`` for batched runs.  The control dimension U</span>
+<span class="sd">        must be broadcastable to the state dimension.</span>
+<span class="sd">    dt : float</span>
+<span class="sd">        Timestep between control inputs.</span>
+<span class="sd">    horizon : int, optional</span>
+<span class="sd">        Number of simulation steps ``H``.  If not provided it is inferred</span>
+<span class="sd">        from the length of ``control_inputs``.</span>
+<span class="sd">    energy_limits : float, optional</span>
+<span class="sd">        Maximum allowed total energy.  When provided the energy guard</span>
+<span class="sd">        compares ``sum(state**2)`` against this limit after each step.</span>
+<span class="sd">    state_bounds : tuple, optional</span>
+<span class="sd">        Pair ``(lower, upper)`` specifying per‑dimension bounds.  Bounds may</span>
+<span class="sd">        be scalars or arrays broadcastable to the state shape.  A ``None``</span>
+<span class="sd">        value disables that side of the bound.</span>
+<span class="sd">    stop_fn : callable, optional</span>
+<span class="sd">        Optional predicate ``stop_fn(state)``.  If provided and returns</span>
+<span class="sd">        True, the simulation stops early and the output is truncated.</span>
+<span class="sd">    t0 : float, default 0.0</span>
+<span class="sd">        Initial simulation time used in bound violation messages.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    numpy.ndarray</span>
+<span class="sd">        Array of simulated states including the initial state.  Shape is</span>
+<span class="sd">        ``(H_stop+1, D)`` for scalar runs or ``(B, H_stop+1, D)`` for</span>
+<span class="sd">        batched runs, where ``H_stop &lt;= horizon`` if early stopping</span>
+<span class="sd">        occurred.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Scalar simulation:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; x0 = np.array([1.0, 0.0])</span>
+<span class="sd">    &gt;&gt;&gt; u = np.array([0.1, 0.2])</span>
+<span class="sd">    &gt;&gt;&gt; result = simulate(x0, u, 0.1)</span>
+<span class="sd">    &gt;&gt;&gt; result.shape</span>
+<span class="sd">    (3, 2)</span>
+<span class="sd">    &gt;&gt;&gt; result[0]  # initial state</span>
+<span class="sd">    array([1., 0.])</span>
+<span class="sd">    </span>
+<span class="sd">    Batch simulation with early stopping:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; x0_batch = np.array([[1.0, 0.0], [2.0, 1.0]])  </span>
+<span class="sd">    &gt;&gt;&gt; u_batch = np.array([[0.1, 0.2], [0.3, 0.4]])</span>
+<span class="sd">    &gt;&gt;&gt; stop_fn = lambda x: np.sum(x**2) &gt; 10.0</span>
+<span class="sd">    &gt;&gt;&gt; result = simulate(x0_batch, u_batch, 0.1, stop_fn=stop_fn)</span>
+<span class="sd">    &gt;&gt;&gt; result.shape[0] == 2  # batch size preserved</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; result.shape[1] &lt;= 3  # may be truncated due to early stop</span>
+<span class="sd">    True</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Convert state to array and normalise batch dimension</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">initial_state</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="c1"># Determine if batch: ndim &gt; 1 implies (B, D)</span>
+    <span class="n">batch_mode</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">batch_mode</span><span class="p">:</span>
+        <span class="n">x_b</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">x_b</span> <span class="o">=</span> <span class="n">x</span>
+
+    <span class="c1"># Convert controls to array and infer horizon</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">control_inputs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="c1"># If horizon is not provided, infer from the length of u along its first time axis</span>
+    <span class="k">if</span> <span class="n">horizon</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># For shapes (H,) or (H,U) we treat the first dimension as time</span>
+        <span class="c1"># For shapes (B,H) or (B,H,U) we use the second dimension</span>
+        <span class="k">if</span> <span class="n">u</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">H</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">batch_mode</span><span class="p">:</span>
+            <span class="n">H</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">H</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">H</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">horizon</span><span class="p">)</span>
+
+    <span class="c1"># Prepare output array with maximum possible horizon; will truncate on early stop</span>
+    <span class="n">n_batches</span> <span class="o">=</span> <span class="n">x_b</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">state_dim</span> <span class="o">=</span> <span class="n">x_b</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">states</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_batches</span><span class="p">,</span> <span class="n">H</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">state_dim</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">states</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">x_b</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">t0</span><span class="p">)</span>
+
+    <span class="c1"># If no explicit energy or bounds limits were provided, attempt to</span>
+    <span class="c1"># retrieve them from the global configuration.  The config object may</span>
+    <span class="c1"># expose ``simulation.safety`` with optional ``energy`` and ``bounds``</span>
+    <span class="c1"># attributes.  When present these values are used as defaults for</span>
+    <span class="c1"># the corresponding guard limits.  This lookup is performed once at</span>
+    <span class="c1"># the start of the simulation to avoid repeated attribute access in</span>
+    <span class="c1"># the inner loop.</span>
+    <span class="k">if</span> <span class="n">energy_limits</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">state_bounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">sim_cfg</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;simulation&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">safety_cfg</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">sim_cfg</span><span class="p">,</span> <span class="s2">&quot;safety&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">safety_cfg</span><span class="p">:</span>
+                <span class="c1"># Populate defaults only if not explicitly provided</span>
+                <span class="k">if</span> <span class="n">energy_limits</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">safety_cfg</span><span class="p">,</span> <span class="s2">&quot;energy&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">energy_limits</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">safety_cfg</span><span class="o">.</span><span class="n">energy</span><span class="o">.</span><span class="n">max</span><span class="p">)</span>  <span class="c1"># type: ignore[attr-defined]</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                        <span class="n">energy_limits</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="n">state_bounds</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">safety_cfg</span><span class="p">,</span> <span class="s2">&quot;bounds&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">lower</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">safety_cfg</span><span class="o">.</span><span class="n">bounds</span><span class="p">,</span> <span class="s2">&quot;lower&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>  <span class="c1"># type: ignore[attr-defined]</span>
+                        <span class="n">upper</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">safety_cfg</span><span class="o">.</span><span class="n">bounds</span><span class="p">,</span> <span class="s2">&quot;upper&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>  <span class="c1"># type: ignore[attr-defined]</span>
+                        <span class="n">state_bounds</span> <span class="o">=</span> <span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                        <span class="n">state_bounds</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="c1"># If config is not available or lacks expected structure, ignore</span>
+            <span class="k">pass</span>
+
+    <span class="c1"># Iterate through time steps</span>
+    <span class="n">stop_index</span> <span class="o">=</span> <span class="n">H</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">H</span><span class="p">):</span>
+        <span class="c1"># Extract control input for this time step, broadcasting batch dimension</span>
+        <span class="k">if</span> <span class="n">batch_mode</span><span class="p">:</span>
+            <span class="c1"># u shape could be (B,H,U) or (H,U) or (H,) or (B,H)</span>
+            <span class="k">if</span> <span class="n">u</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">u_i</span> <span class="o">=</span> <span class="n">u</span><span class="p">[:,</span> <span class="n">i</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">u</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="c1"># Could be (B,H) or (H,U)</span>
+                <span class="k">if</span> <span class="n">u</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">n_batches</span> <span class="ow">and</span> <span class="n">u</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">H</span><span class="p">:</span>
+                    <span class="n">u_i</span> <span class="o">=</span> <span class="n">u</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># (H,U) broadcast across batches</span>
+                    <span class="n">u_i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="p">(</span><span class="n">n_batches</span><span class="p">,)</span> <span class="o">+</span> <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">u</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># Scalar control input per step</span>
+                <span class="n">u_i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="p">(</span><span class="n">n_batches</span><span class="p">,))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">u_i</span> <span class="o">=</span> <span class="n">u</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Non‑batch: shapes (H,) or (H,U)</span>
+            <span class="k">if</span> <span class="n">u</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">u_i</span> <span class="o">=</span> <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">u_i</span> <span class="o">=</span> <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="c1"># Advance one step using the router</span>
+        <span class="n">x_next</span> <span class="o">=</span> <span class="n">_step_fn</span><span class="p">(</span><span class="n">x_b</span><span class="p">,</span> <span class="n">u_i</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+        <span class="c1"># Post‑step guards</span>
+        <span class="n">_guard_no_nan</span><span class="p">(</span><span class="n">x_next</span><span class="p">,</span> <span class="n">step_idx</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">energy_limits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">limits</span> <span class="o">=</span> <span class="n">energy_limits</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">energy_limits</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="p">{</span><span class="s2">&quot;max&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">energy_limits</span><span class="p">)}</span>
+            <span class="n">_guard_energy</span><span class="p">(</span><span class="n">x_next</span><span class="p">,</span> <span class="n">limits</span><span class="o">=</span><span class="n">limits</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">state_bounds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_guard_bounds</span><span class="p">(</span><span class="n">x_next</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">state_bounds</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">t</span> <span class="o">+</span> <span class="n">dt</span><span class="p">)</span>
+        <span class="c1"># Record and update state</span>
+        <span class="n">states</span><span class="p">[:,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">x_next</span>
+        <span class="n">x_b</span> <span class="o">=</span> <span class="n">x_next</span>
+        <span class="n">t</span> <span class="o">+=</span> <span class="n">dt</span>
+        <span class="c1"># Early stop check: call predicate on batch or scalar state</span>
+        <span class="k">if</span> <span class="n">stop_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Evaluate stop predicate on each batch element; stop if any returns True</span>
+            <span class="k">if</span> <span class="n">batch_mode</span><span class="p">:</span>
+                <span class="n">stop_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">bool</span><span class="p">(</span><span class="n">stop_fn</span><span class="p">(</span><span class="n">s</span><span class="p">))</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">x_b</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">stop_mask</span><span class="p">):</span>
+                    <span class="n">stop_index</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">stop_fn</span><span class="p">(</span><span class="n">x_b</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x_b</span><span class="p">,</span> <span class="s2">&quot;squeeze&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="n">x_b</span><span class="p">):</span>
+                    <span class="n">stop_index</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="k">break</span>
+
+    <span class="c1"># Pre‑emit guards on the final state (or truncated state)</span>
+    <span class="n">_guard_no_nan</span><span class="p">(</span><span class="n">x_b</span><span class="p">,</span> <span class="n">step_idx</span><span class="o">=</span><span class="n">stop_index</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">energy_limits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_guard_energy</span><span class="p">(</span><span class="n">x_b</span><span class="p">,</span> <span class="n">limits</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;max&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">energy_limits</span><span class="p">)})</span>
+    <span class="k">if</span> <span class="n">state_bounds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_guard_bounds</span><span class="p">(</span><span class="n">x_b</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">state_bounds</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+
+    <span class="c1"># Truncate output on early stop</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">states</span><span class="p">[:,</span> <span class="p">:</span> <span class="n">stop_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="c1"># Return squeezed array for scalar runs</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">batch_mode</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+
+
+<div class="viewcode-block" id="simulate_system_batch">
+<a class="viewcode-back" href="../../../api/core/vector_sim.html#src.core.vector_sim.simulate_system_batch">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">simulate_system_batch</span><span class="p">(</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">controller_factory</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">particles</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">sim_time</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">u_max</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">params_list</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">initial_state</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">convergence_tol</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">grace_period</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">rng</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">Generator</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">_kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Vectorised batch simulation of multiple controllers.</span>
+
+<span class="sd">    This function wraps ``run_simulation`` to simultaneously simulate a batch</span>
+<span class="sd">    of controllers with distinct gain vectors (``particles``).  It returns</span>
+<span class="sd">    time, state, control and sliding-surface arrays for the entire batch.</span>
+<span class="sd">    Optional early stopping is available: once the magnitude of the sliding</span>
+<span class="sd">    surface ``sigma`` falls below ``convergence_tol`` for all particles (after</span>
+<span class="sd">    a grace period), integration halts early and the outputs are truncated.</span>
+
+<span class="sd">    When ``params_list`` is provided, the simulation is repeated for each</span>
+<span class="sd">    element in the list.  The return value is then a list of results, one per</span>
+<span class="sd">    parameter set.  For backward compatibility, the dynamics model is</span>
+<span class="sd">    determined internally by the controller factory; perturbed physics</span>
+<span class="sd">    parameters are ignored and results are replicated across the list.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    controller_factory : callable</span>
+<span class="sd">        Factory ``controller_factory(p)`` that returns a controller given a</span>
+<span class="sd">        gain vector ``p``.  The returned controller must expose a</span>
+<span class="sd">        ``dynamics_model`` attribute defining the system dynamics.</span>
+<span class="sd">    particles : array-like</span>
+<span class="sd">        Array of shape ``(B, G)`` where each row contains a gain vector for</span>
+<span class="sd">        one particle.  A single particle may be provided as shape ``(G,)``.</span>
+<span class="sd">    sim_time : float</span>
+<span class="sd">        Total simulation duration (seconds).</span>
+<span class="sd">    dt : float</span>
+<span class="sd">        Timestep for integration (seconds).</span>
+<span class="sd">    u_max : float, optional</span>
+<span class="sd">        Control saturation limit.  Overrides controller-specific ``max_force``.</span>
+<span class="sd">    seed : int, optional</span>
+<span class="sd">        Deprecated.  Ignored; retained for signature compatibility.</span>
+<span class="sd">    params_list : iterable, optional</span>
+<span class="sd">        Optional list of physics parameter objects.  When provided, the</span>
+<span class="sd">        simulation is repeated for each element.  The current implementation</span>
+<span class="sd">        ignores these parameters and replicates the base results.</span>
+<span class="sd">    initial_state : array-like, optional</span>
+<span class="sd">        Initial state(s) for the batch.  If ``None``, a zero state is used.</span>
+<span class="sd">        If a 1D array of length ``D`` is provided, it is broadcast across all</span>
+<span class="sd">        particles.  If a 2D array of shape ``(B, D)`` is provided, it is used</span>
+<span class="sd">        directly.</span>
+<span class="sd">    convergence_tol : float, optional</span>
+<span class="sd">        Threshold for sliding-surface convergence.  When provided and</span>
+<span class="sd">        positive, the integration stops once ``max(|sigma|) &lt; convergence_tol``</span>
+<span class="sd">        across all particles (after the grace period).</span>
+<span class="sd">    grace_period : float, optional</span>
+<span class="sd">        Duration (seconds) to wait before checking the convergence criterion.</span>
+<span class="sd">    rng : numpy.random.Generator, optional</span>
+<span class="sd">        Unused in this implementation.  Present for API compatibility.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    If ``params_list`` is not provided, returns a tuple ``(t, x_b, u_b, sigma_b)``:</span>
+<span class="sd">    </span>
+<span class="sd">    - ``t``: ndarray of shape ``(N+1,)`` of time points</span>
+<span class="sd">    - ``x_b``: ndarray of shape ``(B, N+1, D)`` of states</span>
+<span class="sd">    - ``u_b``: ndarray of shape ``(B, N)`` of controls</span>
+<span class="sd">    - ``sigma_b``: ndarray of shape ``(B, N)`` of sliding-surface values</span>
+
+<span class="sd">    If ``params_list`` is provided, returns a list of such tuples (one per</span>
+<span class="sd">    element in ``params_list``).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_np</span>  <span class="c1"># local import to avoid polluting namespace</span>
+    <span class="c1"># Convert particles to array</span>
+    <span class="n">part_arr</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">particles</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">part_arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">part_arr</span> <span class="o">=</span> <span class="n">part_arr</span><span class="p">[</span><span class="n">_np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">B</span><span class="p">,</span> <span class="n">G</span> <span class="o">=</span> <span class="n">part_arr</span><span class="o">.</span><span class="n">shape</span>
+    <span class="c1"># Determine number of steps</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+    <span class="n">sim_time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">sim_time</span><span class="p">)</span>
+    <span class="n">H</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">sim_time</span> <span class="o">/</span> <span class="n">dt</span><span class="p">))</span> <span class="k">if</span> <span class="n">sim_time</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="c1"># Instantiate controllers for each particle</span>
+    <span class="n">controllers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">B</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ctrl</span> <span class="o">=</span> <span class="n">controller_factory</span><span class="p">(</span><span class="n">part_arr</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">ctrl</span> <span class="o">=</span> <span class="n">controller_factory</span><span class="p">(</span><span class="n">part_arr</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+        <span class="n">controllers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ctrl</span><span class="p">)</span>
+    <span class="c1"># Determine state dimension from first controller&#39;s dynamics model</span>
+    <span class="k">if</span> <span class="n">initial_state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Try to introspect state dimension</span>
+        <span class="n">state_dim</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">state_dim</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">controllers</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;state_dim&quot;</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">state_dim</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">controllers</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;dynamics_model&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">state_dim</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">state_dim</span> <span class="o">=</span> <span class="mi">6</span>  <span class="c1"># fall back to DIP dimension</span>
+        <span class="n">init_b</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">B</span><span class="p">,</span> <span class="n">state_dim</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">init</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">initial_state</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">init</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># broadcast across batch</span>
+            <span class="n">init_b</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">init</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">init_b</span> <span class="o">=</span> <span class="n">init</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="c1"># Preallocate outputs</span>
+    <span class="n">t_arr</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">H</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">x_b</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">B</span><span class="p">,</span> <span class="n">H</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">init_b</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">u_b</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">B</span><span class="p">,</span> <span class="n">H</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">sigma_b</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">B</span><span class="p">,</span> <span class="n">H</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">x_b</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">init_b</span>
+    <span class="c1"># Convergence parameters</span>
+    <span class="n">check_convergence</span> <span class="o">=</span> <span class="p">(</span><span class="n">convergence_tol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">convergence_tol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">conv_tol</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">convergence_tol</span><span class="p">)</span> <span class="k">if</span> <span class="n">convergence_tol</span> <span class="k">else</span> <span class="mf">0.0</span>
+    <span class="n">grace_steps</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">grace_period</span><span class="p">)</span> <span class="o">/</span> <span class="n">dt</span><span class="p">))</span> <span class="k">if</span> <span class="n">grace_period</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="c1"># Per-controller state and history</span>
+    <span class="n">state_vars</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">B</span>
+    <span class="n">histories</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">B</span>
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">ctrl</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">controllers</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ctrl</span><span class="p">,</span> <span class="s2">&quot;initialize_state&quot;</span><span class="p">):</span>
+                <span class="n">state_vars</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">ctrl</span><span class="o">.</span><span class="n">initialize_state</span><span class="p">()</span>  <span class="c1"># type: ignore[assignment]</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">state_vars</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ctrl</span><span class="p">,</span> <span class="s2">&quot;initialize_history&quot;</span><span class="p">):</span>
+                <span class="n">histories</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">ctrl</span><span class="o">.</span><span class="n">initialize_history</span><span class="p">()</span>  <span class="c1"># type: ignore[assignment]</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">histories</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1"># Determine per-particle saturation limits</span>
+    <span class="n">u_limits</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">_np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">u_max</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">u_limits</span><span class="p">[:]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">u_max</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">ctrl</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">controllers</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ctrl</span><span class="p">,</span> <span class="s2">&quot;max_force&quot;</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">u_limits</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">ctrl</span><span class="p">,</span> <span class="s2">&quot;max_force&quot;</span><span class="p">))</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="n">u_limits</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="c1"># Simulation loop</span>
+    <span class="c1"># We will reuse dynamics_model from each controller</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="n">t_arr</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">H</span><span class="p">):</span>
+        <span class="n">t_now</span> <span class="o">=</span> <span class="n">i</span> <span class="o">*</span> <span class="n">dt</span>
+        <span class="n">times</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">t_now</span>
+        <span class="c1"># Compute controls and sigma for each particle</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">ctrl</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">controllers</span><span class="p">):</span>
+            <span class="n">x_curr</span> <span class="o">=</span> <span class="n">x_b</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
+            <span class="c1"># Use compute_control if available</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ctrl</span><span class="p">,</span> <span class="s2">&quot;compute_control&quot;</span><span class="p">):</span>
+                    <span class="n">ret</span> <span class="o">=</span> <span class="n">ctrl</span><span class="o">.</span><span class="n">compute_control</span><span class="p">(</span><span class="n">x_curr</span><span class="p">,</span> <span class="n">state_vars</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">histories</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+                    <span class="c1"># ret may be namedtuple or tuple</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">u_val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">ret</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                        <span class="n">u_val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+                    <span class="c1"># update state and history</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+                            <span class="n">state_vars</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">ret</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+                            <span class="n">histories</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">ret</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                        <span class="k">pass</span>
+                    <span class="c1"># extract sigma if available</span>
+                    <span class="n">sigma_val</span> <span class="o">=</span> <span class="mf">0.0</span>
+                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ret</span><span class="p">,</span> <span class="s2">&quot;sigma&quot;</span><span class="p">):</span>
+                        <span class="n">sigma_val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">ret</span><span class="o">.</span><span class="n">sigma</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ret</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">4</span><span class="p">:</span>
+                        <span class="n">sigma_val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">ret</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">u_val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">ctrl</span><span class="p">(</span><span class="n">t_now</span><span class="p">,</span> <span class="n">x_curr</span><span class="p">))</span>
+                    <span class="n">sigma_val</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="c1"># On error computing control, treat as instability and stop</span>
+                <span class="n">H</span> <span class="o">=</span> <span class="n">i</span>
+                <span class="n">u_b</span> <span class="o">=</span> <span class="n">u_b</span><span class="p">[:,</span> <span class="p">:</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">x_b</span> <span class="o">=</span> <span class="n">x_b</span><span class="p">[:,</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                <span class="n">sigma_b</span> <span class="o">=</span> <span class="n">sigma_b</span><span class="p">[:,</span> <span class="p">:</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">times</span> <span class="o">=</span> <span class="n">times</span><span class="p">[:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                <span class="c1"># Attach histories</span>
+                <span class="k">for</span> <span class="n">jj</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">controllers</span><span class="p">):</span>
+                    <span class="n">hist</span> <span class="o">=</span> <span class="n">histories</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">hist</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="nb">setattr</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="s2">&quot;_last_history&quot;</span><span class="p">,</span> <span class="n">hist</span><span class="p">)</span>
+                        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                            <span class="k">pass</span>
+                <span class="k">if</span> <span class="n">params_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="p">[(</span><span class="n">_np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">times</span><span class="p">),</span> <span class="n">_np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">x_b</span><span class="p">),</span> <span class="n">_np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">u_b</span><span class="p">),</span> <span class="n">_np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">sigma_b</span><span class="p">))</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">params_list</span><span class="p">]</span>
+                <span class="k">return</span> <span class="n">times</span><span class="p">,</span> <span class="n">x_b</span><span class="p">,</span> <span class="n">u_b</span><span class="p">,</span> <span class="n">sigma_b</span>
+            <span class="c1"># Saturate and store</span>
+            <span class="n">limit</span> <span class="o">=</span> <span class="n">u_limits</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">limit</span> <span class="o">&lt;</span> <span class="n">_np</span><span class="o">.</span><span class="n">inf</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">u_val</span> <span class="o">&gt;</span> <span class="n">limit</span><span class="p">:</span>
+                    <span class="n">u_val</span> <span class="o">=</span> <span class="n">limit</span>
+                <span class="k">elif</span> <span class="n">u_val</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">limit</span><span class="p">:</span>
+                    <span class="n">u_val</span> <span class="o">=</span> <span class="o">-</span><span class="n">limit</span>
+            <span class="n">u_b</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">u_val</span>
+            <span class="n">sigma_b</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">sigma_val</span>
+        <span class="c1"># Step all particles forward using their dynamics model</span>
+        <span class="n">early_stop</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">ctrl</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">controllers</span><span class="p">):</span>
+            <span class="n">dyn</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ctrl</span><span class="p">,</span> <span class="s2">&quot;dynamics_model&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">dyn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># If controller lacks dynamics_model, fall back to global step</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">x_next</span> <span class="o">=</span> <span class="n">ctrl</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">x_b</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="n">u_b</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="n">dt</span><span class="p">)</span>  <span class="c1"># type: ignore[attr-defined]</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="n">x_next</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">x_next</span> <span class="o">=</span> <span class="n">dyn</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">x_b</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="n">u_b</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="n">dt</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="n">x_next</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">x_next</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">early_stop</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">break</span>
+            <span class="n">x_next_arr</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x_next</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">_np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">x_next_arr</span><span class="p">)):</span>
+                <span class="n">early_stop</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">break</span>
+            <span class="n">x_b</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_next_arr</span>
+        <span class="k">if</span> <span class="n">early_stop</span><span class="p">:</span>
+            <span class="c1"># truncate and exit</span>
+            <span class="n">H</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="n">u_b</span> <span class="o">=</span> <span class="n">u_b</span><span class="p">[:,</span> <span class="p">:</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">x_b</span> <span class="o">=</span> <span class="n">x_b</span><span class="p">[:,</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">sigma_b</span> <span class="o">=</span> <span class="n">sigma_b</span><span class="p">[:,</span> <span class="p">:</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">times</span> <span class="o">=</span> <span class="n">times</span><span class="p">[:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">jj</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">controllers</span><span class="p">):</span>
+                <span class="n">hist</span> <span class="o">=</span> <span class="n">histories</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">hist</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="nb">setattr</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="s2">&quot;_last_history&quot;</span><span class="p">,</span> <span class="n">hist</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                        <span class="k">pass</span>
+            <span class="k">if</span> <span class="n">params_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[(</span><span class="n">_np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">times</span><span class="p">),</span> <span class="n">_np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">x_b</span><span class="p">),</span> <span class="n">_np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">u_b</span><span class="p">),</span> <span class="n">_np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">sigma_b</span><span class="p">))</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">params_list</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">times</span><span class="p">,</span> <span class="n">x_b</span><span class="p">,</span> <span class="n">u_b</span><span class="p">,</span> <span class="n">sigma_b</span>
+        <span class="c1"># Early convergence check</span>
+        <span class="k">if</span> <span class="n">check_convergence</span> <span class="ow">and</span> <span class="p">(</span><span class="n">i</span> <span class="o">&gt;=</span> <span class="n">grace_steps</span><span class="p">):</span>
+            <span class="n">max_sigma</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">sigma_b</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]))</span>
+            <span class="k">if</span> <span class="n">max_sigma</span> <span class="o">&lt;</span> <span class="n">conv_tol</span><span class="p">:</span>
+                <span class="n">H</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">u_b</span> <span class="o">=</span> <span class="n">u_b</span><span class="p">[:,</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                <span class="n">x_b</span> <span class="o">=</span> <span class="n">x_b</span><span class="p">[:,</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span>
+                <span class="n">sigma_b</span> <span class="o">=</span> <span class="n">sigma_b</span><span class="p">[:,</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                <span class="n">times</span> <span class="o">=</span> <span class="n">times</span><span class="p">[:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span>
+                <span class="c1"># copy histories</span>
+                <span class="k">for</span> <span class="n">jj</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">controllers</span><span class="p">):</span>
+                    <span class="n">hist</span> <span class="o">=</span> <span class="n">histories</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">hist</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="nb">setattr</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="s2">&quot;_last_history&quot;</span><span class="p">,</span> <span class="n">hist</span><span class="p">)</span>
+                        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                            <span class="k">pass</span>
+                <span class="k">if</span> <span class="n">params_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="p">[(</span><span class="n">_np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">times</span><span class="p">),</span> <span class="n">_np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">x_b</span><span class="p">),</span> <span class="n">_np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">u_b</span><span class="p">),</span> <span class="n">_np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">sigma_b</span><span class="p">))</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">params_list</span><span class="p">]</span>
+                <span class="k">return</span> <span class="n">times</span><span class="p">,</span> <span class="n">x_b</span><span class="p">,</span> <span class="n">u_b</span><span class="p">,</span> <span class="n">sigma_b</span>
+    <span class="c1"># Finalise times</span>
+    <span class="n">times</span><span class="p">[</span><span class="n">H</span><span class="p">]</span> <span class="o">=</span> <span class="n">H</span> <span class="o">*</span> <span class="n">dt</span>
+    <span class="c1"># attach histories on controllers</span>
+    <span class="k">for</span> <span class="n">jj</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">controllers</span><span class="p">):</span>
+        <span class="n">hist</span> <span class="o">=</span> <span class="n">histories</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">hist</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="s2">&quot;_last_history&quot;</span><span class="p">,</span> <span class="n">hist</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">pass</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">x_b</span><span class="p">,</span> <span class="n">u_b</span><span class="p">,</span> <span class="n">sigma_b</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">params_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">result</span>
+    <span class="c1"># replicate results for each params entry</span>
+    <span class="k">return</span> <span class="p">[(</span><span class="n">_np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">times</span><span class="p">),</span> <span class="n">_np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">x_b</span><span class="p">),</span> <span class="n">_np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">u_b</span><span class="p">),</span> <span class="n">_np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">sigma_b</span><span class="p">))</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">params_list</span><span class="p">]</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">src.core.vector_sim</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Research Team.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    </div>
+  </body>
+</html>

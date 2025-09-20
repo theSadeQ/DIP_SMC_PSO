@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.core.numba_utils &#8212; DIP_SMC_PSO Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=fb9458d3" />
+    <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">src.core.numba_utils</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for src.core.numba_utils</h1><div class="highlight"><pre>
+<span></span><span class="c1">#==========================================================================================\\</span>
+<span class="c1">#=============================== src/core/numba_utils.py ===============================\\</span>
+<span class="c1">#==========================================================================================\\</span>
+<span class="sd">&quot;&quot;&quot;Utilities for configuring Numba at runtime.</span>
+
+<span class="sd">This module exposes a helper to set Numba cache and threading</span>
+<span class="sd">configuration in a controlled manner.  Previously the batch simulator</span>
+<span class="sd">(`vector_sim.py`) unconditionally set environment variables</span>
+<span class="sd">``NUMBA_CACHE_DIR`` and ``NUMBA_THREADING_LAYER`` at import time.  This</span>
+<span class="sd">practice can interfere with other components in the same Python process</span>
+<span class="sd">and lead to non‑deterministic behaviour.  Following reproducibility</span>
+<span class="sd">guidelines, configuration should be performed explicitly by the caller</span>
+<span class="sd">rather than globally at import.</span>
+
+<span class="sd">Callers may invoke :func:`configure_numba` early in the program to</span>
+<span class="sd">establish a preferred cache directory and threading layer.  If no</span>
+<span class="sd">threading layer is specified, Numba&#39;s default selection is used.  When</span>
+<span class="sd">``cache_dir`` is provided, the function ensures that the directory</span>
+<span class="sd">exists before assigning it to the ``NUMBA_CACHE_DIR`` environment</span>
+<span class="sd">variable.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
+
+
+<div class="viewcode-block" id="configure_numba">
+<a class="viewcode-back" href="../../../api/core/numba_utils.html#src.core.numba_utils.configure_numba">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">configure_numba</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">threading_layer</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configure Numba&#39;s cache directory and threading layer.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cache_dir : str or None, optional</span>
+<span class="sd">        The directory to use for caching compiled Numba functions.  When</span>
+<span class="sd">        ``None`` the existing ``NUMBA_CACHE_DIR`` environment variable is</span>
+<span class="sd">        left unchanged.  If a non‑empty string is provided, the</span>
+<span class="sd">        directory is created if it does not already exist, and the</span>
+<span class="sd">        environment variable ``NUMBA_CACHE_DIR`` is set to this path.</span>
+
+<span class="sd">    threading_layer : str or None, optional</span>
+<span class="sd">        The threading backend to use (e.g., ``&quot;tbb&quot;``, ``&quot;omp&quot;`` or</span>
+<span class="sd">        ``&quot;workqueue&quot;``).  When ``None`` the existing</span>
+<span class="sd">        ``NUMBA_THREADING_LAYER`` environment variable is left unchanged.</span>
+<span class="sd">        When a value is provided, it is assigned to</span>
+<span class="sd">        ``NUMBA_THREADING_LAYER``.  Invalid threading layers will be</span>
+<span class="sd">        detected and raise a ``ValueError`` when Numba subsequently</span>
+<span class="sd">        selects a backend.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Numba selects its threading backend at the time of the first</span>
+<span class="sd">    compilation.  Therefore, callers should invoke this function before</span>
+<span class="sd">    importing modules that compile Numba functions (such as</span>
+<span class="sd">    :mod:`src.core.vector_sim`).  The configuration is stored in the</span>
+<span class="sd">    environment, so it persists for the duration of the process.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">cache_dir</span><span class="p">:</span>
+        <span class="c1"># Ensure the cache directory exists before assigning</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;NUMBA_CACHE_DIR&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cache_dir</span>
+    <span class="k">if</span> <span class="n">threading_layer</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;NUMBA_THREADING_LAYER&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">threading_layer</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">src.core.numba_utils</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Research Team.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    </div>
+  </body>
+</html>

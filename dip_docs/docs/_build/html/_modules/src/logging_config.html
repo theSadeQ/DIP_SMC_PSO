@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.logging_config &#8212; DIP_SMC_PSO Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=fb9458d3" />
+    <script src="../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">src.logging_config</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for src.logging_config</h1><div class="highlight"><pre>
+<span></span><span class="c1">#==========================================================================================\\\</span>
+<span class="c1">#================================= src/logging_config.py ================================\\\</span>
+<span class="c1">#==========================================================================================\\\</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Centralised logging configuration with provenance stamping.</span>
+
+<span class="sd">This module configures the root logger to record run provenance in every</span>
+<span class="sd">log message.  Provenance fields include the short Git commit SHA of</span>
+<span class="sd">the working directory, a hash of the configuration dictionary and the</span>
+<span class="sd">master random seed.  The logger is configured using a filter that</span>
+<span class="sd">adds these fields to each ``LogRecord`` and a format string that</span>
+<span class="sd">prefixes messages with ``[commit|cfg_hash|seed=&lt;seed&gt;]``.  By</span>
+<span class="sd">including such metadata in logs, researchers can unambiguously trace</span>
+<span class="sd">results back to the precise code and configuration that generated</span>
+<span class="sd">them, satisfying reproducibility guidelines【985132039892507†L364-L377】.</span>
+
+<span class="sd">The design of this module is inspired by best practices for</span>
+<span class="sd">reproducible computational research.  Sandve et al. (2013) emphasise</span>
+<span class="sd">that analyses involving randomness must record the underlying random</span>
+<span class="sd">seed so that results can be replicated exactly【985132039892507†L364-L377】.</span>
+<span class="sd">Similarly, tagging logs with the commit SHA and configuration hash</span>
+<span class="sd">allows others to verify that they are running the same code base and</span>
+<span class="sd">parameters.  Logging provenance promotes transparency and fosters</span>
+<span class="sd">confidence in published results.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>  <span class="c1"># type: ignore</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">yaml</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Safe fallback when PyYAML is unavailable</span>
+
+
+<div class="viewcode-block" id="ProvenanceFilter">
+<a class="viewcode-back" href="../../api/utils/logging_config.html#src.logging_config.ProvenanceFilter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ProvenanceFilter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Filter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Inject commit, configuration hash and seed into log records.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    commit_sha : str</span>
+<span class="sd">        Short Git commit SHA (or &quot;unknown&quot; if unavailable).</span>
+<span class="sd">    config_hash : str</span>
+<span class="sd">        Truncated SHA‑256 hash of the configuration dictionary.</span>
+<span class="sd">    seed : int</span>
+<span class="sd">        Master random seed recorded in logs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ProvenanceFilter.__init__">
+<a class="viewcode-back" href="../../api/utils/logging_config.html#src.logging_config.ProvenanceFilter.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">commit_sha</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">config_hash</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">commit_sha</span> <span class="o">=</span> <span class="n">commit_sha</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config_hash</span> <span class="o">=</span> <span class="n">config_hash</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">seed</span></div>
+
+
+<div class="viewcode-block" id="ProvenanceFilter.filter">
+<a class="viewcode-back" href="../../api/utils/logging_config.html#src.logging_config.ProvenanceFilter.filter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">LogRecord</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="c1"># Attach provenance attributes to the record.  These names</span>
+        <span class="c1"># correspond to the placeholders used in the log format string.</span>
+        <span class="n">record</span><span class="o">.</span><span class="n">commit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">commit_sha</span>
+        <span class="n">record</span><span class="o">.</span><span class="n">cfg_hash</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_hash</span>
+        <span class="n">record</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+</div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_compute_config_hash</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute a truncated SHA‑256 hash of a configuration dictionary.</span>
+
+<span class="sd">    When PyYAML is available the configuration is serialised via</span>
+<span class="sd">    ``yaml.safe_dump`` to obtain a canonical representation.  When</span>
+<span class="sd">    unavailable, ``repr`` is used as a fallback.  The full SHA‑256</span>
+<span class="sd">    digest is computed and truncated to the first eight hexadecimal</span>
+<span class="sd">    characters to produce a compact identifier.  Hashing the</span>
+<span class="sd">    configuration ensures that even small changes in parameter values</span>
+<span class="sd">    produce different identifiers, facilitating provenance tracking.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;00000000&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">yaml</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dumped</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dumped</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="n">digest</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">dumped</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">digest</span><span class="p">[:</span><span class="mi">8</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="c1"># Fallback to a constant when hashing fails</span>
+        <span class="k">return</span> <span class="s2">&quot;00000000&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_git_commit</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the short Git commit SHA of the current working tree.</span>
+
+<span class="sd">    If the repository is not under version control or Git is not</span>
+<span class="sd">    installed, return &quot;unknown&quot;.  The commit SHA is determined by</span>
+<span class="sd">    invoking ``git rev-parse --short HEAD`` via subprocess.  Any</span>
+<span class="sd">    exceptions are caught and masked to preserve robustness.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Use subprocess to query the Git commit.  The ``text`` flag</span>
+        <span class="c1"># ensures a string result on both Python 3.8 and 3.11.</span>
+        <span class="n">sha</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span>
+            <span class="p">[</span><span class="s2">&quot;git&quot;</span><span class="p">,</span> <span class="s2">&quot;rev-parse&quot;</span><span class="p">,</span> <span class="s2">&quot;--short&quot;</span><span class="p">,</span> <span class="s2">&quot;HEAD&quot;</span><span class="p">],</span>
+            <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">DEVNULL</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">sha</span> <span class="k">if</span> <span class="n">sha</span> <span class="k">else</span> <span class="s2">&quot;unknown&quot;</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;unknown&quot;</span>
+
+
+<div class="viewcode-block" id="configure_provenance_logging">
+<a class="viewcode-back" href="../../api/utils/logging_config.html#src.logging_config.configure_provenance_logging">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">configure_provenance_logging</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">level</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configure the root logger with provenance stamping.</span>
+
+<span class="sd">    This helper sets up logging such that each log record includes</span>
+<span class="sd">    provenance metadata.  It should be called once near the start of</span>
+<span class="sd">    an application, before any logging calls are made.  Subsequent</span>
+<span class="sd">    calls will reconfigure the root logger and may override previous</span>
+<span class="sd">    handlers.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config : dict</span>
+<span class="sd">        The configuration dictionary to hash.  Nested structures are</span>
+<span class="sd">        supported.  Passing ``None`` results in a constant hash.</span>
+<span class="sd">    seed : int</span>
+<span class="sd">        The master random seed to record.  According to reproducibility</span>
+<span class="sd">        guidelines, this value should be stored in logs so that</span>
+<span class="sd">        stochastic runs can be reproduced exactly【985132039892507†L364-L377】.</span>
+<span class="sd">    level : int, optional</span>
+<span class="sd">        Logging level for the root logger.  Defaults to ``logging.INFO``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">commit</span> <span class="o">=</span> <span class="n">_get_git_commit</span><span class="p">()</span>
+    <span class="n">cfg_hash</span> <span class="o">=</span> <span class="n">_compute_config_hash</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+    <span class="n">seed_val</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span> <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">0</span>
+
+    <span class="c1"># Do NOT call logging.basicConfig here (tests assert no basicConfig on import).</span>
+    <span class="c1"># Instead, attach a provenance filter to the root logger so records carry fields.</span>
+    <span class="n">root_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
+    <span class="n">root_logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+    <span class="c1"># Avoid duplicate filters on repeated calls</span>
+    <span class="n">have_filter</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">ProvenanceFilter</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">root_logger</span><span class="o">.</span><span class="n">filters</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">have_filter</span><span class="p">:</span>
+        <span class="n">root_logger</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">ProvenanceFilter</span><span class="p">(</span><span class="n">commit</span><span class="p">,</span> <span class="n">cfg_hash</span><span class="p">,</span> <span class="n">seed_val</span><span class="p">))</span>
+    <span class="c1"># If no handlers are configured, attach a minimal StreamHandler with a formatter</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">root_logger</span><span class="o">.</span><span class="n">handlers</span><span class="p">:</span>
+        <span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+        <span class="n">fmt</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s2">&quot;[</span><span class="si">%(commit)s</span><span class="s2">|</span><span class="si">%(cfg_hash)s</span><span class="s2">|seed=</span><span class="si">%(seed)s</span><span class="s2">] </span><span class="si">%(asctime)s</span><span class="s2"> </span><span class="si">%(levelname)s</span><span class="s2"> </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">fmt</span><span class="p">)</span>
+        <span class="n">handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+        <span class="n">root_logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+
+    <span class="c1"># Log a startup message summarising the provenance.  This makes</span>
+    <span class="c1"># provenance visible at the beginning of the log and aids in</span>
+    <span class="c1"># debugging.  The commit and configuration hash identify the code</span>
+    <span class="c1"># and configuration used, while the seed ensures deterministic</span>
+    <span class="c1"># initialisation【985132039892507†L364-L377】.</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Provenance configured: commit=</span><span class="si">{</span><span class="n">commit</span><span class="si">}</span><span class="s2">, cfg_hash=</span><span class="si">{</span><span class="n">cfg_hash</span><span class="si">}</span><span class="s2">, seed=</span><span class="si">{</span><span class="n">seed_val</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;configure_provenance_logging&quot;</span><span class="p">,</span> <span class="s2">&quot;ProvenanceFilter&quot;</span><span class="p">]</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">src.logging_config</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Research Team.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    </div>
+  </body>
+</html>

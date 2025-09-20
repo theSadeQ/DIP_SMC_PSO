@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Simulation Context &#8212; DIP_SMC_PSO Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=fb9458d3" />
+    <script src="../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Simulation Runner" href="simulation_runner.html" />
+    <link rel="prev" title="Safety Guards" href="safety_guards.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="simulation_runner.html" title="Simulation Runner"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="safety_guards.html" title="Safety Guards"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >API Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" accesskey="U">Core</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Simulation Context</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="simulation-context">
+<h1>Simulation Context<a class="headerlink" href="#simulation-context" title="Link to this heading">¶</a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>Manages the simulation setup, including configuration loading and dynamic selection of the physics model.</p>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">src.core.simulation_context</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+</section>
+<section id="api-summary">
+<h2>API Summary<a class="headerlink" href="#api-summary" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#module-src.core.simulation_context" title="src.core.simulation_context"><code class="xref py py-obj docutils literal notranslate"><span class="pre">src.core.simulation_context</span></code></a></p></td>
+<td><p>Manages the simulation setup, including configuration loading and dynamic selection of the physics model.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-src.core.simulation_context">
+<span id="detailed-api"></span><h2>Detailed API<a class="headerlink" href="#module-src.core.simulation_context" title="Link to this heading">¶</a></h2>
+<p>Manages the simulation setup, including configuration loading and
+dynamic selection of the physics model.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.core.simulation_context.SimulationContext">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.core.simulation_context.</span></span><span class="sig-name descname"><span class="pre">SimulationContext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'config.yaml'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/src/core/simulation_context.html#SimulationContext"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.core.simulation_context.SimulationContext" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Initializes and holds the context for a simulation run.</p>
+<p>This class centralizes the setup logic by loading the configuration
+and selecting the appropriate dynamics model based on that config.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.core.simulation_context.SimulationContext.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'config.yaml'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/src/core/simulation_context.html#SimulationContext.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.core.simulation_context.SimulationContext.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize the simulation context by loading the configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="src.core.simulation_context.SimulationContext.get_dynamics_model">
+<span class="sig-name descname"><span class="pre">get_dynamics_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/src/core/simulation_context.html#SimulationContext.get_dynamics_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.core.simulation_context.SimulationContext.get_dynamics_model" title="Link to this definition">¶</a></dt>
+<dd><p>Return the initialized dynamics model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="dynamics.html#src.core.dynamics.DoubleInvertedPendulum" title="src.core.dynamics.DoubleInvertedPendulum"><em>DoubleInvertedPendulum</em></a> | <em>FullDIPDynamics</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="src.core.simulation_context.SimulationContext.get_config">
+<span class="sig-name descname"><span class="pre">get_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/src/core/simulation_context.html#SimulationContext.get_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.core.simulation_context.SimulationContext.get_config" title="Link to this definition">¶</a></dt>
+<dd><p>Return the validated configuration model for reuse by callers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>ConfigSchema</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="src.core.simulation_context.SimulationContext.create_controller">
+<span class="sig-name descname"><span class="pre">create_controller</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gains</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/src/core/simulation_context.html#SimulationContext.create_controller"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.core.simulation_context.SimulationContext.create_controller" title="Link to this definition">¶</a></dt>
+<dd><p>Create a controller using the shared, validated config and the project factory.
+If no name is provided, default to ‘classical_smc’.
+If no gains are provided, use defaults from config.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>gains</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><em>List</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="src.core.simulation_context.SimulationContext.create_fdi">
+<span class="sig-name descname"><span class="pre">create_fdi</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/src/core/simulation_context.html#SimulationContext.create_fdi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.core.simulation_context.SimulationContext.create_fdi" title="Link to this definition">¶</a></dt>
+<dd><p>Create the FDI system if enabled in config; otherwise return None.
+Mirrors the previous app-level behavior (non-fatal if missing).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a> | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Simulation Context</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#api-summary">API Summary</a></li>
+<li><a class="reference internal" href="#module-src.core.simulation_context">Detailed API</a><ul>
+<li><a class="reference internal" href="#src.core.simulation_context.SimulationContext"><code class="docutils literal notranslate"><span class="pre">SimulationContext</span></code></a><ul>
+<li><a class="reference internal" href="#src.core.simulation_context.SimulationContext.__init__"><code class="docutils literal notranslate"><span class="pre">SimulationContext.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#src.core.simulation_context.SimulationContext.get_dynamics_model"><code class="docutils literal notranslate"><span class="pre">SimulationContext.get_dynamics_model()</span></code></a></li>
+<li><a class="reference internal" href="#src.core.simulation_context.SimulationContext.get_config"><code class="docutils literal notranslate"><span class="pre">SimulationContext.get_config()</span></code></a></li>
+<li><a class="reference internal" href="#src.core.simulation_context.SimulationContext.create_controller"><code class="docutils literal notranslate"><span class="pre">SimulationContext.create_controller()</span></code></a></li>
+<li><a class="reference internal" href="#src.core.simulation_context.SimulationContext.create_fdi"><code class="docutils literal notranslate"><span class="pre">SimulationContext.create_fdi()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="safety_guards.html"
+                          title="previous chapter">Safety Guards</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="simulation_runner.html"
+                          title="next chapter">Simulation Runner</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/api/core/simulation_context.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="simulation_runner.html" title="Simulation Runner"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="safety_guards.html" title="Safety Guards"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >API Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" >Core</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Simulation Context</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Research Team.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>System Modeling &#8212; DIP_SMC_PSO Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=fb9458d3" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="SMC Theory" href="smc-theory.html" />
+    <link rel="prev" title="Configuration" href="../guides/configuration.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="smc-theory.html" title="SMC Theory"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../guides/configuration.html" title="Configuration"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">System Modeling</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="system-modeling">
+<h1>System Modeling<a class="headerlink" href="#system-modeling" title="Link to this heading">¶</a></h1>
+<section id="mathematical-notation">
+<h2>Mathematical Notation<a class="headerlink" href="#mathematical-notation" title="Link to this heading">¶</a></h2>
+<p>The system dynamics are described by:</p>
+<div class="math notranslate nohighlight">
+\[\ddot{q} = f(q, \dot{q}) + B(q)u\]</div>
+<p>where :math:<code class="docutils literal notranslate"><span class="pre">q</span> <span class="pre">\in</span> <span class="pre">\mathbb{R}^4</span></code> represents the system states (cart position and pendulum angles), :math:<code class="docutils literal notranslate"><span class="pre">u</span> <span class="pre">\in</span> <span class="pre">\mathbb{R}</span></code> is the control input, and the control objective is to stabilize the system around the unstable equilibrium.</p>
+</section>
+<section id="bibliography">
+<h2>Bibliography<a class="headerlink" href="#bibliography" title="Link to this heading">¶</a></h2>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">¶</a></h2>
+<p>Bibliography coming soon - citations system is being configured.</p>
+</section>
+<section id="project-links">
+<h2>Project Links<a class="headerlink" href="#project-links" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>📚 <a href="#id1"><span class="problematic" id="id2">``</span></a>Theory Overview &lt;theory_overview.md&gt;``_</p></li>
+<li><p>🎮 <a href="#id3"><span class="problematic" id="id4">``</span></a>Controller Documentation &lt;controllers/index.md&gt;``_</p></li>
+<li><p>📖 <a href="#id5"><span class="problematic" id="id6">``</span></a>API Reference &lt;api/index.md&gt;``_</p></li>
+<li><p>🔬 <a href="#id7"><span class="problematic" id="id8">``</span></a>Examples &lt;examples/index.md&gt;``_</p></li>
+</ul>
+<p>=== DIRECTORY STRUCTURE ===
+docs/.github/ISSUE_TEMPLATE/bug_report.md
+docs/.github/ISSUE_TEMPLATE/feature_request.md
+docs/.github/PULL_REQUEST_TEMPLATE.md
+docs/analysis_plan.md
+docs/api/index.md
+docs/architecture.md
+docs/CHANGELOG.md
+docs/CLAUDE.md
+docs/context.md
+docs/CONTRIBUTING.md
+docs/controllers/index.md
+docs/index.md
+docs/optimization/index.md
+docs/plant_model.md
+docs/presentation/0-Introduction &amp; Motivation.md
+docs/presentation/1-Problem Statement &amp; Objectives.md
+docs/presentation/2-Previous Works.md
+docs/presentation/3-System Modling.md
+docs/presentation/4-0-SMC.md
+docs/presentation/5-Chattering &amp; Mitigation.md
+docs/presentation/6-PSO.md
+docs/presentation/7-Simulation Setup.md
+docs/presentation/8-Results and Discussion.md
+docs/presentation/chattering-mitigation.md
+docs/presentation/index.md
+docs/presentation/introduction.md
+docs/presentation/previous-works.md
+docs/presentation/problem-statement.md
+docs/presentation/pso-optimization.md
+docs/presentation/results-discussion.md
+docs/presentation/simulation-setup.md
+docs/presentation/smc-theory.md
+docs/presentation/system-modeling.md
+docs/README.md
+docs/RELEASE_CHECKLIST.md
+docs/results_readme.md
+docs/symbols.md
+docs/test_protocols.md
+docs/TESTING.md
+docs/theory_overview.md
+docs/use_cases.md</p>
+<p>=== SAMPLE CONTENT FILES (for reference) ===</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">System Modeling</a><ul>
+<li><a class="reference internal" href="#mathematical-notation">Mathematical Notation</a></li>
+<li><a class="reference internal" href="#bibliography">Bibliography</a></li>
+<li><a class="reference internal" href="#references">References</a></li>
+<li><a class="reference internal" href="#project-links">Project Links</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="../guides/configuration.html"
+                          title="previous chapter">Configuration</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="smc-theory.html"
+                          title="next chapter">SMC Theory</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/theory/system-modeling.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="smc-theory.html" title="SMC Theory"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../guides/configuration.html" title="Configuration"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">System Modeling</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Research Team.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.core.adaptive_integrator &#8212; DIP_SMC_PSO Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=fb9458d3" />
+    <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">src.core.adaptive_integrator</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for src.core.adaptive_integrator</h1><div class="highlight"><pre>
+<span></span><span class="c1">#==========================================================================================\\</span>
+<span class="c1">#========================== src/core/adaptive_integrator.py ==========================\\</span>
+<span class="c1">#==========================================================================================\\</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Adaptive Runge–Kutta integrators for state‑space models.</span>
+
+<span class="sd">This module implements a Dormand–Prince 4(5) embedded Runge–Kutta step</span>
+<span class="sd">with error estimation and adaptive step size control.  Embedded</span>
+<span class="sd">Runge–Kutta pairs compute two solutions of different orders from the</span>
+<span class="sd">same function evaluations; the difference between the 4th‑ and 5th‑order</span>
+<span class="sd">approximations provides an estimate of the local truncation error.  By</span>
+<span class="sd">comparing this error against user‑supplied absolute and relative</span>
+<span class="sd">tolerances the integrator can accept or reject a proposed step and</span>
+<span class="sd">adjust the step size accordingly【313837333132264†L58-L82】.  Adaptive</span>
+<span class="sd">integrators avoid manual tuning of Courant–Friedrichs–Lewy (CFL)</span>
+<span class="sd">parameters and automatically reduce the step size when the system</span>
+<span class="sd">exhibits rapid dynamics or near‑singular mass matrices.</span>
+
+<span class="sd">The implementation here focuses on a single step of the Dormand–Prince</span>
+<span class="sd">method.  A higher‑level loop must call :func:`rk45_step` repeatedly</span>
+<span class="sd">while updating the integration time and state.  If a step is rejected</span>
+<span class="sd">the returned state will be ``None`` and the caller should retry the</span>
+<span class="sd">integration with the suggested smaller ``dt``.  When a step is</span>
+<span class="sd">accepted the integrator proposes a new step size that can be used for</span>
+<span class="sd">the next call.</span>
+
+<span class="sd">The algorithm is described in many numerical analysis textbooks; see</span>
+<span class="sd">Section III of Shampine and Reichelt for details【313837333132264†L58-L82】.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<div class="viewcode-block" id="rk45_step">
+<a class="viewcode-back" href="../../../api/core/adaptive_integrator.html#src.core.adaptive_integrator.rk45_step">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rk45_step</span><span class="p">(</span><span class="n">f</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+              <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+              <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+              <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+              <span class="n">abs_tol</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+              <span class="n">rel_tol</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Perform a single Dormand–Prince 4(5) integration step.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    f : Callable[[float, np.ndarray], np.ndarray]</span>
+<span class="sd">        Function computing the time derivative of the state ``y`` at time</span>
+<span class="sd">        ``t``.  The derivative must be a one‑dimensional NumPy array.</span>
+<span class="sd">    t : float</span>
+<span class="sd">        Current integration time.</span>
+<span class="sd">    y : np.ndarray</span>
+<span class="sd">        Current state vector.</span>
+<span class="sd">    dt : float</span>
+<span class="sd">        Proposed step size.</span>
+<span class="sd">    abs_tol : float</span>
+<span class="sd">        Absolute tolerance for local error control.</span>
+<span class="sd">    rel_tol : float</span>
+<span class="sd">        Relative tolerance for local error control.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Tuple[Optional[np.ndarray], float]</span>
+<span class="sd">        A tuple ``(y_new, dt_new)``.  If the step is accepted then</span>
+<span class="sd">        ``y_new`` contains the 5th‑order solution at ``t + dt`` and</span>
+<span class="sd">        ``dt_new`` is a suggested step size for the next step.  If the</span>
+<span class="sd">        step is rejected then ``y_new`` is ``None`` and ``dt_new`` is a</span>
+<span class="sd">        smaller step size to retry.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This implementation uses the Dormand–Prince coefficients for the</span>
+<span class="sd">    classic `RK45` method.  The constants are hard‑coded for clarity</span>
+<span class="sd">    rather than generated programmatically.  See the cited reference</span>
+<span class="sd">    for the Butcher tableau【313837333132264†L58-L82】.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Dormand–Prince coefficients (c, a&#39;s, b4, b5)</span>
+    <span class="n">c2</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">5</span>
+    <span class="n">c3</span> <span class="o">=</span> <span class="mi">3</span><span class="o">/</span><span class="mi">10</span>
+    <span class="n">c4</span> <span class="o">=</span> <span class="mi">4</span><span class="o">/</span><span class="mi">5</span>
+    <span class="n">c5</span> <span class="o">=</span> <span class="mi">8</span><span class="o">/</span><span class="mi">9</span>
+    <span class="n">c6</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">c7</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+    <span class="n">a21</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">5</span>
+    <span class="n">a31</span> <span class="o">=</span> <span class="mi">3</span><span class="o">/</span><span class="mi">40</span><span class="p">;</span> <span class="n">a32</span> <span class="o">=</span> <span class="mi">9</span><span class="o">/</span><span class="mi">40</span>
+    <span class="n">a41</span> <span class="o">=</span> <span class="mi">44</span><span class="o">/</span><span class="mi">45</span><span class="p">;</span> <span class="n">a42</span> <span class="o">=</span> <span class="o">-</span><span class="mi">56</span><span class="o">/</span><span class="mi">15</span><span class="p">;</span> <span class="n">a43</span> <span class="o">=</span> <span class="mi">32</span><span class="o">/</span><span class="mi">9</span>
+    <span class="n">a51</span> <span class="o">=</span> <span class="mi">19372</span><span class="o">/</span><span class="mi">6561</span><span class="p">;</span> <span class="n">a52</span> <span class="o">=</span> <span class="o">-</span><span class="mi">25360</span><span class="o">/</span><span class="mi">2187</span><span class="p">;</span> <span class="n">a53</span> <span class="o">=</span> <span class="mi">64448</span><span class="o">/</span><span class="mi">6561</span><span class="p">;</span> <span class="n">a54</span> <span class="o">=</span> <span class="o">-</span><span class="mi">212</span><span class="o">/</span><span class="mi">729</span>
+    <span class="n">a61</span> <span class="o">=</span> <span class="mi">9017</span><span class="o">/</span><span class="mi">3168</span><span class="p">;</span> <span class="n">a62</span> <span class="o">=</span> <span class="o">-</span><span class="mi">355</span><span class="o">/</span><span class="mi">33</span><span class="p">;</span> <span class="n">a63</span> <span class="o">=</span> <span class="mi">46732</span><span class="o">/</span><span class="mi">5247</span><span class="p">;</span> <span class="n">a64</span> <span class="o">=</span> <span class="mi">49</span><span class="o">/</span><span class="mi">176</span><span class="p">;</span> <span class="n">a65</span> <span class="o">=</span> <span class="o">-</span><span class="mi">5103</span><span class="o">/</span><span class="mi">18656</span>
+    <span class="n">a71</span> <span class="o">=</span> <span class="mi">35</span><span class="o">/</span><span class="mi">384</span><span class="p">;</span> <span class="n">a72</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">;</span> <span class="n">a73</span> <span class="o">=</span> <span class="mi">500</span><span class="o">/</span><span class="mi">1113</span><span class="p">;</span> <span class="n">a74</span> <span class="o">=</span> <span class="mi">125</span><span class="o">/</span><span class="mi">192</span><span class="p">;</span> <span class="n">a75</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2187</span><span class="o">/</span><span class="mi">6784</span><span class="p">;</span> <span class="n">a76</span> <span class="o">=</span> <span class="mi">11</span><span class="o">/</span><span class="mi">84</span>
+
+    <span class="n">b4_1</span> <span class="o">=</span> <span class="mi">5179</span><span class="o">/</span><span class="mi">57600</span><span class="p">;</span> <span class="n">b4_3</span> <span class="o">=</span> <span class="mi">7571</span><span class="o">/</span><span class="mi">16695</span><span class="p">;</span> <span class="n">b4_4</span> <span class="o">=</span> <span class="mi">393</span><span class="o">/</span><span class="mi">640</span><span class="p">;</span> <span class="n">b4_5</span> <span class="o">=</span> <span class="o">-</span><span class="mi">92097</span><span class="o">/</span><span class="mi">339200</span><span class="p">;</span> <span class="n">b4_6</span> <span class="o">=</span> <span class="mi">187</span><span class="o">/</span><span class="mi">2100</span><span class="p">;</span> <span class="n">b4_7</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">40</span>
+    <span class="n">b5_1</span> <span class="o">=</span> <span class="mi">35</span><span class="o">/</span><span class="mi">384</span><span class="p">;</span> <span class="n">b5_3</span> <span class="o">=</span> <span class="mi">500</span><span class="o">/</span><span class="mi">1113</span><span class="p">;</span> <span class="n">b5_4</span> <span class="o">=</span> <span class="mi">125</span><span class="o">/</span><span class="mi">192</span><span class="p">;</span> <span class="n">b5_5</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2187</span><span class="o">/</span><span class="mi">6784</span><span class="p">;</span> <span class="n">b5_6</span> <span class="o">=</span> <span class="mi">11</span><span class="o">/</span><span class="mi">84</span><span class="p">;</span> <span class="n">b5_7</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="c1"># Evaluate the stages</span>
+    <span class="n">k1</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+    <span class="n">k2</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="n">c2</span><span class="o">*</span><span class="n">dt</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">dt</span><span class="o">*</span><span class="p">(</span><span class="n">a21</span><span class="o">*</span><span class="n">k1</span><span class="p">))</span>
+    <span class="n">k3</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="n">c3</span><span class="o">*</span><span class="n">dt</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">dt</span><span class="o">*</span><span class="p">(</span><span class="n">a31</span><span class="o">*</span><span class="n">k1</span> <span class="o">+</span> <span class="n">a32</span><span class="o">*</span><span class="n">k2</span><span class="p">))</span>
+    <span class="n">k4</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="n">c4</span><span class="o">*</span><span class="n">dt</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">dt</span><span class="o">*</span><span class="p">(</span><span class="n">a41</span><span class="o">*</span><span class="n">k1</span> <span class="o">+</span> <span class="n">a42</span><span class="o">*</span><span class="n">k2</span> <span class="o">+</span> <span class="n">a43</span><span class="o">*</span><span class="n">k3</span><span class="p">))</span>
+    <span class="n">k5</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="n">c5</span><span class="o">*</span><span class="n">dt</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">dt</span><span class="o">*</span><span class="p">(</span><span class="n">a51</span><span class="o">*</span><span class="n">k1</span> <span class="o">+</span> <span class="n">a52</span><span class="o">*</span><span class="n">k2</span> <span class="o">+</span> <span class="n">a53</span><span class="o">*</span><span class="n">k3</span> <span class="o">+</span> <span class="n">a54</span><span class="o">*</span><span class="n">k4</span><span class="p">))</span>
+    <span class="n">k6</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="n">c6</span><span class="o">*</span><span class="n">dt</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">dt</span><span class="o">*</span><span class="p">(</span><span class="n">a61</span><span class="o">*</span><span class="n">k1</span> <span class="o">+</span> <span class="n">a62</span><span class="o">*</span><span class="n">k2</span> <span class="o">+</span> <span class="n">a63</span><span class="o">*</span><span class="n">k3</span> <span class="o">+</span> <span class="n">a64</span><span class="o">*</span><span class="n">k4</span> <span class="o">+</span> <span class="n">a65</span><span class="o">*</span><span class="n">k5</span><span class="p">))</span>
+    <span class="n">k7</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="n">c7</span><span class="o">*</span><span class="n">dt</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">dt</span><span class="o">*</span><span class="p">(</span><span class="n">a71</span><span class="o">*</span><span class="n">k1</span> <span class="o">+</span> <span class="n">a72</span><span class="o">*</span><span class="n">k2</span> <span class="o">+</span> <span class="n">a73</span><span class="o">*</span><span class="n">k3</span> <span class="o">+</span> <span class="n">a74</span><span class="o">*</span><span class="n">k4</span> <span class="o">+</span> <span class="n">a75</span><span class="o">*</span><span class="n">k5</span> <span class="o">+</span> <span class="n">a76</span><span class="o">*</span><span class="n">k6</span><span class="p">))</span>
+
+    <span class="c1"># 4th‑order and 5th‑order solutions</span>
+    <span class="n">y4</span> <span class="o">=</span> <span class="n">y</span> <span class="o">+</span> <span class="n">dt</span><span class="o">*</span><span class="p">(</span><span class="n">b4_1</span><span class="o">*</span><span class="n">k1</span> <span class="o">+</span> <span class="n">b4_3</span><span class="o">*</span><span class="n">k3</span> <span class="o">+</span> <span class="n">b4_4</span><span class="o">*</span><span class="n">k4</span> <span class="o">+</span> <span class="n">b4_5</span><span class="o">*</span><span class="n">k5</span> <span class="o">+</span> <span class="n">b4_6</span><span class="o">*</span><span class="n">k6</span> <span class="o">+</span> <span class="n">b4_7</span><span class="o">*</span><span class="n">k7</span><span class="p">)</span>
+    <span class="n">y5</span> <span class="o">=</span> <span class="n">y</span> <span class="o">+</span> <span class="n">dt</span><span class="o">*</span><span class="p">(</span><span class="n">b5_1</span><span class="o">*</span><span class="n">k1</span> <span class="o">+</span> <span class="n">b5_3</span><span class="o">*</span><span class="n">k3</span> <span class="o">+</span> <span class="n">b5_4</span><span class="o">*</span><span class="n">k4</span> <span class="o">+</span> <span class="n">b5_5</span><span class="o">*</span><span class="n">k5</span> <span class="o">+</span> <span class="n">b5_6</span><span class="o">*</span><span class="n">k6</span> <span class="o">+</span> <span class="n">b5_7</span><span class="o">*</span><span class="n">k7</span><span class="p">)</span>
+
+    <span class="c1"># Estimate the local error</span>
+    <span class="n">err</span> <span class="o">=</span> <span class="n">y5</span> <span class="o">-</span> <span class="n">y4</span>
+    <span class="c1"># Compute norm relative to tolerances</span>
+    <span class="n">scale</span> <span class="o">=</span> <span class="n">abs_tol</span> <span class="o">+</span> <span class="n">rel_tol</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y5</span><span class="p">))</span>
+    <span class="n">error_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">err</span> <span class="o">/</span> <span class="n">scale</span><span class="p">)</span>
+
+    <span class="c1"># Determine whether to accept the step.  A typical tolerance for the</span>
+    <span class="c1"># error norm is 1.  See the cited source for rationale【313837333132264†L58-L82】.</span>
+    <span class="k">if</span> <span class="n">error_norm</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span>
+        <span class="c1"># Accept the step; propose new step size for next call</span>
+        <span class="c1"># Safety factors: shrink if error close to 1.0, grow if much smaller</span>
+        <span class="c1"># Use exponent 1/5 because the method is 5th order</span>
+        <span class="n">dt_new</span> <span class="o">=</span> <span class="n">dt</span> <span class="o">*</span> <span class="nb">min</span><span class="p">(</span><span class="mf">5.0</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.9</span> <span class="o">*</span> <span class="n">error_norm</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">0.2</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">y5</span><span class="p">,</span> <span class="n">dt_new</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Reject the step; suggest smaller dt and return None</span>
+        <span class="n">dt_new</span> <span class="o">=</span> <span class="n">dt</span> <span class="o">*</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.9</span> <span class="o">*</span> <span class="n">error_norm</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">0.25</span><span class="p">))</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">dt_new</span></div>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;rk45_step&quot;</span><span class="p">]</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">src.core.adaptive_integrator</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Research Team.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    </div>
+  </body>
+</html>

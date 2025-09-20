@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>PSO Optimizer &#8212; DIP_SMC_PSO Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=fb9458d3" />
+    <script src="../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Benchmarks" href="../benchmarks/index.html" />
+    <link rel="prev" title="Optimizer" href="index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../benchmarks/index.html" title="Benchmarks"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Optimizer"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >API Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" accesskey="U">Optimizer</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">PSO Optimizer</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="pso-optimizer">
+<h1>PSO Optimizer<a class="headerlink" href="#pso-optimizer" title="Link to this heading">¶</a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>This module provides the high-throughput, vectorised PSOTuner class that wraps a particle swarm optimisation algorithm around the vectorised simulation of a double inverted pendulum (DIP) system. It incorporates robust control theory practices with decoupled global state, explicit random number generation, dynamic instability penalties, and configurable cost normalisation.</p>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">src.optimizer.pso_optimizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">PSOTuner</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">src.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_config</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a simple controller factory</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span><span class="w"> </span><span class="nf">controller_factory</span><span class="p">(</span><span class="n">gains</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="kn">from</span><span class="w"> </span><span class="nn">src.controllers.classic_smc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClassicalSMC</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">ClassicalSMC</span><span class="p">(</span><span class="n">gains</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Load configuration and create tuner</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="n">load_config</span><span class="p">(</span><span class="s1">&#39;config.yaml&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tuner</span> <span class="o">=</span> <span class="n">PSOTuner</span><span class="p">(</span><span class="n">controller_factory</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Run PSO optimization</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">tuner</span><span class="o">.</span><span class="n">optimise</span><span class="p">(</span><span class="n">iters_override</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">n_particles_override</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;best_cost&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>  <span class="c1"># Should find a valid cost</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</section>
+<section id="api-summary">
+<h2>API Summary<a class="headerlink" href="#api-summary" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#module-src.optimizer.pso_optimizer" title="src.optimizer.pso_optimizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">src.optimizer.pso_optimizer</span></code></a></p></td>
+<td><p>Particle Swarm Optimisation (PSO) tuner for sliding‑mode controllers.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-src.optimizer.pso_optimizer">
+<span id="detailed-api"></span><h2>Detailed API<a class="headerlink" href="#module-src.optimizer.pso_optimizer" title="Link to this heading">¶</a></h2>
+<p>Particle Swarm Optimisation (PSO) tuner for sliding‑mode controllers.</p>
+<p>This module defines the high‑throughput, vectorised <cite>PSOTuner</cite> class that wraps
+a particle swarm optimisation algorithm around the vectorised simulation of a
+double inverted pendulum (DIP) system.  It incorporates improvements from
+design review steps, including decoupling of global state, explicit random
+number generation, dynamic instability penalties and configurable cost
+normalisation.  The implementation follows robust control theory practices
+and is fully documented with theoretical backing.</p>
+<p>References used throughout this module are provided in the accompanying
+design‑review report.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.optimizer.pso_optimizer.PSOTuner">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.optimizer.pso_optimizer.</span></span><span class="sig-name descname"><span class="pre">PSOTuner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">controller_factory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instability_penalty_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/src/optimizer/pso_optimizer.html#PSOTuner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.optimizer.pso_optimizer.PSOTuner" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>High‑throughput, vectorised tuner for sliding‑mode controllers.</p>
+<p>The tuner wraps a particle swarm optimisation algorithm around the
+vectorised simulation.  It uses local PRNGs to avoid global side effects
+and computes instability penalties based on normalisation constants.  Cost
+aggregation between mean and worst‑case performance is controlled via
+<code class="docutils literal notranslate"><span class="pre">COMBINE_WEIGHTS</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>controller_factory</strong> (<em>Callable</em><em>[</em><em>[</em><em>np.ndarray</em><em>]</em><em>, </em><em>Any</em><em>]</em>)</p></li>
+<li><p><strong>config</strong> (<em>Union</em><em>[</em><em>ConfigSchema</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>Path</em><em>]</em>)</p></li>
+<li><p><strong>seed</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>]</em>)</p></li>
+<li><p><strong>rng</strong> (<em>Optional</em><em>[</em><em>np.random.Generator</em><em>]</em>)</p></li>
+<li><p><strong>instability_penalty_factor</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.optimizer.pso_optimizer.PSOTuner.COMBINE_WEIGHTS">
+<span class="sig-name descname"><span class="pre">COMBINE_WEIGHTS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0.7,</span> <span class="pre">0.3)</span></em><a class="headerlink" href="#src.optimizer.pso_optimizer.PSOTuner.COMBINE_WEIGHTS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.optimizer.pso_optimizer.PSOTuner.INSTABILITY_PENALTY">
+<span class="sig-name descname"><span class="pre">INSTABILITY_PENALTY</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000000.0</span></em><a class="headerlink" href="#src.optimizer.pso_optimizer.PSOTuner.INSTABILITY_PENALTY" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="src.optimizer.pso_optimizer.PSOTuner.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">controller_factory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instability_penalty_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/src/optimizer/pso_optimizer.html#PSOTuner.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.optimizer.pso_optimizer.PSOTuner.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialise the PSOTuner.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>controller_factory</strong> (<em>Callable</em><em>[</em><em>[</em><em>np.ndarray</em><em>]</em><em>, </em><em>Any</em><em>]</em>) – A function returning a controller instance given a gain vector.</p></li>
+<li><p><strong>config</strong> (<em>ConfigSchema</em><em> or </em><em>path-like</em>) – A validated configuration object or path to the YAML file.</p></li>
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – Seed to initialise the local RNG.  When <code class="docutils literal notranslate"><span class="pre">None</span></code>, the seed from
+the configuration (<code class="docutils literal notranslate"><span class="pre">global_seed</span></code>) is used if present; otherwise
+the RNG is unseeded.</p></li>
+<li><p><strong>rng</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/random/generator.html#numpy.random.Generator" title="(in NumPy v2.3)"><em>numpy.random.Generator</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – External PRNG.  If provided, this generator is used directly and
+<code class="docutils literal notranslate"><span class="pre">seed</span></code> is ignored.</p></li>
+<li><p><strong>instability_penalty_factor</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Scale factor used to compute the penalty for unstable simulations.
+The penalty is computed as
+<code class="docutils literal notranslate"><span class="pre">instability_penalty_factor</span> <span class="pre">*</span> <span class="pre">(norm_ise</span> <span class="pre">+</span> <span class="pre">norm_u</span> <span class="pre">+</span> <span class="pre">norm_du</span> <span class="pre">+</span> <span class="pre">norm_sigma)</span></code>.
+Larger values penalise instability more heavily.  Default is 100.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="src.optimizer.pso_optimizer.PSOTuner.optimise">
+<span class="sig-name descname"><span class="pre">optimise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iters_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_particles_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/src/optimizer/pso_optimizer.html#PSOTuner.optimise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.optimizer.pso_optimizer.PSOTuner.optimise" title="Link to this definition">¶</a></dt>
+<dd><p>Run particle swarm optimisation with optional overrides.</p>
+<p>This method constructs a <cite>pyswarms.single.GlobalBestPSO</cite> instance from
+the PSO configuration and executes the optimisation loop.  Two
+enhancements are supported beyond the standard PSO:</p>
+<ul class="simple">
+<li><p><strong>Velocity clamping:</strong> if <code class="docutils literal notranslate"><span class="pre">pso_cfg.velocity_clamp</span></code> is a tuple
+<code class="docutils literal notranslate"><span class="pre">(δ_min,</span> <span class="pre">δ_max)</span></code>, the per‑dimension particle velocities are
+constrained to lie within <code class="docutils literal notranslate"><span class="pre">δ_min*(bmax</span> <span class="pre">-</span> <span class="pre">bmin)</span></code> and
+<a href="#id1"><span class="problematic" id="id2">``</span></a>δ_max*(bmax - bmin)``【199638979669096†L575-L586】.  Clamping prevents
+particles from overshooting and encourages stability.  When unset,
+no explicit velocity limits are imposed.</p></li>
+<li><p><strong>Inertia weight scheduling:</strong> if <code class="docutils literal notranslate"><span class="pre">pso_cfg.w_schedule</span></code> is provided
+as <code class="docutils literal notranslate"><span class="pre">(w_start,</span> <span class="pre">w_end)</span></code>, the inertia weight is decreased linearly
+from <code class="docutils literal notranslate"><span class="pre">w_start</span></code> to <code class="docutils literal notranslate"><span class="pre">w_end</span></code> over the iteration horizon to shift
+gradually from global exploration to local exploitation【199638979669096†L294-L301】.
+When a schedule is specified, the method runs a manual stepping loop,
+updating <code class="docutils literal notranslate"><span class="pre">optimizer.options['w']</span></code> at each iteration and capturing
+the best cost and position history.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>iters_override</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>optional</em>) – Overrides the number of iterations specified in the configuration.</p></li>
+<li><p><strong>n_particles_override</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>optional</em>) – Overrides the swarm size specified in the configuration.</p></li>
+<li><p><strong>options_override</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em>, </em><em>optional</em>) – Dictionary of PSO hyperparameters (e.g., inertia and cognitive/social
+weights) that update defaults from configuration.  These values
+take precedence over the configuration defaults but are superseded
+by <code class="docutils literal notranslate"><span class="pre">w_schedule</span></code> for the inertia weight.</p></li>
+<li><p><strong>args</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a>)</p></li>
+<li><p><strong>kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary containing <code class="docutils literal notranslate"><span class="pre">best_cost</span></code>, <code class="docutils literal notranslate"><span class="pre">best_pos</span></code> and a history
+of costs and positions.  When a schedule is used, the history
+arrays have length <code class="docutils literal notranslate"><span class="pre">iters</span></code>; otherwise the history is taken
+directly from the underlying PSO optimiser.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">PSO Optimizer</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#api-summary">API Summary</a></li>
+<li><a class="reference internal" href="#module-src.optimizer.pso_optimizer">Detailed API</a><ul>
+<li><a class="reference internal" href="#src.optimizer.pso_optimizer.PSOTuner"><code class="docutils literal notranslate"><span class="pre">PSOTuner</span></code></a><ul>
+<li><a class="reference internal" href="#src.optimizer.pso_optimizer.PSOTuner.COMBINE_WEIGHTS"><code class="docutils literal notranslate"><span class="pre">PSOTuner.COMBINE_WEIGHTS</span></code></a></li>
+<li><a class="reference internal" href="#src.optimizer.pso_optimizer.PSOTuner.INSTABILITY_PENALTY"><code class="docutils literal notranslate"><span class="pre">PSOTuner.INSTABILITY_PENALTY</span></code></a></li>
+<li><a class="reference internal" href="#src.optimizer.pso_optimizer.PSOTuner.__init__"><code class="docutils literal notranslate"><span class="pre">PSOTuner.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#src.optimizer.pso_optimizer.PSOTuner.optimise"><code class="docutils literal notranslate"><span class="pre">PSOTuner.optimise()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="index.html"
+                          title="previous chapter">Optimizer</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="../benchmarks/index.html"
+                          title="next chapter">Benchmarks</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/api/optimizer/pso_optimizer.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../benchmarks/index.html" title="Benchmarks"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Optimizer"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >API Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" >Optimizer</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">PSO Optimizer</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Research Team.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    </div>
+  </body>
+</html>

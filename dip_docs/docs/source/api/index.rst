@@ -1,0 +1,14 @@
+=================
+API Documentation
+=================
+
+.. toctree::
+   :maxdepth: 2
+
+   core/index
+   controllers/index
+   optimizer/index
+   benchmarks/index
+   fault_detection/index
+   hil/index
+   utils/index

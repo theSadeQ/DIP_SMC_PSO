@@ -1,0 +1,255 @@
+API Reference
+=============
+
+This section provides reference documentation for the DIP_SMC_PSO package modules and classes.
+
+Core Modules
+------------
+
+dynamics.py
+^^^^^^^^^^^
+
+.. code-block:: python
+
+   from src.core.dynamics import DoubleInvertedPendulum
+
+   # Simplified dynamics model for fast simulations
+   pendulum = DoubleInvertedPendulum()
+   state_derivative = pendulum.rhs(state, control_input)
+
+**Key Methods:**
+
+- ``rhs(state, u)`` - Compute right-hand side of differential equations
+- ``step(state, u, dt)`` - Integrate one time step using RK4
+
+dynamics_full.py
+^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+   from src.core.dynamics_full import DoubleInvertedPendulumFull
+
+   # Full nonlinear dynamics for validation
+   pendulum = DoubleInvertedPendulumFull()
+
+**Features:**
+
+- Complete nonlinear dynamics with all coupling terms
+- Friction modeling and parameter variations
+- Higher fidelity for final validation
+
+simulation_runner.py
+^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+   from src.core.simulation_runner import SimulationRunner
+
+   runner = SimulationRunner(config)
+   results = runner.run_simulation(controller, dynamics, initial_state)
+
+**Key Capabilities:**
+
+- Adaptive stiff integration with SciPy
+- Event detection for pendulum falls
+- Configurable solver options (Radau, RK45, etc.)
+
+Controllers
+-----------
+
+classical_smc.py
+^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+   from src.controllers.classic_smc import ClassicalSMC
+
+   controller = ClassicalSMC(config.controller_defaults)
+   u, info, status = controller.compute_control(state, (), {})
+
+**Features:**
+
+- Sliding surface with position and velocity terms
+- Equivalent control with singularity handling
+- Boundary layer for chattering reduction
+
+sta_smc.py
+^^^^^^^^^^
+
+.. code-block:: python
+
+   from src.controllers.sta_smc import SuperTwistingSMC
+
+   controller = SuperTwistingSMC(config.controller_defaults)
+
+**Features:**
+
+- Second-order sliding mode for continuous control
+- Integral action for finite-time convergence
+- Reduced chattering compared to classical SMC
+
+adaptive_smc.py
+^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+   from src.controllers.adaptive_smc import AdaptiveSMC
+
+   controller = AdaptiveSMC(config.controller_defaults)
+
+**Features:**
+
+- Online adaptation of switching gains
+- Dead-zone logic to prevent noise amplification
+- Leak rate for gain recovery
+
+hybrid_adaptive_sta_smc.py
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+   from src.controllers.hybrid_adaptive_sta_smc import HybridAdaptiveSTASMC
+
+   controller = HybridAdaptiveSTASMC(config.controller_defaults)
+
+**Features:**
+
+- Combines STA with adaptive gain tuning
+- Unified sliding surface for pendulum and cart
+- Model-based equivalent control
+
+Optimization
+------------
+
+pso_optimizer.py
+^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+   from src.optimizer.pso_optimizer import PSOOptimizer
+
+   optimizer = PSOOptimizer(config.pso)
+   best_gains = optimizer.optimize(controller_type, dynamics)
+
+**Features:**
+
+- Particle Swarm Optimization for gain tuning
+- Multi-objective cost function
+- Robust evaluation with parameter variations
+
+Configuration Management
+-------------------------
+
+config.py
+^^^^^^^^^^
+
+.. code-block:: python
+
+   from src.config import load_config
+
+   config = load_config("config.yaml", allow_unknown=False)
+
+**Features:**
+
+- YAML-based configuration with Pydantic validation
+- Nested configuration sections for different components
+- Type checking and default value handling
+
+Hardware-in-the-Loop
+--------------------
+
+plant_server.py
+^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+   from src.hil.plant_server import PlantServer
+
+   server = PlantServer(config.hil.plant)
+   server.start()
+
+**Features:**
+
+- UDP communication for real-time control
+- Sensor noise simulation
+- Latency modeling
+
+controller_client.py
+^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+   from src.hil.controller_client import ControllerClient
+
+   client = ControllerClient(config.hil.controller)
+   client.connect_and_run()
+
+**Features:**
+
+- Remote controller execution
+- Network communication handling
+- Error recovery and reconnection
+
+Utility Functions
+-----------------
+
+Common utilities used throughout the package:
+
+**saturate()**
+  Continuous approximation of sign function with boundary layer
+
+**compute_inertia_matrix()**
+  Calculate DIP inertia matrix from physical parameters
+
+**validate_state()**
+  Check state vector bounds and detect failures
+
+**export_results()**
+  Save simulation data to CSV/JSON formats
+
+Usage Examples
+--------------
+
+Basic Simulation
+^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+   from src.config import load_config
+   from src.controllers.factory import create_controller
+   from src.core.dynamics import DoubleInvertedPendulum
+   from src.core.simulation_runner import SimulationRunner
+
+   # Load configuration
+   config = load_config("config.yaml")
+
+   # Create components
+   controller = create_controller("classical_smc", config.controller_defaults)
+   dynamics = DoubleInvertedPendulum()
+   runner = SimulationRunner(config.simulation)
+
+   # Run simulation
+   initial_state = [0, 0.05, -0.03, 0, 0, 0]  # [x, θ₁, θ₂, ẋ, θ̇₁, θ̇₂]
+   results = runner.run_simulation(controller, dynamics, initial_state)
+
+PSO Optimization
+^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+   from src.optimizer.pso_optimizer import PSOOptimizer
+
+   # Setup optimization
+   optimizer = PSOOptimizer(config.pso)
+
+   # Optimize controller gains
+   best_gains, best_cost = optimizer.optimize(
+       controller_type="classical_smc",
+       dynamics=dynamics,
+       initial_state=initial_state
+   )
+
+   print(f"Optimized gains: {best_gains}")
+   print(f"Final cost: {best_cost}")
+
+For complete API documentation, refer to the docstrings in the source code or generate them using Sphinx autodoc.

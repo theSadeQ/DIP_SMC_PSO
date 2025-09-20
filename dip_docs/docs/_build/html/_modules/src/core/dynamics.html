@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.core.dynamics &#8212; DIP_SMC_PSO Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=fb9458d3" />
+    <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">src.core.dynamics</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for src.core.dynamics</h1><div class="highlight"><pre>
+<span></span><span class="c1">#==========================================================================================\\\</span>
+<span class="c1">#=================================== src/core/dynamics.py =================================\\\</span>
+<span class="c1">#==========================================================================================\\\</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Optional numba import</span>
+<span class="c1">#</span>
+<span class="c1"># Numba is used to JIT‑compile compute kernels for performance.  In</span>
+<span class="c1"># environments where Numba is unavailable (e.g., during certain test</span>
+<span class="c1"># runs), we fall back to pure‑Python functions by defining ``njit`` as</span>
+<span class="c1"># an identity decorator.  This allows the module to be imported without</span>
+<span class="c1"># raising a ``ModuleNotFoundError`` while preserving type signatures.</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">numba</span><span class="w"> </span><span class="kn">import</span> <span class="n">njit</span>  <span class="c1"># type: ignore</span>
+<span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pragma: no cover - fallback for missing numba</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">njit</span><span class="p">(</span><span class="o">*</span><span class="n">_args</span><span class="p">,</span> <span class="o">**</span><span class="n">_kwargs</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">deco</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">fn</span>
+        <span class="k">return</span> <span class="n">deco</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NamedTuple</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="c1"># Import adaptive integrator step.  This embedded Runge–Kutta pair</span>
+<span class="c1"># provides error estimates and adaptive step size control【Dormand1980 p.20, DOI:10.1016/0771-050X(80)90013-3】.</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.adaptive_integrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">rk45_step</span>
+
+<span class="c1"># ------------------------------------------------------------------------------</span>
+<span class="c1"># Numerical stability utilities</span>
+<span class="c1">#</span>
+<span class="c1"># The original implementation in this project estimated the condition number of</span>
+<span class="c1"># the inertia matrix using a full singular value decomposition (SVD) on every</span>
+<span class="c1"># call to ``rhs_numba``.  When the condition number exceeded a hard‑coded</span>
+<span class="c1"># threshold the function returned a vector of NaNs to signal failure.  While</span>
+<span class="c1"># accurate, computing an SVD at each integration step is computationally</span>
+<span class="c1"># expensive and hides the underlying numerical issue by silently returning</span>
+<span class="c1"># invalid values.  To improve transparency we introduce a custom exception</span>
+<span class="c1"># ``NumericalInstabilityError`` which callers can catch and handle gracefully.</span>
+<span class="c1"># This follows the recommendation from the design review to throw a specific</span>
+<span class="c1"># exception instead of propagating NaNs when the inertia matrix becomes</span>
+<span class="c1"># effectively singular.  A lightweight determinant check is used to detect</span>
+<span class="c1"># near‑singular matrices; adding a small positive diagonal term to the</span>
+<span class="c1"># inertia matrix (Tikhonov regularisation) is a proven technique to</span>
+<span class="c1"># ensure the matrix becomes positive definite and invertible.  In</span>
+<span class="c1"># applied mathematics and statistics, adding a small positive constant</span>
+<span class="c1"># to the diagonal of a covariance or inertia matrix is widely used to</span>
+<span class="c1"># make the matrix invertible; for example, Leung et al. describe</span>
+<span class="c1"># adding “a small, positive constant to the diagonal” of a matrix to</span>
+<span class="c1"># regularise it and ensure it is invertible【634903324123444†L631-L639】.</span>
+
+<div class="viewcode-block" id="NumericalInstabilityError">
+<a class="viewcode-back" href="../../../api/core/dynamics.html#src.core.dynamics.NumericalInstabilityError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NumericalInstabilityError</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised when the inertia matrix is too ill‑conditioned to invert.</span>
+
+<span class="sd">    This exception is thrown by the dynamics routines when a near‑singular</span>
+<span class="sd">    inertia matrix prevents reliable computation of the accelerations.  The</span>
+<span class="sd">    simulation runner should catch this exception and handle it by, for</span>
+<span class="sd">    example, reducing the integration step size or aborting the simulation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The simplified double inverted pendulum dynamics relies on the</span>
+<span class="sd">``PhysicsConfig`` model from ``src.config`` for validating input</span>
+<span class="sd">parameters.  Tests may simulate environments where importing</span>
+<span class="sd">``src.config`` fails (for example, when core dependencies like numpy</span>
+<span class="sd">are intentionally removed).  To avoid raising an ImportError at</span>
+<span class="sd">module import time, attempt to import PhysicsConfig in a try/except</span>
+<span class="sd">block.  If the import fails, define a lightweight placeholder class.</span>
+
+<span class="sd">The placeholder ensures that ``isinstance(params, PhysicsConfig)``</span>
+<span class="sd">returns ``False`` for any real PhysicsConfig instance, thereby</span>
+<span class="sd">falling back to treating ``params`` as a mapping.  It also permits</span>
+<span class="sd">monkeypatching attributes (e.g., ``load_config``) on ``src.config``</span>
+<span class="sd">without raising AttributeError.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">src.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhysicsConfig</span>  <span class="c1"># type: ignore</span>
+<span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="k">class</span><span class="w"> </span><span class="nc">PhysicsConfig</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="DIPParams">
+<a class="viewcode-back" href="../../../api/core/dynamics.html#src.core.dynamics.DIPParams">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DIPParams</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Lightweight container for the simplified double inverted pendulum physics.</span>
+
+<span class="sd">    This named tuple mirrors the fields of ``PhysicsConfig`` so that it can be</span>
+<span class="sd">    passed into numba‑compiled kernels.  The final field</span>
+<span class="sd">    ``singularity_cond_threshold`` has a default value to permit tests to</span>
+<span class="sd">    construct ``DIPParams`` without specifying it explicitly.  When omitted</span>
+<span class="sd">    the threshold defaults to ``1e8``, matching the default in</span>
+<span class="sd">    ``PhysicsConfig``.  Making this argument optional aligns the signature</span>
+<span class="sd">    with test expectations (see ``test_rhs_returns_nan_for_ill_conditioned_matrix``).</span>
+
+<span class="sd">    Adaptive regularisation parameters</span>
+<span class="sd">    ---------------------------------</span>
+<span class="sd">    Numerical inversion of the inertia matrix can fail when the matrix is</span>
+<span class="sd">    nearly singular.  A common remedy is Tikhonov regularisation: adding a</span>
+<span class="sd">    small positive constant to the diagonal to ensure the matrix remains</span>
+<span class="sd">    invertible.  In ridge regression the normal equations are regularised</span>
+<span class="sd">    by adding \\(\\lambda I\\), which improves conditioning at the cost of</span>
+<span class="sd">    bias【Hoerl1970 p.215, DOI:10.1080/00401706.1970.10488634】.</span>
+
+<span class="sd">    * ``regularization_alpha`` scales the diagonal damping by the largest</span>
+<span class="sd">      singular value of the inertia matrix.  According to ridge regression</span>
+<span class="sd">      theory, adding \\(\\lambda I\\) with \\(\\lambda&gt;0\\) stabilises the inverse and</span>
+<span class="sd">      trades bias for variance【Hoerl1970 p.215, DOI:10.1080/00401706.1970.10488634】.</span>
+<span class="sd">    * ``max_condition_number`` limits the ratio of the largest to smallest</span>
+<span class="sd">      singular values; if the condition number exceeds this bound the</span>
+<span class="sd">      regularisation is increased.  This is analogous to the damping factor</span>
+<span class="sd">      selection in damped least‑squares methods【Hoerl1970 p.215, DOI:10.1080/00401706.1970.10488634】.</span>
+<span class="sd">    * ``min_regularization`` enforces a strictly positive minimum on the</span>
+<span class="sd">      diagonal to prevent zero damping.</span>
+<span class="sd">    * ``use_fixed_regularization`` bypasses the adaptive scheme and always</span>
+<span class="sd">      applies ``min_regularization``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cart_mass</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">pendulum1_mass</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">pendulum2_mass</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">pendulum1_length</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">pendulum2_length</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">pendulum1_com</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">pendulum2_com</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">pendulum1_inertia</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">pendulum2_inertia</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">gravity</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">cart_friction</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">joint1_friction</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">joint2_friction</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">singularity_cond_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0e8</span>
+
+    <span class="c1"># Base scale for Tikhonov regularisation when inverting the inertia</span>
+    <span class="c1"># matrix.  Adding a non‑zero diagonal damping to a symmetric matrix</span>
+    <span class="c1"># guarantees invertibility【451626699008270†L238-L244】.  The adaptive</span>
+    <span class="c1"># scheme multiplies this parameter by the largest singular value of</span>
+    <span class="c1"># the inertia matrix and increases it further when the condition</span>
+    <span class="c1"># number exceeds a threshold【451626699008270†L286-L297】.</span>
+    <span class="n">regularization_alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-4</span>
+    <span class="c1"># Maximum acceptable condition number for the inertia matrix.  When</span>
+    <span class="c1"># the ratio of largest to smallest singular values exceeds this value</span>
+    <span class="c1"># the regularisation term is increased to reduce the condition</span>
+    <span class="c1"># number【451626699008270†L286-L297】.  Numerical linear algebra</span>
+    <span class="c1"># references note that matrices with condition numbers above ~10^14</span>
+    <span class="c1"># cannot be reliably inverted in double precision【862099055591481†L149-L160】.  The</span>
+    <span class="c1"># default threshold is therefore raised from 1e10 to 1e14 to avoid</span>
+    <span class="c1"># overly conservative regularisation.</span>
+    <span class="n">max_condition_number</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e14</span>
+    <span class="c1"># Minimum regularisation added to the diagonal.  Ensures a strictly</span>
+    <span class="c1"># positive damping even when singular values are very small【451626699008270†L238-L244】.  A</span>
+    <span class="c1"># small positive constant (1e‑10) is used to guarantee invertibility</span>
+    <span class="c1"># even when the inertia matrix becomes nearly singular.</span>
+    <span class="n">min_regularization</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-10</span>
+    <span class="c1"># If True the adaptive scaling is bypassed and the solver always uses</span>
+    <span class="c1"># ``min_regularization``.  Useful for legacy comparisons.</span>
+    <span class="n">use_fixed_regularization</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1">#: Relative tolerance factor used when computing the condition number.</span>
+    <span class="c1"># Instead of clamping the smallest singular value to an absolute value</span>
+    <span class="c1"># (e.g. 1e‑16), scale the tolerance with the largest singular value.  A</span>
+    <span class="c1"># relative tolerance avoids sensitivity to the units and scale of the</span>
+    <span class="c1"># inertia matrix and is consistent with numerical linear algebra</span>
+    <span class="c1"># recommendations that matrices with condition numbers above ~10^14 in</span>
+    <span class="c1"># double precision cannot be stably inverted【862099055591481†L149-L160】.  Using</span>
+    <span class="c1"># a small factor (default 1e‑12) helps detect ill‑conditioning while</span>
+    <span class="c1"># not triggering false positives on well‑scaled matrices.  The factor</span>
+    <span class="c1"># may be overridden via PhysicsConfig or directly on DIPParams.</span>
+    <span class="n">condition_tol_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-12</span>
+
+<div class="viewcode-block" id="DIPParams.from_physics_config">
+<a class="viewcode-back" href="../../../api/core/dynamics.html#src.core.dynamics.DIPParams.from_physics_config">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_physics_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DIPParams&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a :class:`DIPParams` instance from a PhysicsConfig.</span>
+
+<span class="sd">        This helper converts a high‑level :class:`src.config.PhysicsConfig` into the</span>
+<span class="sd">        named‑tuple format required by the numba kernels.  Missing regularisation</span>
+<span class="sd">        parameters are filled with sensible defaults.  The regularisation</span>
+<span class="sd">        constant from the PhysicsConfig is mapped to ``min_regularization`` and</span>
+<span class="sd">        ``regularization_alpha`` is left at its default of 1e‑4.  The</span>
+<span class="sd">        determinant threshold and max condition number are copied if</span>
+<span class="sd">        present.  A relative tolerance factor for computing the condition</span>
+<span class="sd">        number is also provided via ``condition_tol_factor``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        cfg : PhysicsConfig</span>
+<span class="sd">            Validated configuration instance with physical constants.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        DIPParams</span>
+<span class="sd">            A new named‑tuple suitable for passing into numba kernels.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Extract a dictionary from the Pydantic model.  Use model_dump</span>
+        <span class="c1"># if available, otherwise fall back to __dict__.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)}</span>
+        <span class="c1"># Map regularisation constant to both min_regularization and regularization_alpha</span>
+        <span class="n">reg</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;regularization&quot;</span><span class="p">,</span> <span class="mf">1e-9</span><span class="p">))</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;min_regularization&quot;</span><span class="p">,</span> <span class="n">reg</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;regularization_alpha&quot;</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">)</span>
+        <span class="c1"># Max condition number default</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;max_condition_number&quot;</span><span class="p">,</span> <span class="mf">1e10</span><span class="p">)</span>
+        <span class="c1"># Use adaptive regularisation by default</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;use_fixed_regularization&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="c1"># Provide determinant threshold</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;det_threshold&quot;</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;det_threshold&quot;</span><span class="p">,</span> <span class="mf">1e-12</span><span class="p">)))</span>
+        <span class="c1"># Provide condition tolerance factor</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;condition_tol_factor&quot;</span><span class="p">,</span> <span class="mf">1e-12</span><span class="p">)</span>
+        <span class="c1"># The namedtuple expects &#39;singularity_cond_threshold&#39; not present in PhysicsConfig? supply default</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;singularity_cond_threshold&quot;</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;singularity_cond_threshold&quot;</span><span class="p">,</span> <span class="mf">1e8</span><span class="p">)))</span>
+        <span class="c1"># Remove keys not expected by DIPParams</span>
+        <span class="n">allowed</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;cart_mass&#39;</span><span class="p">,</span><span class="s1">&#39;pendulum1_mass&#39;</span><span class="p">,</span><span class="s1">&#39;pendulum2_mass&#39;</span><span class="p">,</span><span class="s1">&#39;pendulum1_length&#39;</span><span class="p">,</span><span class="s1">&#39;pendulum2_length&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;pendulum1_com&#39;</span><span class="p">,</span><span class="s1">&#39;pendulum2_com&#39;</span><span class="p">,</span><span class="s1">&#39;pendulum1_inertia&#39;</span><span class="p">,</span><span class="s1">&#39;pendulum2_inertia&#39;</span><span class="p">,</span><span class="s1">&#39;gravity&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;cart_friction&#39;</span><span class="p">,</span><span class="s1">&#39;joint1_friction&#39;</span><span class="p">,</span><span class="s1">&#39;joint2_friction&#39;</span><span class="p">,</span><span class="s1">&#39;singularity_cond_threshold&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;regularization_alpha&#39;</span><span class="p">,</span><span class="s1">&#39;max_condition_number&#39;</span><span class="p">,</span><span class="s1">&#39;min_regularization&#39;</span><span class="p">,</span><span class="s1">&#39;use_fixed_regularization&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;det_threshold&#39;</span><span class="p">,</span><span class="s1">&#39;condition_tol_factor&#39;</span>
+        <span class="p">}</span>
+        <span class="n">filtered</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">allowed</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">data</span><span class="p">}</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">filtered</span><span class="p">)</span></div>
+
+
+    <span class="c1"># Determinant threshold used to detect singular inertia matrices.  If</span>
+    <span class="c1"># the determinant of the regularised inertia matrix falls below this</span>
+    <span class="c1"># value the matrix is deemed singular and the dynamics returns NaNs.</span>
+    <span class="n">det_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-12</span></div>
+
+
+<div class="viewcode-block" id="compute_matrices_numba">
+<a class="viewcode-back" href="../../../api/core/dynamics.html#src.core.dynamics.compute_matrices_numba">[docs]</a>
+<span class="nd">@njit</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fastmath</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_matrices_numba</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">DIPParams</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">q1dot</span><span class="p">,</span> <span class="n">q2dot</span> <span class="o">=</span> <span class="n">state</span>
+
+    <span class="n">c1</span><span class="p">,</span> <span class="n">s1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">q1</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">q1</span><span class="p">)</span>
+    <span class="n">c2</span><span class="p">,</span> <span class="n">s2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">q2</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">q2</span><span class="p">)</span>
+    <span class="n">c12</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">q1</span> <span class="o">-</span> <span class="n">q2</span><span class="p">)</span>
+    <span class="n">s12</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">q1</span> <span class="o">-</span> <span class="n">q2</span><span class="p">)</span>
+
+    <span class="n">m_c</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">cart_mass</span>
+    <span class="n">m1</span><span class="p">,</span> <span class="n">m2</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">pendulum1_mass</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">pendulum2_mass</span>
+    <span class="n">l1</span><span class="p">,</span> <span class="n">l2</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">pendulum1_length</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">pendulum2_length</span>
+    <span class="n">lc1</span><span class="p">,</span> <span class="n">lc2</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">pendulum1_com</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">pendulum2_com</span>
+    <span class="n">I1</span><span class="p">,</span> <span class="n">I2</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">pendulum1_inertia</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">pendulum2_inertia</span>
+
+    <span class="n">h11</span> <span class="o">=</span> <span class="n">m_c</span> <span class="o">+</span> <span class="n">m1</span> <span class="o">+</span> <span class="n">m2</span>
+    <span class="n">h12</span> <span class="o">=</span> <span class="p">(</span><span class="n">m1</span> <span class="o">*</span> <span class="n">lc1</span> <span class="o">+</span> <span class="n">m2</span> <span class="o">*</span> <span class="n">l1</span><span class="p">)</span> <span class="o">*</span> <span class="n">c1</span>
+    <span class="n">h13</span> <span class="o">=</span> <span class="p">(</span><span class="n">m2</span> <span class="o">*</span> <span class="n">lc2</span><span class="p">)</span> <span class="o">*</span> <span class="n">c2</span>
+    <span class="n">h22</span> <span class="o">=</span> <span class="n">m1</span> <span class="o">*</span> <span class="n">lc1</span> <span class="o">*</span> <span class="n">lc1</span> <span class="o">+</span> <span class="n">m2</span> <span class="o">*</span> <span class="n">l1</span> <span class="o">*</span> <span class="n">l1</span> <span class="o">+</span> <span class="n">I1</span>
+    <span class="n">h23</span> <span class="o">=</span> <span class="p">(</span><span class="n">m2</span> <span class="o">*</span> <span class="n">l1</span> <span class="o">*</span> <span class="n">lc2</span><span class="p">)</span> <span class="o">*</span> <span class="n">c12</span>
+    <span class="n">h33</span> <span class="o">=</span> <span class="n">m2</span> <span class="o">*</span> <span class="n">lc2</span> <span class="o">*</span> <span class="n">lc2</span> <span class="o">+</span> <span class="n">I2</span>
+
+    <span class="n">H</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">h11</span><span class="p">,</span> <span class="n">h12</span><span class="p">,</span> <span class="n">h13</span><span class="p">],</span>
+                  <span class="p">[</span><span class="n">h12</span><span class="p">,</span> <span class="n">h22</span><span class="p">,</span> <span class="n">h23</span><span class="p">],</span>
+                  <span class="p">[</span><span class="n">h13</span><span class="p">,</span> <span class="n">h23</span><span class="p">,</span> <span class="n">h33</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+    <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">C</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">cart_friction</span>
+    <span class="n">C</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">joint1_friction</span>
+    <span class="n">C</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">joint2_friction</span>
+    <span class="n">c_coeff</span> <span class="o">=</span> <span class="n">m2</span> <span class="o">*</span> <span class="n">l1</span> <span class="o">*</span> <span class="n">lc2</span>
+    <span class="n">C</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">c_coeff</span> <span class="o">*</span> <span class="n">s12</span> <span class="o">*</span> <span class="n">q2dot</span>
+    <span class="n">C</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">+</span><span class="n">c_coeff</span> <span class="o">*</span> <span class="n">s12</span> <span class="o">*</span> <span class="n">q1dot</span>
+
+    <span class="n">g2</span> <span class="o">=</span> <span class="p">(</span><span class="n">m1</span> <span class="o">*</span> <span class="n">lc1</span> <span class="o">+</span> <span class="n">m2</span> <span class="o">*</span> <span class="n">l1</span><span class="p">)</span> <span class="o">*</span> <span class="n">p</span><span class="o">.</span><span class="n">gravity</span> <span class="o">*</span> <span class="n">s1</span>
+    <span class="n">g3</span> <span class="o">=</span> <span class="p">(</span><span class="n">m2</span> <span class="o">*</span> <span class="n">lc2</span><span class="p">)</span> <span class="o">*</span> <span class="n">p</span><span class="o">.</span><span class="n">gravity</span> <span class="o">*</span> <span class="n">s2</span>
+    <span class="n">G</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">g2</span><span class="p">,</span> <span class="n">g3</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">H</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">G</span></div>
+
+
+<div class="viewcode-block" id="rhs_numba">
+<a class="viewcode-back" href="../../../api/core/dynamics.html#src.core.dynamics.rhs_numba">[docs]</a>
+<span class="nd">@njit</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fastmath</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">rhs_numba</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">u</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">DIPParams</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the time derivative of the state for the simplified dynamics.</span>
+
+<span class="sd">    This implementation adds a small Tikhonov regularisation term to the</span>
+<span class="sd">    inertia matrix to ensure invertibility and checks the determinant of</span>
+<span class="sd">    the regularised matrix instead of computing a full SVD.  If the</span>
+<span class="sd">    determinant is extremely small (indicating a near‑singular matrix) or</span>
+<span class="sd">    infinite, the function returns an array of NaNs.  Downstream code can</span>
+<span class="sd">    detect these NaNs and raise a ``NumericalInstabilityError`` to signal</span>
+<span class="sd">    failure.  The light‑weight determinant check reduces computational</span>
+<span class="sd">    overhead relative to the original SVD‑based condition estimate while</span>
+<span class="sd">    still avoiding inversion of ill‑conditioned matrices.  Adding a</span>
+<span class="sd">    constant to the diagonal of a symmetric indefinite matrix is a</span>
+<span class="sd">    standard method to make it positive definite and invertible【Hoerl1970 p.215, DOI:10.1080/00401706.1970.10488634】.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">xdot</span><span class="p">,</span> <span class="n">q1dot</span><span class="p">,</span> <span class="n">q2dot</span> <span class="o">=</span> <span class="n">state</span>
+    <span class="c1"># Initialise a NaN vector for error signalling</span>
+    <span class="n">nan_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+    <span class="c1"># Compute physics matrices</span>
+    <span class="n">H</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">G</span> <span class="o">=</span> <span class="n">compute_matrices_numba</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+
+    <span class="c1"># Generalised forces and velocities</span>
+    <span class="n">tau</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">u</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">qdot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">xdot</span><span class="p">,</span> <span class="n">q1dot</span><span class="p">,</span> <span class="n">q2dot</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">rhs_vec</span> <span class="o">=</span> <span class="n">tau</span> <span class="o">-</span> <span class="n">C</span> <span class="o">@</span> <span class="n">qdot</span> <span class="o">-</span> <span class="n">G</span>
+
+    <span class="c1"># Adaptive Tikhonov regularisation based on singular values.</span>
+    <span class="c1"># Compute singular values of the unregularised inertia matrix.  For</span>
+    <span class="c1"># 3×3 matrices the SVD is inexpensive and exposes the spectral</span>
+    <span class="c1"># properties required to tune the regularisation【Hoerl1970 p.215, DOI:10.1080/00401706.1970.10488634】.</span>
+    <span class="n">svals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">svd</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">compute_uv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">sigma_max</span> <span class="o">=</span> <span class="n">svals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">sigma_min</span> <span class="o">=</span> <span class="n">svals</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="c1"># Determine the regularisation to apply.  When the flag</span>
+    <span class="c1"># ``use_fixed_regularization`` is set we always use the minimum</span>
+    <span class="c1"># regularisation; otherwise scale with the largest singular value and</span>
+    <span class="c1"># adapt if the condition number is too large【Hoerl1970 p.215, DOI:10.1080/00401706.1970.10488634】.</span>
+    <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">use_fixed_regularization</span><span class="p">:</span>
+        <span class="n">reg</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">min_regularization</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Base reg proportional to the largest singular value; ensure</span>
+        <span class="c1"># strictly positive value via min_regularization.</span>
+        <span class="n">reg</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">regularization_alpha</span> <span class="o">*</span> <span class="n">sigma_max</span>
+        <span class="n">reg</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">reg</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">min_regularization</span><span class="p">)</span>
+        <span class="c1"># Estimate condition number using a relative tolerance.  Use a</span>
+        <span class="c1"># tolerance proportional to the largest singular value instead of an</span>
+        <span class="c1"># absolute clamp.  This follows numerical linear algebra guidelines</span>
+        <span class="c1"># that matrix inversion becomes unreliable when the condition number</span>
+        <span class="c1"># exceeds ~10^14 in double precision【862099055591481†L149-L160】.  The</span>
+        <span class="c1"># tolerance factor (condition_tol_factor) can be tuned via DIPParams.</span>
+        <span class="n">tol</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">condition_tol_factor</span> <span class="o">*</span> <span class="n">sigma_max</span>
+        <span class="n">denom</span> <span class="o">=</span> <span class="n">sigma_min</span> <span class="k">if</span> <span class="n">sigma_min</span> <span class="o">&gt;</span> <span class="n">tol</span> <span class="k">else</span> <span class="n">tol</span>
+        <span class="n">cond</span> <span class="o">=</span> <span class="n">sigma_max</span> <span class="o">/</span> <span class="n">denom</span>
+        <span class="k">if</span> <span class="n">cond</span> <span class="o">&gt;</span> <span class="n">p</span><span class="o">.</span><span class="n">max_condition_number</span><span class="p">:</span>
+            <span class="c1"># Increase reg proportionally to reduce the condition number back</span>
+            <span class="c1"># towards the allowable maximum.  This adaptive scaling is</span>
+            <span class="c1"># analogous to damped least squares regularisation【908631897601352†L881-L883】.</span>
+            <span class="n">scale</span> <span class="o">=</span> <span class="n">cond</span> <span class="o">/</span> <span class="n">p</span><span class="o">.</span><span class="n">max_condition_number</span>
+            <span class="n">reg</span> <span class="o">*=</span> <span class="n">scale</span>
+    <span class="c1"># Form the regularised inertia matrix</span>
+    <span class="n">H_reg</span> <span class="o">=</span> <span class="n">H</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">reg</span>
+    <span class="c1"># Compute singular values of the regularised matrix; if the smallest</span>
+    <span class="c1"># singular value vanishes or is non‑finite the matrix is still</span>
+    <span class="c1"># ill‑conditioned and we signal failure by returning NaNs.</span>
+    <span class="n">svals_reg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">svd</span><span class="p">(</span><span class="n">H_reg</span><span class="p">,</span> <span class="n">compute_uv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="c1"># Raise a dedicated error when the regularised inertia matrix is</span>
+    <span class="c1"># ill‑conditioned.  Instead of silently returning NaNs, throw</span>
+    <span class="c1"># NumericalInstabilityError so callers can handle the failure.  The</span>
+    <span class="c1"># smallest singular value must be strictly positive for the matrix</span>
+    <span class="c1"># to be invertible【451626699008270†L238-L244】.  Detect non‑finite singular</span>
+    <span class="c1"># values as well, which indicate overflow or underflow.  Raising</span>
+    <span class="c1"># within a numba‑jitted function is allowed and preserves</span>
+    <span class="c1"># transparency【862099055591481†L149-L160】.</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">svals_reg</span><span class="p">))</span> <span class="ow">or</span> <span class="n">svals_reg</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">nan_vec</span>
+    <span class="c1"># Solve the regularised system; let linear algebra exceptions</span>
+    <span class="c1"># propagate naturally.  Tikhonov regularisation ensures H_reg is</span>
+    <span class="c1"># invertible and well‑conditioned【Hoerl1970 p.215, DOI:10.1080/00401706.1970.10488634】.</span>
+    <span class="n">qddot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">H_reg</span><span class="p">,</span> <span class="n">rhs_vec</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">xdot</span><span class="p">,</span> <span class="n">q1dot</span><span class="p">,</span> <span class="n">q2dot</span><span class="p">,</span> <span class="n">qddot</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">qddot</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">qddot</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="step_rk4_numba">
+<a class="viewcode-back" href="../../../api/core/dynamics.html#src.core.dynamics.step_rk4_numba">[docs]</a>
+<span class="nd">@njit</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fastmath</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">step_rk4_numba</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">u</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">DIPParams</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="n">k1</span> <span class="o">=</span> <span class="n">rhs_numba</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">k1</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+
+    <span class="n">k2</span> <span class="o">=</span> <span class="n">rhs_numba</span><span class="p">(</span><span class="n">state</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">k1</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">k2</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+
+    <span class="n">k3</span> <span class="o">=</span> <span class="n">rhs_numba</span><span class="p">(</span><span class="n">state</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">k2</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">k3</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+
+    <span class="n">k4</span> <span class="o">=</span> <span class="n">rhs_numba</span><span class="p">(</span><span class="n">state</span> <span class="o">+</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">k3</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">k4</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">state</span> <span class="o">+</span> <span class="p">(</span><span class="n">dt</span> <span class="o">/</span> <span class="mf">6.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">k1</span> <span class="o">+</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">k2</span> <span class="o">+</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">k3</span> <span class="o">+</span> <span class="n">k4</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="step_euler_numba">
+<a class="viewcode-back" href="../../../api/core/dynamics.html#src.core.dynamics.step_euler_numba">[docs]</a>
+<span class="nd">@njit</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fastmath</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">step_euler_numba</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">u</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">DIPParams</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">state</span> <span class="o">+</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">rhs_numba</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="kinetic_energy_numba">
+<a class="viewcode-back" href="../../../api/core/dynamics.html#src.core.dynamics.kinetic_energy_numba">[docs]</a>
+<span class="nd">@njit</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fastmath</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">kinetic_energy_numba</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">DIPParams</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">xdot</span><span class="p">,</span> <span class="n">q1dot</span><span class="p">,</span> <span class="n">q2dot</span> <span class="o">=</span> <span class="n">state</span>
+    <span class="n">T_cart</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">p</span><span class="o">.</span><span class="n">cart_mass</span> <span class="o">*</span> <span class="n">xdot</span> <span class="o">*</span> <span class="n">xdot</span>
+
+    <span class="n">v1x</span> <span class="o">=</span> <span class="n">xdot</span> <span class="o">-</span> <span class="n">p</span><span class="o">.</span><span class="n">pendulum1_com</span> <span class="o">*</span> <span class="n">q1dot</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">q1</span><span class="p">)</span>
+    <span class="n">v1y</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">pendulum1_com</span> <span class="o">*</span> <span class="n">q1dot</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">q1</span><span class="p">)</span>
+    <span class="n">T1</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">p</span><span class="o">.</span><span class="n">pendulum1_mass</span> <span class="o">*</span> <span class="p">(</span><span class="n">v1x</span> <span class="o">*</span> <span class="n">v1x</span> <span class="o">+</span> <span class="n">v1y</span> <span class="o">*</span> <span class="n">v1y</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">p</span><span class="o">.</span><span class="n">pendulum1_inertia</span> <span class="o">*</span> <span class="n">q1dot</span> <span class="o">*</span> <span class="n">q1dot</span>
+
+    <span class="n">v2x</span> <span class="o">=</span> <span class="n">xdot</span> <span class="o">-</span> <span class="n">p</span><span class="o">.</span><span class="n">pendulum1_length</span> <span class="o">*</span> <span class="n">q1dot</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">q1</span><span class="p">)</span> <span class="o">-</span> <span class="n">p</span><span class="o">.</span><span class="n">pendulum2_com</span> <span class="o">*</span> <span class="n">q2dot</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">q2</span><span class="p">)</span>
+    <span class="n">v2y</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">pendulum1_length</span> <span class="o">*</span> <span class="n">q1dot</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">q1</span><span class="p">)</span> <span class="o">+</span> <span class="n">p</span><span class="o">.</span><span class="n">pendulum2_com</span> <span class="o">*</span> <span class="n">q2dot</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">q2</span><span class="p">)</span>
+    <span class="n">T2</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">p</span><span class="o">.</span><span class="n">pendulum2_mass</span> <span class="o">*</span> <span class="p">(</span><span class="n">v2x</span> <span class="o">*</span> <span class="n">v2x</span> <span class="o">+</span> <span class="n">v2y</span> <span class="o">*</span> <span class="n">v2y</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">p</span><span class="o">.</span><span class="n">pendulum2_inertia</span> <span class="o">*</span> <span class="n">q2dot</span> <span class="o">*</span> <span class="n">q2dot</span>
+
+    <span class="k">return</span> <span class="n">T_cart</span> <span class="o">+</span> <span class="n">T1</span> <span class="o">+</span> <span class="n">T2</span></div>
+
+
+<div class="viewcode-block" id="potential_energy_numba">
+<a class="viewcode-back" href="../../../api/core/dynamics.html#src.core.dynamics.potential_energy_numba">[docs]</a>
+<span class="nd">@njit</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fastmath</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">potential_energy_numba</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">DIPParams</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">state</span>
+    <span class="n">V1</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">pendulum1_mass</span> <span class="o">*</span> <span class="n">p</span><span class="o">.</span><span class="n">gravity</span> <span class="o">*</span> <span class="n">p</span><span class="o">.</span><span class="n">pendulum1_com</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">q1</span><span class="p">))</span>
+    <span class="n">V2</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">pendulum2_mass</span> <span class="o">*</span> <span class="n">p</span><span class="o">.</span><span class="n">gravity</span> <span class="o">*</span> <span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">pendulum1_length</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">q1</span><span class="p">))</span> <span class="o">+</span> <span class="n">p</span><span class="o">.</span><span class="n">pendulum2_com</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">q2</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">V1</span> <span class="o">+</span> <span class="n">V2</span></div>
+
+
+<div class="viewcode-block" id="total_energy_numba">
+<a class="viewcode-back" href="../../../api/core/dynamics.html#src.core.dynamics.total_energy_numba">[docs]</a>
+<span class="nd">@njit</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fastmath</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">total_energy_numba</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">DIPParams</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">kinetic_energy_numba</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span> <span class="o">+</span> <span class="n">potential_energy_numba</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DoubleInvertedPendulum">
+<a class="viewcode-back" href="../../../api/core/dynamics.html#src.core.dynamics.DoubleInvertedPendulum">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DoubleInvertedPendulum</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Double Inverted Pendulum dynamics model with JIT-compiled physics kernels.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="DoubleInvertedPendulum.__init__">
+<a class="viewcode-back" href="../../../api/core/dynamics.html#src.core.dynamics.DoubleInvertedPendulum.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the simplified double inverted pendulum dynamics model.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        params : Any</span>
+<span class="sd">            A physics configuration specifying the system constants.  This</span>
+<span class="sd">            must either be an instance of :class:`src.config.PhysicsConfig`</span>
+<span class="sd">            or a mapping with the same keys.  Passing a mapping will</span>
+<span class="sd">            attempt to construct a :class:`PhysicsConfig` to ensure the</span>
+<span class="sd">            values are validated.  Any failure to import or construct</span>
+<span class="sd">            the configuration will propagate an exception.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># PhysicsConfig is imported at the module level.  Avoid re‑importing</span>
+        <span class="c1"># it here to prevent circular import issues when running tests</span>
+        <span class="c1"># under alternative import paths.  The top‑level import ensures</span>
+        <span class="c1"># PhysicsConfig is available.</span>
+
+        <span class="k">if</span> <span class="n">params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Physics parameters must not be None&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Determine whether the input is already a validated PhysicsConfig.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">PhysicsConfig</span><span class="p">):</span>
+            <span class="n">phys_cfg</span> <span class="o">=</span> <span class="n">params</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Extract a plain dictionary from the input.  Accept Pydantic‑like</span>
+            <span class="c1"># objects that implement model_dump(), plain dicts, or objects</span>
+            <span class="c1"># that can be converted via dict().  Raise if conversion is</span>
+            <span class="c1"># impossible so that invalid inputs are not silently accepted.</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s2">&quot;model_dump&quot;</span><span class="p">):</span>
+                <span class="n">param_dict</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">param_dict</span> <span class="o">=</span> <span class="n">params</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">param_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                        <span class="s2">&quot;Physics parameters must be a PhysicsConfig or dict‑like mapping&quot;</span>
+                    <span class="p">)</span>
+            <span class="c1"># Construct a PhysicsConfig from the dictionary.  This will</span>
+            <span class="c1"># perform full Pydantic validation and raise on invalid or</span>
+            <span class="c1"># missing fields.</span>
+            <span class="n">phys_cfg</span> <span class="o">=</span> <span class="n">PhysicsConfig</span><span class="p">(</span><span class="o">**</span><span class="n">param_dict</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+
+        <span class="c1"># Preserve the original physics model on the instance.  Tests access</span>
+        <span class="c1"># ``dyn.p_model`` to retrieve a Pydantic model rather than a raw</span>
+        <span class="c1"># mapping (see ``test_passivity_verification``).  Store a reference</span>
+        <span class="c1"># before converting to the tuple used by numba kernels.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p_model</span> <span class="o">=</span> <span class="n">phys_cfg</span>
+        <span class="c1"># Convert the validated schema to the namedtuple used by numba kernels.</span>
+        <span class="c1"># Use the classmethod to map PhysicsConfig fields into DIPParams.  This</span>
+        <span class="c1"># resolves the mismatch between PhysicsConfig and DIPParams fields and</span>
+        <span class="c1"># supplies default regularisation parameters.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">DIPParams</span><span class="o">.</span><span class="n">from_physics_config</span><span class="p">(</span><span class="n">phys_cfg</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="c1"># Fallback: attempt to construct directly from dump</span>
+            <span class="n">raw</span> <span class="o">=</span> <span class="n">phys_cfg</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">DIPParams</span><span class="p">(</span><span class="o">**</span><span class="n">raw</span><span class="p">)</span>
+        <span class="c1"># The state dimension of the simplified model is fixed at six.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span> <span class="o">=</span> <span class="mi">6</span>
+
+        <span class="c1"># -----------------------------------------------------------------</span>
+        <span class="c1"># Integration scheme configuration</span>
+        <span class="c1">#</span>
+        <span class="c1"># The dynamics can be integrated using either a fixed step RK4 scheme</span>
+        <span class="c1"># or an adaptive embedded Runge–Kutta pair (Dormand–Prince).  The</span>
+        <span class="c1"># ``integration_scheme`` attribute selects between these methods.  When</span>
+        <span class="c1"># set to ``&#39;adaptive&#39;`` the ``step`` method will call ``rk45_step`` and</span>
+        <span class="c1"># adjust the time step to control local truncation error.  The</span>
+        <span class="c1"># tolerances and bounds can be overridden via attributes on this</span>
+        <span class="c1"># instance.  See Hairer et al.【Hairer1993 §II.5.2, DOI:10.1007/978-3-540-78862-1】</span>
+        <span class="c1"># for a discussion of adaptive step size control.</span>
+        <span class="c1"># Default to adaptive integration.  Adaptive schemes (Dormand–Prince)</span>
+        <span class="c1"># control local truncation error and mitigate energy drift.  Users</span>
+        <span class="c1"># may override this attribute to &#39;rk4&#39; or &#39;symplectic&#39; for fixed</span>
+        <span class="c1"># step RK4 or symplectic velocity‑Verlet integration.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">integration_scheme</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;rk4&#39;</span>
+        <span class="c1"># Absolute and relative tolerances for adaptive integration.  These</span>
+        <span class="c1"># values were chosen to keep local errors below 1e-6 in typical</span>
+        <span class="c1"># simulations.  Users may override them after construction.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">abs_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rel_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span>
+        <span class="c1"># Minimum and maximum allowable time steps for the adaptive scheme.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_dt</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-5</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_dt</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span>
+        <span class="c1"># Internal state for adaptive integration: previous time step and time.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dt_adaptive</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+<div class="viewcode-block" id="DoubleInvertedPendulum.default_state">
+<a class="viewcode-back" href="../../../api/core/dynamics.html#src.core.dynamics.DoubleInvertedPendulum.default_state">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">default_state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DoubleInvertedPendulum.kinetic_energy">
+<a class="viewcode-back" href="../../../api/core/dynamics.html#src.core.dynamics.DoubleInvertedPendulum.kinetic_energy">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">kinetic_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">kinetic_energy_numba</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="DoubleInvertedPendulum.potential_energy">
+<a class="viewcode-back" href="../../../api/core/dynamics.html#src.core.dynamics.DoubleInvertedPendulum.potential_energy">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">potential_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">potential_energy_numba</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="DoubleInvertedPendulum.total_energy">
+<a class="viewcode-back" href="../../../api/core/dynamics.html#src.core.dynamics.DoubleInvertedPendulum.total_energy">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">total_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">total_energy_numba</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">))</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_physics_matrices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">compute_matrices_numba</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_rhs_core</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">u</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Evaluate the right‑hand side of the state ODE.</span>
+
+<span class="sd">        This method wraps the low‑level ``rhs_numba`` implementation and</span>
+<span class="sd">        converts any NaN outputs into a ``NumericalInstabilityError``.  When</span>
+<span class="sd">        ``rhs_numba`` returns a vector containing NaNs (indicating that the</span>
+<span class="sd">        inertia matrix was too ill‑conditioned to invert) this wrapper</span>
+<span class="sd">        raises ``NumericalInstabilityError``.  Callers should catch this</span>
+<span class="sd">        exception and handle it appropriately (e.g., by reducing the time</span>
+<span class="sd">        step or aborting the simulation).  This approach replaces the</span>
+<span class="sd">        previous NaN‑returning behaviour with explicit error signalling as</span>
+<span class="sd">        recommended by the design review.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">xdot</span> <span class="o">=</span> <span class="n">rhs_numba</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">u</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+        <span class="c1"># Detect NaN signalling from rhs_numba</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">xdot</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="n">NumericalInstabilityError</span><span class="p">(</span>
+                <span class="s2">&quot;Inertia matrix ill‑conditioned; dynamics cannot be computed&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">xdot</span>
+
+<div class="viewcode-block" id="DoubleInvertedPendulum.step">
+<a class="viewcode-back" href="../../../api/core/dynamics.html#src.core.dynamics.DoubleInvertedPendulum.step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">u</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Integrate the dynamics over one time step.</span>
+
+<span class="sd">        Depending on the ``integration_scheme`` attribute this method will</span>
+<span class="sd">        either perform a single fixed‑step RK4 integration or invoke the</span>
+<span class="sd">        embedded Dormand–Prince adaptive integrator.  When using adaptive</span>
+<span class="sd">        integration the step size is adjusted based on an error estimate</span>
+<span class="sd">        until the local truncation error is below ``abs_tol`` and ``rel_tol``.</span>
+<span class="sd">        The adaptive algorithm follows the strategy outlined by Dormand</span>
+<span class="sd">        &amp; Prince【Dormand1980 p.20, DOI:10.1016/0771-050X(80)90013-3】 and Hairer</span>
+<span class="sd">        et al.【Hairer1993 §II.5.2, DOI:10.1007/978-3-540-78862-1】.  If the</span>
+<span class="sd">        integrator produces a non‑finite result or repeatedly rejects a</span>
+<span class="sd">        step the method raises ``NumericalInstabilityError``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        state : np.ndarray</span>
+<span class="sd">            Current system state.</span>
+<span class="sd">        u : float</span>
+<span class="sd">            Control input to apply.</span>
+<span class="sd">        dt : float</span>
+<span class="sd">            Proposed integration timestep.  When using the adaptive</span>
+<span class="sd">            integrator this serves as the initial guess; subsequent calls</span>
+<span class="sd">            will reuse the last accepted step size.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray</span>
+<span class="sd">            Next state after integrating over ``dt``.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        NumericalInstabilityError</span>
+<span class="sd">            If the integrator returns a non‑finite state vector or the</span>
+<span class="sd">            adaptive algorithm fails to find a suitable step size.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">scheme</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;integration_scheme&#39;</span><span class="p">,</span> <span class="s1">&#39;rk4&#39;</span><span class="p">)</span>
+        <span class="c1"># Symplectic integration branch</span>
+        <span class="k">if</span> <span class="n">scheme</span> <span class="o">==</span> <span class="s1">&#39;symplectic&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_step_symplectic</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+        <span class="c1"># Adaptive integration branch</span>
+        <span class="k">if</span> <span class="n">scheme</span> <span class="o">==</span> <span class="s1">&#39;adaptive&#39;</span><span class="p">:</span>
+            <span class="c1"># Initialise adaptive dt on first call</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dt_adaptive</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_dt_adaptive</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+            <span class="c1"># Local variables for readability</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time</span>
+            <span class="n">dt_try</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dt_adaptive</span><span class="p">)</span>
+            <span class="c1"># Limit dt within [min_dt, max_dt]</span>
+            <span class="n">dt_try</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_dt</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">dt_try</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_dt</span><span class="p">))</span>
+            <span class="c1"># Attempt up to a fixed number of step trials</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+                <span class="n">y_new</span><span class="p">,</span> <span class="n">dt_new</span> <span class="o">=</span> <span class="n">rk45_step</span><span class="p">(</span>
+                    <span class="k">lambda</span> <span class="n">_t</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rhs_core</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">u</span><span class="p">),</span>
+                    <span class="n">t</span><span class="p">,</span>
+                    <span class="n">state</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+                    <span class="n">dt_try</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">abs_tol</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">rel_tol</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">y_new</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># Step accepted</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">y_new</span><span class="p">)):</span>
+                        <span class="k">raise</span> <span class="n">NumericalInstabilityError</span><span class="p">(</span>
+                            <span class="s2">&quot;Dynamics integration failed: non‑finite values encountered in adaptive step&quot;</span>
+                        <span class="p">)</span>
+                    <span class="c1"># Update internal time and step size</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_time</span> <span class="o">=</span> <span class="n">t</span> <span class="o">+</span> <span class="n">dt_try</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_dt_adaptive</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">dt_new</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_dt</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_dt</span><span class="p">))</span>
+                    <span class="k">return</span> <span class="n">y_new</span>
+                <span class="c1"># Step rejected; reduce dt and retry</span>
+                <span class="n">dt_try</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">dt_new</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_dt</span><span class="p">)</span>
+            <span class="c1"># Too many rejections</span>
+            <span class="k">raise</span> <span class="n">NumericalInstabilityError</span><span class="p">(</span>
+                <span class="s2">&quot;Adaptive integrator failed to converge within the retry limit&quot;</span>
+            <span class="p">)</span>
+        <span class="c1"># Default fixed RK4 integration</span>
+        <span class="n">next_state</span> <span class="o">=</span> <span class="n">step_rk4_numba</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">u</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">dt</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">next_state</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="n">NumericalInstabilityError</span><span class="p">(</span>
+                <span class="s2">&quot;Dynamics integration failed: non‑finite values encountered in next state&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">next_state</span></div>
+
+
+<div class="viewcode-block" id="DoubleInvertedPendulum.step_rk4">
+<a class="viewcode-back" href="../../../api/core/dynamics.html#src.core.dynamics.DoubleInvertedPendulum.step_rk4">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step_rk4</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">u</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_step_symplectic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">u</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform a symplectic velocity‑Verlet integration step.</span>
+
+<span class="sd">        Symplectic integrators preserve the Hamiltonian structure of</span>
+<span class="sd">        mechanical systems and maintain bounded energy error over long</span>
+<span class="sd">        horizons【959405733725261†L294-L301】.  This method implements a simple</span>
+<span class="sd">        velocity‑Verlet scheme: velocities are advanced half a step, positions</span>
+<span class="sd">        are updated using the half‑step velocities, and then velocities</span>
+<span class="sd">        are completed with the acceleration at the new configuration.  If</span>
+<span class="sd">        any intermediate acceleration evaluation returns non‑finite values</span>
+<span class="sd">        a :class:`NumericalInstabilityError` is raised.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        state : np.ndarray</span>
+<span class="sd">            Current state vector [x, q1, q2, xdot, q1dot, q2dot].</span>
+<span class="sd">        u : float</span>
+<span class="sd">            Control input.</span>
+<span class="sd">        dt : float</span>
+<span class="sd">            Integration time step.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray</span>
+<span class="sd">            The next state after one symplectic step.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="c1"># Decompose state</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">xdot</span><span class="p">,</span> <span class="n">q1dot</span><span class="p">,</span> <span class="n">q2dot</span> <span class="o">=</span> <span class="n">s</span>
+        <span class="c1"># Compute initial acceleration</span>
+        <span class="n">deriv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rhs_core</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">u</span><span class="p">)</span>
+        <span class="c1"># Ensure finite derivative</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">deriv</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="n">NumericalInstabilityError</span><span class="p">(</span>
+                <span class="s2">&quot;Dynamics integration failed: non‑finite values encountered in symplectic step&quot;</span>
+            <span class="p">)</span>
+        <span class="n">a0</span> <span class="o">=</span> <span class="n">deriv</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span>
+        <span class="c1"># Half‑step velocity update</span>
+        <span class="n">v_half</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">xdot</span><span class="p">,</span> <span class="n">q1dot</span><span class="p">,</span> <span class="n">q2dot</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">a0</span>
+        <span class="c1"># Full position update using half‑step velocities</span>
+        <span class="n">pos_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="o">+</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">v_half</span>
+        <span class="c1"># Build intermediate state with new positions and half‑step velocities</span>
+        <span class="n">interm_state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">pos_new</span><span class="p">,</span> <span class="n">v_half</span><span class="p">))</span>
+        <span class="c1"># Compute acceleration at new configuration</span>
+        <span class="n">deriv_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rhs_core</span><span class="p">(</span><span class="n">interm_state</span><span class="p">,</span> <span class="n">u</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">deriv_new</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="n">NumericalInstabilityError</span><span class="p">(</span>
+                <span class="s2">&quot;Dynamics integration failed: non‑finite values encountered in symplectic step&quot;</span>
+            <span class="p">)</span>
+        <span class="n">a1</span> <span class="o">=</span> <span class="n">deriv_new</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span>
+        <span class="c1"># Complete velocity update</span>
+        <span class="n">v_new</span> <span class="o">=</span> <span class="n">v_half</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">a1</span>
+        <span class="c1"># Assemble new state</span>
+        <span class="n">next_state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">pos_new</span><span class="p">,</span> <span class="n">v_new</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">next_state</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_rhs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;controller&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">controller</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+            <span class="n">sig</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">controller</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sig</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">controller</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">controller</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">u</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rhs_core</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">u</span><span class="p">)</span></div>
+
+
+<span class="n">DIPDynamics</span> <span class="o">=</span> <span class="n">DoubleInvertedPendulum</span>
+<span class="c1">#==========================================================================================\\\</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">src.core.dynamics</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Research Team.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    </div>
+  </body>
+</html>

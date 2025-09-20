@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Adaptive Integrator &#8212; DIP_SMC_PSO Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=fb9458d3" />
+    <script src="../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Dynamics" href="dynamics.html" />
+    <link rel="prev" title="Core" href="index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dynamics.html" title="Dynamics"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Core"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >API Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" accesskey="U">Core</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Adaptive Integrator</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="adaptive-integrator">
+<h1>Adaptive Integrator<a class="headerlink" href="#adaptive-integrator" title="Link to this heading">¶</a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>Adaptive Runge–Kutta integrators for state‑space models.</p>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">src.core.adaptive_integrator</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+</section>
+<section id="api-summary">
+<h2>API Summary<a class="headerlink" href="#api-summary" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#module-src.core.adaptive_integrator" title="src.core.adaptive_integrator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">src.core.adaptive_integrator</span></code></a></p></td>
+<td><p>Adaptive Runge–Kutta integrators for state‑space models.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-src.core.adaptive_integrator">
+<span id="detailed-api"></span><h2>Detailed API<a class="headerlink" href="#module-src.core.adaptive_integrator" title="Link to this heading">¶</a></h2>
+<p>Adaptive Runge–Kutta integrators for state‑space models.</p>
+<p>This module implements a Dormand–Prince 4(5) embedded Runge–Kutta step
+with error estimation and adaptive step size control.  Embedded
+Runge–Kutta pairs compute two solutions of different orders from the
+same function evaluations; the difference between the 4th‑ and 5th‑order
+approximations provides an estimate of the local truncation error.  By
+comparing this error against user‑supplied absolute and relative
+tolerances the integrator can accept or reject a proposed step and
+adjust the step size accordingly【313837333132264†L58-L82】.  Adaptive
+integrators avoid manual tuning of Courant–Friedrichs–Lewy (CFL)
+parameters and automatically reduce the step size when the system
+exhibits rapid dynamics or near‑singular mass matrices.</p>
+<p>The implementation here focuses on a single step of the Dormand–Prince
+method.  A higher‑level loop must call <a class="reference internal" href="#src.core.adaptive_integrator.rk45_step" title="src.core.adaptive_integrator.rk45_step"><code class="xref py py-func docutils literal notranslate"><span class="pre">rk45_step()</span></code></a> repeatedly
+while updating the integration time and state.  If a step is rejected
+the returned state will be <code class="docutils literal notranslate"><span class="pre">None</span></code> and the caller should retry the
+integration with the suggested smaller <code class="docutils literal notranslate"><span class="pre">dt</span></code>.  When a step is
+accepted the integrator proposes a new step size that can be used for
+the next call.</p>
+<p>The algorithm is described in many numerical analysis textbooks; see
+Section III of Shampine and Reichelt for details【313837333132264†L58-L82】.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="src.core.adaptive_integrator.rk45_step">
+<span class="sig-prename descclassname"><span class="pre">src.core.adaptive_integrator.</span></span><span class="sig-name descname"><span class="pre">rk45_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">abs_tol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_tol</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/src/core/adaptive_integrator.html#rk45_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.core.adaptive_integrator.rk45_step" title="Link to this definition">¶</a></dt>
+<dd><p>Perform a single Dormand–Prince 4(5) integration step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> (<em>Callable</em><em>[</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>np.ndarray</em><em>]</em><em>, </em><em>np.ndarray</em><em>]</em>) – Function computing the time derivative of the state <code class="docutils literal notranslate"><span class="pre">y</span></code> at time
+<code class="docutils literal notranslate"><span class="pre">t</span></code>.  The derivative must be a one‑dimensional NumPy array.</p></li>
+<li><p><strong>t</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Current integration time.</p></li>
+<li><p><strong>y</strong> (<em>np.ndarray</em>) – Current state vector.</p></li>
+<li><p><strong>dt</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Proposed step size.</p></li>
+<li><p><strong>abs_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Absolute tolerance for local error control.</p></li>
+<li><p><strong>rel_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Relative tolerance for local error control.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple <code class="docutils literal notranslate"><span class="pre">(y_new,</span> <span class="pre">dt_new)</span></code>.  If the step is accepted then
+<code class="docutils literal notranslate"><span class="pre">y_new</span></code> contains the 5th‑order solution at <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">+</span> <span class="pre">dt</span></code> and
+<code class="docutils literal notranslate"><span class="pre">dt_new</span></code> is a suggested step size for the next step.  If the
+step is rejected then <code class="docutils literal notranslate"><span class="pre">y_new</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code> and <code class="docutils literal notranslate"><span class="pre">dt_new</span></code> is a
+smaller step size to retry.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[Optional[np.ndarray], <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a>]</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This implementation uses the Dormand–Prince coefficients for the
+classic <cite>RK45</cite> method.  The constants are hard‑coded for clarity
+rather than generated programmatically.  See the cited reference
+for the Butcher tableau【313837333132264†L58-L82】.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Adaptive Integrator</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#api-summary">API Summary</a></li>
+<li><a class="reference internal" href="#module-src.core.adaptive_integrator">Detailed API</a><ul>
+<li><a class="reference internal" href="#src.core.adaptive_integrator.rk45_step"><code class="docutils literal notranslate"><span class="pre">rk45_step()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="index.html"
+                          title="previous chapter">Core</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="dynamics.html"
+                          title="next chapter">Dynamics</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/api/core/adaptive_integrator.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dynamics.html" title="Dynamics"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Core"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >API Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" >Core</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Adaptive Integrator</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Research Team.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    </div>
+  </body>
+</html>

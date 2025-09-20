@@ -1,0 +1,30 @@
+========================
+Control Primitives
+========================
+.. currentmodule:: src.utils.control_primitives
+
+Overview
+--------
+This module provides utilities for control primitives, including the require_positive, require_in_range, saturate functions.
+
+Examples
+--------
+.. doctest::
+
+   >>> from src.utils.control_primitives import *
+   >>> # Utility functions for analysis and computation
+
+API Summary
+-----------
+.. autosummary::
+   :toctree: _autosummary
+   :recursive:
+
+   src.utils.control_primitives
+
+Detailed API
+------------
+.. automodule:: src.utils.control_primitives
+   :members:
+   :undoc-members:
+   :show-inheritance:

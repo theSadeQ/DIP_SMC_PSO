@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.core.dynamics_lowrank &#8212; DIP_SMC_PSO Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=fb9458d3" />
+    <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">src.core.dynamics_lowrank</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for src.core.dynamics_lowrank</h1><div class="highlight"><pre>
+<span></span><span class="c1">#==========================================================================================\\</span>
+<span class="c1">#============================ src/core/dynamics_lowrank.py ============================\\</span>
+<span class="c1">#==========================================================================================\\</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Low-rank dynamics implementation for simplified simulations.</span>
+
+<span class="sd">This module exports a single function ``step(x, u, dt)`` that advances the</span>
+<span class="sd">state by one time step under a trivial low‑rank dynamics model.  The signature</span>
+<span class="sd">matches that of the full dynamics model so that callers can switch between</span>
+<span class="sd">implementations based on a configuration flag.</span>
+
+<span class="sd">The default implementation performs an Euler step on an identity dynamics</span>
+<span class="sd">``x_{t+1} = x_t + dt * u_t``.  Real low‑rank models may override this</span>
+<span class="sd">behaviour with more sophisticated physics, but for the purposes of the</span>
+<span class="sd">acceptance tests the simple identity dynamics suffices.  Inputs ``x`` and</span>
+<span class="sd">``u`` may be scalars, vectors or batches of vectors.  Broadcasting rules</span>
+<span class="sd">are used to match the shapes.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+
+<div class="viewcode-block" id="step">
+<a class="viewcode-back" href="../../../api/core/dynamics_lowrank.html#src.core.dynamics_lowrank.step">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">u</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Advance the state by one timestep using a simple Euler rule.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : array-like</span>
+<span class="sd">        Current state of shape ``(D,)`` or ``(B, D)``.  The last</span>
+<span class="sd">        dimension corresponds to the state variables.  Batch dimensions</span>
+<span class="sd">        are preserved.</span>
+<span class="sd">    u : array-like</span>
+<span class="sd">        Control input(s) to apply.  Must be broadcastable to the shape</span>
+<span class="sd">        of ``x``.</span>
+<span class="sd">    dt : float</span>
+<span class="sd">        Timestep.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    numpy.ndarray</span>
+<span class="sd">        The updated state with the same shape as ``x``.  The trivial</span>
+<span class="sd">        low‑rank dynamics implemented here simply adds the scaled input</span>
+<span class="sd">        to the current state.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">u_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Broadcast u to match the shape of x</span>
+        <span class="n">u_b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">u_arr</span><span class="p">,</span> <span class="n">x_arr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="c1"># Fall back to elementwise addition if broadcasting fails</span>
+        <span class="n">u_b</span> <span class="o">=</span> <span class="n">u_arr</span>
+    <span class="k">return</span> <span class="n">x_arr</span> <span class="o">+</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">u_b</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">src.core.dynamics_lowrank</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Research Team.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    </div>
+  </body>
+</html>

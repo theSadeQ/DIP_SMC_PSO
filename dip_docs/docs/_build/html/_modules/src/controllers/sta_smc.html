@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.controllers.sta_smc &#8212; DIP_SMC_PSO Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=fb9458d3" />
+    <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">src.controllers.sta_smc</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for src.controllers.sta_smc</h1><div class="highlight"><pre>
+<span></span><span class="c1">#==========================================================================================\\\</span>
+<span class="c1">#=============================== src/controllers/sta_smc.py ==============================\\\</span>
+<span class="c1">#==========================================================================================\\\</span>
+<span class="c1"># Changed: enforce strict positivity of algorithmic and sliding‑surface gains (K1, K2, k1, k2, λ1, λ2);</span>
+<span class="c1"># added corresponding validation logic in __init__; updated the class docstring to include a</span>
+<span class="c1"># gain‑positivity section citing super‑twisting literature; these changes address F‑4.SMCDesign.2 / RC‑04.</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Optional numba import</span>
+<span class="c1">#</span>
+<span class="c1"># The super‑twisting SMC controller uses Numba to accelerate inner loops.</span>
+<span class="c1"># Provide a fallback implementation when Numba is unavailable so that this</span>
+<span class="c1"># module can be imported without raising a ModuleNotFoundError.  The dummy</span>
+<span class="c1"># object supplies an ``njit`` decorator that simply returns the original</span>
+<span class="c1"># function unchanged.</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numba</span>  <span class="c1"># type: ignore</span>
+<span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pragma: no cover - fallback when numba is missing</span>
+    <span class="k">class</span><span class="w"> </span><span class="nc">_DummyNumba</span><span class="p">:</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">njit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">deco</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">fn</span>
+            <span class="k">return</span> <span class="n">deco</span>
+    <span class="n">numba</span> <span class="o">=</span> <span class="n">_DummyNumba</span><span class="p">()</span>  <span class="c1"># type: ignore</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="c1"># robust import for utils.* to support both import styles</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">src.utils.control_primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">saturate</span>  <span class="c1"># when repo root on sys.path</span>
+<span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..utils.control_primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">saturate</span>  <span class="c1"># when importing as src.controllers.*</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">utils.control_primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">saturate</span>    <span class="c1"># when src itself on sys.path</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">src.utils.control_outputs</span><span class="w"> </span><span class="kn">import</span> <span class="n">STAOutput</span>  <span class="c1"># when repo root on sys.path</span>
+<span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..utils.control_outputs</span><span class="w"> </span><span class="kn">import</span> <span class="n">STAOutput</span>  <span class="c1"># when importing as src.controllers.*</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">utils.control_outputs</span><span class="w"> </span><span class="kn">import</span> <span class="n">STAOutput</span>    <span class="c1"># when src itself on sys.path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="nd">@numba</span><span class="o">.</span><span class="n">njit</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_sta_smc_control_numba</span><span class="p">(</span>
+    <span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">z</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">alg_gain_K1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">alg_gain_K2</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">surf_gain_k1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">surf_gain_k2</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">surf_lam1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">surf_lam2</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">damping_gain</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">max_force</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">boundary_layer</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">u_eq</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Numba‑accelerated core of the Super‑Twisting SMC.</span>
+
+<span class="sd">    Uses a saturated sign function for sigma to maintain full control authority</span>
+<span class="sd">    outside the boundary layer and linear behavior inside it, which is required</span>
+<span class="sd">    for robust, finite‑time convergence of the super‑twisting algorithm.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">th1</span><span class="p">,</span> <span class="n">th2</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">th1dot</span><span class="p">,</span> <span class="n">th2dot</span> <span class="o">=</span> <span class="n">state</span>
+
+    <span class="c1"># Sliding surface: sigma = k1*(th1dot + lam1*th1) + k2*(th2dot + lam2*th2)</span>
+    <span class="n">sigma</span> <span class="o">=</span> <span class="n">surf_gain_k1</span> <span class="o">*</span> <span class="p">(</span><span class="n">th1dot</span> <span class="o">+</span> <span class="n">surf_lam1</span> <span class="o">*</span> <span class="n">th1</span><span class="p">)</span> <span class="o">+</span> <span class="n">surf_gain_k2</span> <span class="o">*</span> <span class="p">(</span><span class="n">th2dot</span> <span class="o">+</span> <span class="n">surf_lam2</span> <span class="o">*</span> <span class="n">th2</span><span class="p">)</span>
+
+    <span class="c1"># ---- FIX CS‑01: robust saturation instead of &quot;sigma/(|sigma|+eps)&quot; ----</span>
+    <span class="n">eps</span> <span class="o">=</span> <span class="n">boundary_layer</span>  <span class="c1"># guaranteed &gt; 0 by __init__</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">sigma</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">eps</span><span class="p">:</span>
+        <span class="n">sgn_sigma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">sigma</span><span class="p">)</span>        <span class="c1"># full control authority</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sgn_sigma</span> <span class="o">=</span> <span class="n">sigma</span> <span class="o">/</span> <span class="n">eps</span>           <span class="c1"># linear inside boundary layer</span>
+    <span class="c1"># -----------------------------------------------------------------------</span>
+
+    <span class="c1"># Super‑twisting continuous term and disturbance‑like internal state</span>
+    <span class="n">u_cont</span> <span class="o">=</span> <span class="o">-</span><span class="n">alg_gain_K1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">sigma</span><span class="p">))</span> <span class="o">*</span> <span class="n">sgn_sigma</span>
+    <span class="c1"># Use the previous z (integral state) for the disturbance term.  In the</span>
+    <span class="c1"># continuous super‑twisting algorithm, the integral term z enters the</span>
+    <span class="c1"># control law directly and is updated after computing the control.  The</span>
+    <span class="c1"># earlier implementation incorrectly used the updated z in the same step.</span>
+    <span class="n">u_dis</span> <span class="o">=</span> <span class="n">z</span>
+    <span class="n">new_z</span> <span class="o">=</span> <span class="n">z</span> <span class="o">-</span> <span class="n">alg_gain_K2</span> <span class="o">*</span> <span class="n">sgn_sigma</span> <span class="o">*</span> <span class="n">dt</span>
+
+    <span class="c1"># Damping on sigma (optional)</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">u_eq</span> <span class="o">+</span> <span class="n">u_cont</span> <span class="o">+</span> <span class="n">u_dis</span> <span class="o">-</span> <span class="n">damping_gain</span> <span class="o">*</span> <span class="n">sigma</span>
+
+    <span class="c1"># Saturate final outputs to actuator limits.  Numba cannot</span>
+    <span class="c1"># compile np.clip on scalars when running in nopython mode.  Use</span>
+    <span class="c1"># explicit conditional clamps instead.</span>
+    <span class="k">if</span> <span class="n">u</span> <span class="o">&gt;</span> <span class="n">max_force</span><span class="p">:</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">max_force</span>
+    <span class="k">elif</span> <span class="n">u</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">max_force</span><span class="p">:</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="o">-</span><span class="n">max_force</span>
+    <span class="k">if</span> <span class="n">new_z</span> <span class="o">&gt;</span> <span class="n">max_force</span><span class="p">:</span>
+        <span class="n">new_z</span> <span class="o">=</span> <span class="n">max_force</span>
+    <span class="k">elif</span> <span class="n">new_z</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">max_force</span><span class="p">:</span>
+        <span class="n">new_z</span> <span class="o">=</span> <span class="o">-</span><span class="n">max_force</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">u</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">new_z</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">sigma</span><span class="p">)</span>
+
+
+<span class="nd">@numba</span><span class="o">.</span><span class="n">njit</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_sta_smc_core</span><span class="p">(</span>
+    <span class="n">z</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">sgn_sigma</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">alg_gain_K1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">alg_gain_K2</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">damping_gain</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">max_force</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">u_eq</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">Kaw</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Numba-accelerated core using precomputed sigma and its saturated sign.</span>
+
+<span class="sd">    Includes anti-windup back‑calculation: the integrator state ``z`` is</span>
+<span class="sd">    updated using the difference between the saturated and unsaturated</span>
+<span class="sd">    control multiplied by ``Kaw``【789743582768797†L224-L249】.  Returns</span>
+<span class="sd">    ``(u_saturated, new_z, sigma)``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Continuous term and disturbance‑like internal state</span>
+    <span class="n">u_cont</span> <span class="o">=</span> <span class="o">-</span><span class="n">alg_gain_K1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">sigma</span><span class="p">))</span> <span class="o">*</span> <span class="n">sgn_sigma</span>
+    <span class="n">u_dis</span> <span class="o">=</span> <span class="n">z</span>
+    <span class="c1"># Compute unsaturated control</span>
+    <span class="n">u_raw</span> <span class="o">=</span> <span class="n">u_eq</span> <span class="o">+</span> <span class="n">u_cont</span> <span class="o">+</span> <span class="n">u_dis</span> <span class="o">-</span> <span class="n">damping_gain</span> <span class="o">*</span> <span class="n">sigma</span>
+    <span class="c1"># Saturate the control</span>
+    <span class="n">u_sat</span> <span class="o">=</span> <span class="n">u_raw</span>
+    <span class="k">if</span> <span class="n">u_sat</span> <span class="o">&gt;</span> <span class="n">max_force</span><span class="p">:</span>
+        <span class="n">u_sat</span> <span class="o">=</span> <span class="n">max_force</span>
+    <span class="k">elif</span> <span class="n">u_sat</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">max_force</span><span class="p">:</span>
+        <span class="n">u_sat</span> <span class="o">=</span> <span class="o">-</span><span class="n">max_force</span>
+    <span class="c1"># Anti-windup back‑calculation: adjust integrator when saturation occurs</span>
+    <span class="n">new_z</span> <span class="o">=</span> <span class="n">z</span> <span class="o">-</span> <span class="n">alg_gain_K2</span> <span class="o">*</span> <span class="n">sgn_sigma</span> <span class="o">*</span> <span class="n">dt</span> <span class="o">+</span> <span class="n">Kaw</span> <span class="o">*</span> <span class="p">(</span><span class="n">u_sat</span> <span class="o">-</span> <span class="n">u_raw</span><span class="p">)</span> <span class="o">*</span> <span class="n">dt</span>
+    <span class="c1"># Saturate the integrator to maintain boundedness</span>
+    <span class="k">if</span> <span class="n">new_z</span> <span class="o">&gt;</span> <span class="n">max_force</span><span class="p">:</span>
+        <span class="n">new_z</span> <span class="o">=</span> <span class="n">max_force</span>
+    <span class="k">elif</span> <span class="n">new_z</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">max_force</span><span class="p">:</span>
+        <span class="n">new_z</span> <span class="o">=</span> <span class="o">-</span><span class="n">max_force</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">u_sat</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">new_z</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">sigma</span><span class="p">)</span>
+ 
+
+<div class="viewcode-block" id="SuperTwistingSMC">
+<a class="viewcode-back" href="../../../api/controllers/sta_smc.html#src.controllers.sta_smc.SuperTwistingSMC">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SuperTwistingSMC</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Second‑order (super‑twisting) sliding‑mode controller for the double‑inverted pendulum.</span>
+
+<span class="sd">    This controller implements the super‑twisting algorithm, a higher‑order</span>
+<span class="sd">    sliding‑mode technique that achieves finite‑time convergence without</span>
+<span class="sd">    requiring direct measurement of the sliding surface derivative.  Compared</span>
+<span class="sd">    with conventional (first‑order) sliding‑mode control, the super‑twisting</span>
+<span class="sd">    algorithm is known to mitigate chattering and reduce control effort,</span>
+<span class="sd">    offering improved tracking accuracy.  The</span>
+<span class="sd">    implementation uses a continuous saturation function within a boundary</span>
+<span class="sd">    layer ``ε`` to approximate the sign of the sliding variable σ,</span>
+<span class="sd">    consistent with the boundary‑layer approach for chattering reduction</span>
+<span class="sd">   .  The size of ``ε`` therefore controls</span>
+<span class="sd">    the trade‑off between chattering attenuation and steady‑state accuracy</span>
+<span class="sd">   .</span>
+
+<span class="sd">    **Gains:**</span>
+
+<span class="sd">      - If a 2‑element sequence ``[K1, K2]`` is provided, the sliding‑surface</span>
+<span class="sd">        gains and poles ``(k1, k2, λ1, λ2)`` are set to default values.</span>
+<span class="sd">      - A 6‑element sequence ``[K1, K2, k1, k2, λ1, λ2]`` specifies all</span>
+<span class="sd">        super‑twisting and surface parameters explicitly.</span>
+
+<span class="sd">    **Sliding surface:**</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \\sigma = k_1\\,(\\dot{\\theta}_1 + \\lambda_1\\,\\theta_1) + k_2\\,(\\dot{\\theta}_2 + \\lambda_2\\,\\theta_2).</span>
+
+<span class="sd">    **Discrete‑time control law:**</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \\begin{aligned}</span>
+<span class="sd">        u &amp;= u_{\\\\text{eq}} - K_1 \\\\sqrt{|\\\\sigma|}\\\\,\\\\operatorname{sat}\\\\left( \\\\frac{\\\\sigma}{\\\\epsilon} \\\\right) + z - d\\\\,\\\\sigma,\\\\\\\\</span>
+<span class="sd">        z^+ &amp;= z - K_2\\\\,\\\\operatorname{sat}\\\\left( \\\\frac{\\\\sigma}{\\\\epsilon} \\\\right)\\\\,dt,</span>
+<span class="sd">        \\end{aligned}</span>
+
+<span class="sd">    where ``sat`` is a continuous approximation of ``sign`` (either linear or</span>
+<span class="sd">    hyperbolic tangent), ``d`` is the optional damping gain and ``u_eq`` is</span>
+<span class="sd">    the equivalent control derived from the dynamics model.  The final output</span>
+<span class="sd">    ``u`` and the disturbance‑like internal state ``z`` are both saturated</span>
+<span class="sd">    to lie within the actuator limits.</span>
+
+<span class="sd">    The boundary layer ε (&gt; 0) is validated at construction time to avoid</span>
+<span class="sd">    division by zero in the saturated sign computation.  A well‑chosen ε</span>
+<span class="sd">    ensures finite‑time convergence and reduces chattering.</span>
+
+<span class="sd">    **Gain positivity (F‑4.SMCDesign.2 / RC‑04)**:  For finite‑time convergence of</span>
+<span class="sd">    the super‑twisting algorithm the algorithmic gains ``K1`` and ``K2`` must</span>
+<span class="sd">    be strictly positive and the sliding‑surface gains ``k1`` and ``k2`` together</span>
+<span class="sd">    with the slope parameters ``λ1`` and ``λ2`` must also be strictly positive.</span>
+<span class="sd">    Super‑twisting literature emphasises that positive constants are required to</span>
+<span class="sd">    ensure robust finite‑time stability【MorenoOsorio2012†L27-L40】 and positive</span>
+<span class="sd">    sliding‑surface coefficients guarantee that the error terms combine with</span>
+<span class="sd">    positive weights【OkstateThesis2013†L1415-L1419】.  The constructor therefore</span>
+<span class="sd">    validates all gains using ``require_positive`` and raises a ``ValueError``</span>
+<span class="sd">    when any gain is non‑positive.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        A triple ``(u, (z, σ), history)`` containing the saturated control</span>
+<span class="sd">        signal ``u``, the updated internal state and sliding surface value,</span>
+<span class="sd">        and a history dictionary (empty for this controller).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SuperTwistingSMC.__init__">
+<a class="viewcode-back" href="../../../api/controllers/sta_smc.html#src.controllers.sta_smc.SuperTwistingSMC.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">gains</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
+        <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">max_force</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">150.0</span><span class="p">,</span>
+        <span class="n">damping_gain</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">boundary_layer</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">,</span>
+        <span class="n">dynamics_model</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">switch_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;linear&quot;</span><span class="p">,</span>
+        <span class="n">regularization</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-10</span><span class="p">,</span>
+        <span class="n">anti_windup_gain</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a Super‑Twisting Sliding Mode Controller.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        gains : array‑like of length 2 or 6</span>
+<span class="sd">            Controller gains.  A 2‑vector supplies algorithmic gains</span>
+<span class="sd">            ``[K1, K2]`` and defaults sliding surface parameters.  A 6‑vector</span>
+<span class="sd">            supplies ``[K1, K2, k1, k2, λ1, λ2]`` explicitly.</span>
+<span class="sd">        dt : float</span>
+<span class="sd">            Integration time step (seconds). Must be &gt; 0.</span>
+<span class="sd">        max_force : float, optional</span>
+<span class="sd">            Actuator saturation limit.  Defaults to ``150.0``.  The control</span>
+<span class="sd">            output will be clipped to ``[-max_force, max_force]``.</span>
+<span class="sd">        damping_gain : float, optional</span>
+<span class="sd">            Linear damping term multiplied by the sliding surface σ.  Defaults to</span>
+<span class="sd">            ``0.0``.</span>
+<span class="sd">        boundary_layer : float, optional</span>
+<span class="sd">            Positive width of the boundary layer used to regularize the sign</span>
+<span class="sd">            function.  Defaults to ``0.01``.  A non‑zero value is required to</span>
+<span class="sd">            avoid division by zero and to guarantee finite‑time convergence in</span>
+<span class="sd">            the discrete super‑twisting algorithm. **Raises `ValueError` if ≤ 0.**</span>
+<span class="sd">        switch_method : {&quot;linear&quot;,&quot;tanh&quot;}, optional</span>
+<span class="sd">            Method for saturated sign of σ. Defaults to &quot;linear&quot;.</span>
+<span class="sd">        dynamics_model : object, optional</span>
+<span class="sd">            Dynamics model used to compute the equivalent control.  If ``None``,</span>
+<span class="sd">            the equivalent control will be zero.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Gain initialization</span>
+        <span class="c1"># Store a private copy of the provided gains for external</span>
+        <span class="c1"># introspection via the ``gains`` property.  Accept both 2‑ and 6‑</span>
+        <span class="c1"># element sequences.  Only the relevant elements are used for</span>
+        <span class="c1"># internal parameters; extra values are ignored.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gains</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">gains</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gains</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">alg_gain_K1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alg_gain_K2</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">gains</span><span class="p">)</span>
+            <span class="c1"># Default surface gains (positive constants).  Choosing conservative</span>
+            <span class="c1"># defaults ensures the sliding surface has a positive slope and</span>
+            <span class="c1"># finite‑time convergence properties【MorenoOsorio2012†L27-L40】.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">surf_gain_k1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">surf_gain_k2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">surf_lam1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">surf_lam2</span> <span class="o">=</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">1.0</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">gains</span><span class="p">)</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">alg_gain_K1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alg_gain_K2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">surf_gain_k1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">surf_gain_k2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">surf_lam1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">surf_lam2</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">gains</span><span class="p">[:</span><span class="mi">6</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;SuperTwistingSMC requires 2 or 6 gains&quot;</span><span class="p">)</span>
+
+
+        <span class="c1"># Store parameters from arguments</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dyn</span> <span class="o">=</span> <span class="n">dynamics_model</span>
+        <span class="c1"># Validate core parameters using the shared utility.  These</span>
+        <span class="c1"># validations enforce positivity or non‑negativity with</span>
+        <span class="c1"># consistent error messages across controllers.  See</span>
+        <span class="c1"># `src/utils/control_primitives.require_positive` for details.</span>
+        <span class="c1"># robust import for utils.* to support both import styles</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">src.utils.control_primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">require_positive</span>  <span class="c1"># when repo root on sys.path</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">..utils.control_primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">require_positive</span>  <span class="c1"># when importing as src.controllers.*</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">utils.control_primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">require_positive</span>    <span class="c1"># when src itself on sys.path</span>
+
+        <span class="c1"># Integration step must be strictly positive to avoid division by</span>
+        <span class="c1"># zero in discrete‑time updates.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dt</span> <span class="o">=</span> <span class="n">require_positive</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="s2">&quot;dt&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Saturation limit must be strictly positive; if zero the</span>
+        <span class="c1"># controller could never exert any force and would be ineffective.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_force</span> <span class="o">=</span> <span class="n">require_positive</span><span class="p">(</span><span class="n">max_force</span><span class="p">,</span> <span class="s2">&quot;max_force&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Damping gain is a free parameter; allow any finite float</span>
+        <span class="c1"># (positive, zero or negative) without validation here.  The</span>
+        <span class="c1"># smoothing effect of the damping term is documented in the</span>
+        <span class="c1"># class docstring.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">damping_gain</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">damping_gain</span><span class="p">)</span>
+
+        <span class="c1"># Boundary layer width epsilon must be strictly positive to</span>
+        <span class="c1"># avoid division by zero in the saturated sign function.  Use</span>
+        <span class="c1"># `require_positive` to centralise this check and unify error</span>
+        <span class="c1"># messages across controllers.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boundary_layer</span> <span class="o">=</span> <span class="n">require_positive</span><span class="p">(</span><span class="n">boundary_layer</span><span class="p">,</span> <span class="s2">&quot;boundary_layer&quot;</span><span class="p">)</span>
+
+        <span class="c1"># ---- Additional validation of STA gains (F‑4.SMCDesign.2 / RC‑04) ----</span>
+        <span class="c1"># Enforce positivity of algorithmic gains K1, K2 and sliding‑surface</span>
+        <span class="c1"># parameters k1, k2, λ1, λ2.  Positive constants ensure finite‑time</span>
+        <span class="c1"># stability and well‑posed Lyapunov surfaces【MorenoOsorio2012†L27-L40】.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alg_gain_K1</span> <span class="o">=</span> <span class="n">require_positive</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alg_gain_K1</span><span class="p">,</span> <span class="s2">&quot;K1&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alg_gain_K2</span> <span class="o">=</span> <span class="n">require_positive</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alg_gain_K2</span><span class="p">,</span> <span class="s2">&quot;K2&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">surf_gain_k1</span> <span class="o">=</span> <span class="n">require_positive</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">surf_gain_k1</span><span class="p">,</span> <span class="s2">&quot;k1&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">surf_gain_k2</span> <span class="o">=</span> <span class="n">require_positive</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">surf_gain_k2</span><span class="p">,</span> <span class="s2">&quot;k2&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">surf_lam1</span> <span class="o">=</span> <span class="n">require_positive</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">surf_lam1</span><span class="p">,</span> <span class="s2">&quot;lam1&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">surf_lam2</span> <span class="o">=</span> <span class="n">require_positive</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">surf_lam2</span><span class="p">,</span> <span class="s2">&quot;lam2&quot;</span><span class="p">)</span>
+        <span class="n">sm</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">switch_method</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">sm</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;linear&quot;</span><span class="p">,</span> <span class="s2">&quot;tanh&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;switch_method must be &#39;linear&#39; or &#39;tanh&#39;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">switch_method</span> <span class="o">=</span> <span class="n">sm</span>
+
+        <span class="c1"># Placeholders for optional equivalent control</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">L</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">surf_gain_k1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">surf_gain_k2</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="c1"># Logger</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+
+        <span class="c1"># Regularisation constant used in the equivalent control term.  A</span>
+        <span class="c1"># small positive diagonal added to the inertia matrix improves</span>
+        <span class="c1"># conditioning and ensures the matrix is invertible.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">regularization</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">regularization</span><span class="p">)</span>
+
+        <span class="c1"># Anti‑windup gain used in back‑calculation.  When non‑zero, the</span>
+        <span class="c1"># integrator state z is updated using the difference between the</span>
+        <span class="c1"># saturated and unsaturated control to prevent integrator wind‑up</span>
+        <span class="c1"># under actuator saturation【789743582768797†L224-L249】.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">anti_windup_gain</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">anti_windup_gain</span><span class="p">)</span>
+
+        <span class="c1"># Expose the expected length of the gain vector to external tools.</span>
+        <span class="c1"># When a 2‑element gain vector is supplied the remaining surface</span>
+        <span class="c1"># parameters default to conservative values; however PSO and other</span>
+        <span class="c1"># tuners should explore the full six‑dimensional space.  Declare</span>
+        <span class="c1"># six as the nominal dimension so that vector bounds reflect this</span>
+        <span class="c1"># maximum length.  See design review section 5 (PSO integration).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_gains</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span></div>
+
+
+    <span class="c1"># ---------------- Controller state/history API ----------------</span>
+
+<div class="viewcode-block" id="SuperTwistingSMC.initialize_state">
+<a class="viewcode-back" href="../../../api/controllers/sta_smc.html#src.controllers.sta_smc.SuperTwistingSMC.initialize_state">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize_state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return (z, sigma) initial internal state.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SuperTwistingSMC.initialize_history">
+<a class="viewcode-back" href="../../../api/controllers/sta_smc.html#src.controllers.sta_smc.SuperTwistingSMC.initialize_history">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize_history</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{}</span></div>
+
+
+    <span class="c1"># ---------------- Main control computation -------------------</span>
+
+<div class="viewcode-block" id="SuperTwistingSMC.compute_control">
+<a class="viewcode-back" href="../../../api/controllers/sta_smc.html#src.controllers.sta_smc.SuperTwistingSMC.compute_control">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_control</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">state_vars</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span>
+        <span class="n">history</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">STAOutput</span><span class="p">:</span>
+        <span class="c1"># State variables may be provided either as a tuple of (z, sigma)</span>
+        <span class="c1"># or as a single scalar (legacy usage).  Accept both forms.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Unpack z and ignore provided sigma; the sliding surface will</span>
+            <span class="c1"># be recomputed below.</span>
+            <span class="n">z</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">state_vars</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="c1"># Non‑iterable (e.g., float) provided: treat as z and</span>
+            <span class="c1"># initialize sigma to zero.  Cast to float to avoid</span>
+            <span class="c1"># unexpected types (e.g., numpy scalars).</span>
+            <span class="n">z</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">state_vars</span><span class="p">)</span> <span class="k">if</span> <span class="n">state_vars</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">0.0</span>
+
+        <span class="n">u_eq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_equivalent_control</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+
+        <span class="c1"># Compute sliding surface and its saturated sign using shared utility</span>
+        <span class="n">sigma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_sliding_surface</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="n">sgn_sigma</span> <span class="o">=</span> <span class="n">saturate</span><span class="p">(</span><span class="n">sigma</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundary_layer</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">switch_method</span><span class="p">)</span>
+
+        <span class="c1"># Use numba core with precomputed sigma and sgn_sigma</span>
+        <span class="n">u</span><span class="p">,</span> <span class="n">new_z</span><span class="p">,</span> <span class="n">sigma_val</span> <span class="o">=</span> <span class="n">_sta_smc_core</span><span class="p">(</span>
+            <span class="n">z</span><span class="o">=</span><span class="n">z</span><span class="p">,</span>
+            <span class="n">sigma</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">sigma</span><span class="p">),</span>
+            <span class="n">sgn_sigma</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">sgn_sigma</span><span class="p">),</span>
+            <span class="n">alg_gain_K1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">alg_gain_K1</span><span class="p">,</span>
+            <span class="n">alg_gain_K2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">alg_gain_K2</span><span class="p">,</span>
+            <span class="n">damping_gain</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">damping_gain</span><span class="p">,</span>
+            <span class="n">dt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span>
+            <span class="n">max_force</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_force</span><span class="p">,</span>
+            <span class="n">u_eq</span><span class="o">=</span><span class="n">u_eq</span><span class="p">,</span>
+            <span class="n">Kaw</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">anti_windup_gain</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># Package results into a named tuple.  The internal state carries</span>
+        <span class="c1"># the updated z and the latest sliding surface value, although the</span>
+        <span class="c1"># caller may choose to ignore the returned sigma.  Use sigma</span>
+        <span class="c1"># computed earlier to maintain consistency.</span>
+        <span class="k">return</span> <span class="n">STAOutput</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="p">(</span><span class="n">new_z</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">sigma</span><span class="p">)),</span> <span class="n">history</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="SuperTwistingSMC.validate_gains">
+<a class="viewcode-back" href="../../../api/controllers/sta_smc.html#src.controllers.sta_smc.SuperTwistingSMC.validate_gains">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate_gains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gains_b</span><span class="p">:</span> <span class="s2">&quot;np.ndarray&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;np.ndarray&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Vectorized feasibility check for super‑twisting SMC gains.</span>
+
+<span class="sd">        The algorithmic gains ``K1`` and ``K2`` must be strictly positive to</span>
+<span class="sd">        ensure finite‑time convergence of the super‑twisting algorithm.  When</span>
+<span class="sd">        a six‑element gain vector is provided the sliding‑surface gains</span>
+<span class="sd">        ``k1``, ``k2`` and the lambda parameters ``lam1``, ``lam2`` must also</span>
+<span class="sd">        be positive.  Positive sliding‑surface coefficients are required</span>
+<span class="sd">        because the sliding surface is a linear combination of state</span>
+<span class="sd">        variables with positive weights.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        gains_b : np.ndarray</span>
+<span class="sd">            Array of shape (B, D) containing candidate gain vectors.  The</span>
+<span class="sd">            first two columns correspond to ``K1`` and ``K2``; if ``D`` ≥ 6</span>
+<span class="sd">            then columns 3–6 correspond to ``k1``, ``k2``, ``lam1`` and</span>
+<span class="sd">            ``lam2`` respectively.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray</span>
+<span class="sd">            Boolean mask of shape (B,) indicating which rows satisfy the</span>
+<span class="sd">            positivity constraints.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_np</span>
+        <span class="k">if</span> <span class="n">gains_b</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">gains_b</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">gains_b</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="c1"># Always require K1 and K2 to be positive</span>
+        <span class="n">k1</span> <span class="o">=</span> <span class="n">gains_b</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">k2</span> <span class="o">=</span> <span class="n">gains_b</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">valid</span> <span class="o">=</span> <span class="p">(</span><span class="n">k1</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">k2</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="c1"># If sliding surface parameters are provided, require them to be positive</span>
+        <span class="k">if</span> <span class="n">gains_b</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">6</span><span class="p">:</span>
+            <span class="n">surf_k1</span> <span class="o">=</span> <span class="n">gains_b</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">surf_k2</span> <span class="o">=</span> <span class="n">gains_b</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">lam1</span> <span class="o">=</span> <span class="n">gains_b</span><span class="p">[:,</span> <span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">lam2</span> <span class="o">=</span> <span class="n">gains_b</span><span class="p">[:,</span> <span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">valid</span> <span class="o">=</span> <span class="n">valid</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">surf_k1</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">surf_k2</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">lam1</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">lam2</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">valid</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Properties</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">gains</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a copy of the gains used to configure this controller.</span>
+
+<span class="sd">        The returned list includes all elements supplied to the constructor,</span>
+<span class="sd">        whether 2 or 6 gains.  This enables external code (and tests) to</span>
+<span class="sd">        inspect the algorithmic and sliding‑surface gains after</span>
+<span class="sd">        instantiation without risk of mutating the internal state.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_gains</span><span class="p">)</span>
+    <span class="c1"># ---------------- Utilities -------------------</span>
+
+<div class="viewcode-block" id="SuperTwistingSMC.set_dynamics">
+<a class="viewcode-back" href="../../../api/controllers/sta_smc.html#src.controllers.sta_smc.SuperTwistingSMC.set_dynamics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dynamics_model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Attach dynamics model if available (used by u_eq if implemented).&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dyn</span> <span class="o">=</span> <span class="n">dynamics_model</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_sliding_surface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">th1</span><span class="p">,</span> <span class="n">th2</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">th1dot</span><span class="p">,</span> <span class="n">th2dot</span> <span class="o">=</span> <span class="n">state</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">surf_gain_k1</span> <span class="o">*</span> <span class="p">(</span><span class="n">th1dot</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">surf_lam1</span> <span class="o">*</span> <span class="n">th1</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">surf_gain_k2</span> <span class="o">*</span> <span class="p">(</span><span class="n">th2dot</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">surf_lam2</span> <span class="o">*</span> <span class="n">th2</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_equivalent_control</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the model‑based equivalent control ``u_eq`` using Tikhonov regularisation.</span>
+
+<span class="sd">        The original implementation used an SVD‑based condition estimate and a</span>
+<span class="sd">        pseudo‑inverse to invert the inertia matrix.  This version instead</span>
+<span class="sd">        applies a small diagonal regularisation and solves the resulting</span>
+<span class="sd">        linear systems directly, reducing computational overhead and</span>
+<span class="sd">        eliminating the need for a full SVD.  Adding a small constant to</span>
+<span class="sd">        the diagonal of a symmetric indefinite matrix makes it positive</span>
+<span class="sd">        definite and invertible, a standard technique in control</span>
+<span class="sd">        literature.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dyn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+
+        <span class="n">q_dot</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">M</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">G</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dyn</span><span class="o">.</span><span class="n">_compute_physics_matrices</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+
+        <span class="c1"># Regularise the inertia matrix using the configurable constant.  A</span>
+        <span class="c1"># small diagonal offset guarantees invertibility of symmetric</span>
+        <span class="c1"># matrices.</span>
+        <span class="n">M_reg</span> <span class="o">=</span> <span class="n">M</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">regularization</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Compute controllability scalar L M^-1 B.  Use the boundary layer</span>
+            <span class="c1"># thickness as a threshold for ill‑conditioned feedforward terms.</span>
+            <span class="n">Minv_B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">M_reg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">B</span><span class="p">)</span>
+            <span class="n">L_Minv_B</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">L</span> <span class="o">@</span> <span class="n">Minv_B</span><span class="p">)</span>
+            <span class="c1"># If the equivalent control would divide by a very small number,</span>
+            <span class="c1"># return zero.  The threshold equals the boundary layer epsilon</span>
+            <span class="c1"># such that the same tuning parameter governs both chattering</span>
+            <span class="c1"># mitigation and model invertibility.</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">L_Minv_B</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundary_layer</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mf">0.0</span>
+
+            <span class="c1"># Compute rhs = C q_dot + G.  Support both matrix and vector forms.</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="s2">&quot;ndim&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">rhs</span> <span class="o">=</span> <span class="n">C</span> <span class="o">@</span> <span class="n">q_dot</span> <span class="o">+</span> <span class="n">G</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">rhs</span> <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">G</span>
+            <span class="n">Minv_rhs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">M_reg</span><span class="p">,</span> <span class="n">rhs</span><span class="p">)</span>
+            <span class="n">num</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">L</span> <span class="o">@</span> <span class="n">Minv_rhs</span><span class="p">)</span>
+            <span class="c1"># Equivalent control is the feedforward term minus the damping</span>
+            <span class="c1"># portion from the sliding surface definition.  Following</span>
+            <span class="c1"># conventional SMC, subtract the inner product of the surface</span>
+            <span class="c1"># gains with the joint velocities.  Note the sign convention</span>
+            <span class="c1"># matches the one used in ClassicalSMC.</span>
+            <span class="n">u_eq</span> <span class="o">=</span> <span class="p">(</span><span class="n">num</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">surf_gain_k1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">surf_lam1</span> <span class="o">*</span> <span class="n">q_dot</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span>
+                           <span class="bp">self</span><span class="o">.</span><span class="n">surf_gain_k2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">surf_lam2</span> <span class="o">*</span> <span class="n">q_dot</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span> <span class="o">/</span> <span class="n">L_Minv_B</span>
+        <span class="k">except</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">LinAlgError</span><span class="p">:</span>
+            <span class="c1"># Singular matrix despite regularisation; disable equivalent control</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+
+        <span class="c1"># Do not apply additional clamping here.  The final saturation in</span>
+        <span class="c1"># ``compute_control`` will bound the control effort.  Returning the</span>
+        <span class="c1"># raw equivalent control maintains transparency and avoids</span>
+        <span class="c1"># inadvertently biasing the controller output.</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">u_eq</span><span class="p">)</span></div>
+
+<span class="c1">#========================================================================================================\\\</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">src.controllers.sta_smc</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Research Team.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    </div>
+  </body>
+</html>

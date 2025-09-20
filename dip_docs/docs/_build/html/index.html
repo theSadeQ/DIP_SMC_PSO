@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>DIP_SMC_PSO Documentation &#8212; DIP_SMC_PSO Documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=fb9458d3" />
+    <script src="_static/documentation_options.js?v=8d563738"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="guides/installation.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="guides/installation.html" title="Installation"
+             accesskey="N">next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">DIP_SMC_PSO Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">DIP_SMC_PSO Documentation</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="dip-smc-pso-documentation">
+<h1>DIP_SMC_PSO Documentation<a class="headerlink" href="#dip-smc-pso-documentation" title="Link to this heading">¶</a></h1>
+<p>Double-Inverted Pendulum Sliding Mode Control with PSO Optimization.</p>
+<p>This site documents the theory, usage, and implementation details of the project.</p>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="guides/installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="guides/installation.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/installation.html#steps">Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="guides/configuration.html">Configuration</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Theory</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="theory/system-modeling.html">System Modeling</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="theory/system-modeling.html#mathematical-notation">Mathematical Notation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/system-modeling.html#bibliography">Bibliography</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/system-modeling.html#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/system-modeling.html#project-links">Project Links</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="theory/smc-theory.html">SMC Theory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="theory/smc-theory.html#introduction-why-sliding-mode-control">Introduction – Why Sliding Mode Control?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/smc-theory.html#variant-i-classic-sliding-mode-control-smc">Variant I: Classic Sliding Mode Control (SMC)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/smc-theory.html#variant-ii-supertwisting-algorithm-sta-smc">Variant II: Super‑Twisting Algorithm (STA) SMC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/smc-theory.html#variant-iii-adaptive-smc">Variant III: Adaptive SMC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/smc-theory.html#variant-iv-hybrid-adaptivesta-smc">Variant IV: Hybrid Adaptive–STA SMC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/smc-theory.html#controller-configuration-and-config-yaml">Controller Configuration and config.yaml</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/smc-theory.html#robustness-and-singularity-handling">Robustness and Singularity Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/smc-theory.html#comparative-summary-and-recommendations">Comparative Summary and Recommendations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/smc-theory.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="theory/pso-optimization.html">PSO Optimization</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="theory/pso-optimization.html#introduction-and-background">Introduction and Background</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/pso-optimization.html#simulation-framework-challenges">Simulation Framework Challenges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/pso-optimization.html#proposed-enhancements-and-methodology">Proposed Enhancements and Methodology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/pso-optimization.html#implementation-details">Implementation Details</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/pso-optimization.html#experimental-scenarios-and-results">Experimental Scenarios and Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/pso-optimization.html#robustness-analysis">Robustness Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/pso-optimization.html#limitations-and-future-work">Limitations and Future Work</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/pso-optimization.html#conclusion">Conclusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/pso-optimization.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="theory/results-analysis.html">Results &amp; Analysis</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="theory/results-analysis.html#experimental-setup">Experimental Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/results-analysis.html#psobased-controller-tuning">PSO‑based Controller Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/results-analysis.html#comparative-performance-analysis">Comparative Performance Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/results-analysis.html#robustness-and-sensitivity-analysis">Robustness and Sensitivity Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/results-analysis.html#discussion-and-interpretation">Discussion and Interpretation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/results-analysis.html#references">References</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/core/index.html">Core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/controllers/index.html">Controllers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/optimizer/index.html">Optimizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/benchmarks/index.html">Benchmarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/fault_detection/index.html">Fault Detection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/utils/index.html">Utilities</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="development/contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development/testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development/architecture.html">3. System Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="development/architecture.html#loop-topology">3.1 Loop topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development/architecture.html#interface-contracts">3.2 Interface contracts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development/architecture.html#timing-latency-and-fallback">3.3 Timing, latency, and fallback</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="guides/installation.html"
+                          title="next chapter">Installation</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="guides/installation.html" title="Installation"
+             >next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">DIP_SMC_PSO Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">DIP_SMC_PSO Documentation</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Research Team.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    </div>
+  </body>
+</html>

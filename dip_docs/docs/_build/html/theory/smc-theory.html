@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>SMC Theory &#8212; DIP_SMC_PSO Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=fb9458d3" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="PSO Optimization" href="pso-optimization.html" />
+    <link rel="prev" title="System Modeling" href="system-modeling.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pso-optimization.html" title="PSO Optimization"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="system-modeling.html" title="System Modeling"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SMC Theory</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="smc-theory">
+<h1>SMC Theory<a class="headerlink" href="#smc-theory" title="Link to this heading">¶</a></h1>
+<p>Sliding Mode Control for a Double‑Inverted Pendulum: Bridging Theory and Implementation</p>
+<section id="introduction-why-sliding-mode-control">
+<h2>Introduction – Why Sliding Mode Control?<a class="headerlink" href="#introduction-why-sliding-mode-control" title="Link to this heading">¶</a></h2>
+<p>The double‑inverted pendulum (DIP) is widely recognised as a <strong>canonical benchmark</strong> for the study of nonlinear, under‑actuated control systems. Inverted‑pendulum experiments have been used for decades to teach and validate control techniques; variants such as the rotational single‑arm pendulum, the cart pendulum and the <strong>double inverted pendulum</strong> offer escalating control challenges, and the inverted pendulum is often described as the most fundamental benchmark for robotics and control education [1]. In the DIP, two pendula are attached in series to a horizontally moving cart and only the cart is actuated. Consequently the system has fewer actuators than degrees of freedom and is both <strong>under‑actuated</strong> and <strong>strongly nonlinear</strong> [2]. Conventional linear controllers struggle with large deflections, parameter variations and model uncertainty.</p>
+<p>Sliding Mode Control (SMC) addresses these issues by forcing the system state onto a pre‑defined <strong>sliding manifold</strong>. When the state reaches this manifold, the resulting closed‑loop dynamics become insensitive to matched disturbances and uncertainties [3]. The control law compensates modelling errors through the control input channel so that the plant behaves according to the reduced‑order dynamics on the manifold [3]. This robustness and finite‑time convergence make SMC attractive for under‑actuated systems such as the DIP. However, the discontinuous switching law of classic SMC induces <strong>chattering</strong>, a high‑frequency oscillation caused by rapid control switching when the state crosses the sliding surface. Chattering increases control effort, excites unmodelled high‑frequency modes and can cause wear in actuators. Introducing a boundary layer around the sliding surface alleviates chattering but enlarges the tracking error and slows the response [4].</p>
+<p>To explore different trade‑offs between robustness, smoothness and complexity, this project implements four SMC variants – <strong>classic (first‑order)</strong>, <strong>super‑twisting algorithm (STA)</strong>, <strong>adaptive SMC</strong>, and <strong>hybrid adaptive–STA</strong>. Each variant is implemented in the provided Python code (<code class="docutils literal notranslate"><span class="pre">classic_smc.py</span></code>, <code class="docutils literal notranslate"><span class="pre">sta_smc.py</span></code>, <code class="docutils literal notranslate"><span class="pre">adaptive_smc.py</span></code>, <code class="docutils literal notranslate"><span class="pre">hybrid_adaptive_sta_smc.py</span></code>), and the following sections link the theory to these implementations.</p>
+<section id="structure-of-the-report">
+<h3>Structure of the report<a class="headerlink" href="#structure-of-the-report" title="Link to this heading">¶</a></h3>
+<p>The report is organised as follows. Each controller variant is presented with a concise theoretical background, a description of its implementation in the project, and an analysis of its practical implications. New sections map configuration parameters to mathematical symbols and discuss robustness issues such as singularity handling. A glossary of symbols and tables summarise the key results.</p>
+</section>
+</section>
+<section id="variant-i-classic-sliding-mode-control-smc">
+<h2>Variant I: Classic Sliding Mode Control (SMC)<a class="headerlink" href="#variant-i-classic-sliding-mode-control-smc" title="Link to this heading">¶</a></h2>
+<section id="principles-and-sliding-surface">
+<h3>Principles and sliding surface<a class="headerlink" href="#principles-and-sliding-surface" title="Link to this heading">¶</a></h3>
+<p>Classic SMC designs a linear <strong>sliding surface</strong> that combines position and velocity errors. For second‑order systems such as the DIP, the surface is typically a linear combination of the tracking error and its first derivative [5]. In this report the sliding surface is:</p>
+<div class="math notranslate nohighlight">
+\[\sigma = \lambda_{1}\,\theta_{1} + \lambda_{2}\,\theta_{2} + k_{1}\,\dot{\theta}_{1} + k_{2}\,\dot{\theta}_{2}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\theta_{i}\)</span> are the pendulum angles, <span class="math notranslate nohighlight">\(\dot{\theta}_{i}\)</span> their angular velocities, and <span class="math notranslate nohighlight">\(\lambda_{i}&gt;0\)</span> are design gains. The implementation computes the sliding variable in the <code class="docutils literal notranslate"><span class="pre">_compute_sliding_surface</span></code> method of <code class="docutils literal notranslate"><span class="pre">classic_smc.py</span></code>:</p>
+<p><em>“sigma = self.lam1 * theta1 + self.lam2 * theta2 + self.k1 * dtheta1 + self.k2 * dtheta2”</em> (see <code class="docutils literal notranslate"><span class="pre">classic_smc.py</span></code>), directly matching the equation above.</p>
+</section>
+<section id="control-law-equivalent-and-switching-parts">
+<h3>Control law: equivalent and switching parts<a class="headerlink" href="#control-law-equivalent-and-switching-parts" title="Link to this heading">¶</a></h3>
+<p>The control input <span class="math notranslate nohighlight">\(u\)</span> is decomposed into an <strong>equivalent control</strong> <span class="math notranslate nohighlight">\(u_{\mathrm{eq}}\)</span> that cancels the nominal dynamics and a <strong>robust switching</strong> term <span class="math notranslate nohighlight">\(u_{\mathrm{sw}}\)</span> that drives <span class="math notranslate nohighlight">\(\sigma\)</span> toward zero. This decomposition, often written as <span class="math notranslate nohighlight">\(u = u_{eq} + u_{sw}\)</span>, is standard in sliding‑mode design [5]:</p>
+<div class="math notranslate nohighlight">
+\[u = u_{eq} - K\, \text{sat}\left( \frac{\sigma}{\epsilon} \right) - k_{d}\,\sigma\]</div>
+<section id="equivalent-control-computation">
+<h4>Equivalent control computation<a class="headerlink" href="#equivalent-control-computation" title="Link to this heading">¶</a></h4>
+<p>In <code class="docutils literal notranslate"><span class="pre">classic_smc.py</span></code> the <code class="docutils literal notranslate"><span class="pre">_compute_equivalent_control</span></code> method solves the dynamic equation of the DIP:</p>
+<div class="math notranslate nohighlight">
+\[M(q)\ddot{q} + C\left( q,\dot{q} \right)\dot{q} + G(q) = B\, u\]</div>
+<p>for the <strong>cart force</strong> <span class="math notranslate nohighlight">\(u\)</span> required to satisfy <span class="math notranslate nohighlight">\(\dot{\sigma}=0\)</span>. The inertia matrix <span class="math notranslate nohighlight">\(M(q)\)</span> is computed from the physics parameters and then <strong>regularised</strong> by adding a small diagonal term. Before inversion the code checks the condition number of <span class="math notranslate nohighlight">\(M(q)\)</span>; if it is ill‑conditioned the method resorts to the pseudo‑inverse (<code class="docutils literal notranslate"><span class="pre">np.linalg.pinv</span></code>) to avoid numerical singularities. This careful handling prevents blow‑ups when the pendulum angles approach singular configurations. The resulting <span class="math notranslate nohighlight">\(u_{\mathrm{eq}}\)</span> is limited by the <code class="docutils literal notranslate"><span class="pre">max_force</span></code> parameter in the configuration.</p>
+</section>
+<section id="boundary-layer-and-saturation">
+<h4>Boundary layer and saturation<a class="headerlink" href="#boundary-layer-and-saturation" title="Link to this heading">¶</a></h4>
+<p>The switching term uses a <strong>saturation function</strong> to approximate the discontinuous sign function within a small <strong>boundary layer</strong> of width <span class="math notranslate nohighlight">\(\epsilon\)</span>. Such smoothing reduces the chattering inherent in the discontinuous sign function, but it comes at a cost: introducing a boundary layer increases the tracking error and slows the response [4]. In the code, the <code class="docutils literal notranslate"><span class="pre">saturate</span></code> utility implements two approximations—a hyperbolic tangent (<code class="docutils literal notranslate"><span class="pre">method='tanh'</span></code>) and a linear clipping (<code class="docutils literal notranslate"><span class="pre">method='linear'</span></code>)—that smooth the sign function. Both approximations approach the discontinuous sign outside the boundary layer and produce smoother transitions inside.</p>
+</section>
+</section>
+<section id="numerical-robustness">
+<h3>Numerical robustness<a class="headerlink" href="#numerical-robustness" title="Link to this heading">¶</a></h3>
+<p>The classic controller includes several robustness enhancements:</p>
+<ul class="simple">
+<li><p><strong>Condition‑number checking and regularisation:</strong> The inertia matrix <span class="math notranslate nohighlight">\(M(q)\)</span> is checked for ill‑conditioning and regularised by adding a small diagonal term (<span class="math notranslate nohighlight">\(\varepsilon I\)</span>). When ill‑conditioned, a pseudo‑inverse is used to compute the equivalent control.</p></li>
+<li><p><strong>Fallback control:</strong> If the matrix inversion still fails due to singularity, the controller saturates the output to zero and returns an error flag, preventing instability.</p></li>
+<li><p><strong>Actuator saturation:</strong> The control input is saturated by <code class="docutils literal notranslate"><span class="pre">max_force</span></code> to respect actuator limits.</p></li>
+</ul>
+<p>These features make the classic SMC implementation stable and safe even when the model parameters deviate from their nominal values.</p>
+</section>
+</section>
+<section id="variant-ii-supertwisting-algorithm-sta-smc">
+<h2>Variant II: Super‑Twisting Algorithm (STA) SMC<a class="headerlink" href="#variant-ii-supertwisting-algorithm-sta-smc" title="Link to this heading">¶</a></h2>
+<section id="theory-and-formulation">
+<h3>Theory and formulation<a class="headerlink" href="#theory-and-formulation" title="Link to this heading">¶</a></h3>
+<p>The <strong>super‑twisting algorithm</strong> (STA) is a second‑order sliding mode technique that suppresses chattering by applying the discontinuity on the <strong>derivative</strong> of the control signal rather than on the control itself. By moving the discontinuity to the derivative, the control input becomes continuous, which greatly reduces high‑frequency oscillations while preserving the robustness of sliding‑mode control and guaranteeing finite‑time convergence to the sliding set [6]. The sliding variable <span class="math notranslate nohighlight">\(\sigma\)</span> for the STA controller is similar to the classic one but is scaled by separate gains. In <code class="docutils literal notranslate"><span class="pre">sta_smc.py</span></code> it is computed as:</p>
+<div class="math notranslate nohighlight">
+\[\sigma = k_{1}\,\left( {\dot{\theta}}_{1} + \lambda_{1}\,\theta_{1} \right) + k_{2}\,\left( {\dot{\theta}}_{2} + \lambda_{2}\,\theta_{2} \right)\]</div>
+<p>The STA control comprises two components:</p>
+<ol class="arabic simple">
+<li><p><strong>Continuous term</strong> <span class="math notranslate nohighlight">\(u_{c}=-K_{1}\sqrt{|\sigma|}\,\text{sgn}(\sigma)\)</span>; this term acts like a damping force proportional to <span class="math notranslate nohighlight">\(\sqrt{|\sigma|}\)</span>.</p></li>
+<li><p><strong>Integral term</strong> <span class="math notranslate nohighlight">\(u_{i}\)</span> generated by integrating the sign of <span class="math notranslate nohighlight">\(\sigma\)</span>: the internal state <span class="math notranslate nohighlight">\(z\)</span> is updated as <span class="math notranslate nohighlight">\(z\leftarrow z - K_{2}\,\text{sgn}(\sigma)\,\mathrm{d}t\)</span>. The integral of the discontinuity produces a continuous control signal, effectively moving the discontinuity to its derivative.</p></li>
+</ol>
+<p>The total control is <span class="math notranslate nohighlight">\(u = u_{\mathrm{eq}} + u_{c} + z\)</span>. Because the discontinuity is applied to the derivative rather than to the control itself, the resulting control law is continuous and enforces finite‑time convergence of both the sliding variable and its derivative [6]. In our implementation the internal integrator for <span class="math notranslate nohighlight">\(z\)</span> is updated explicitly using the time step <code class="docutils literal notranslate"><span class="pre">dt</span></code>; the previously supported <code class="docutils literal notranslate"><span class="pre">semi_implicit</span></code> configuration key has been removed from the code and should not appear in <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code>.</p>
+</section>
+<section id="lyapunov-stability-and-numerical-verification">
+<h3>Lyapunov stability and numerical verification<a class="headerlink" href="#lyapunov-stability-and-numerical-verification" title="Link to this heading">¶</a></h3>
+<p>A Lyapunov function <span class="math notranslate nohighlight">\(V=\tfrac12\sigma^{2}\)</span> can be shown to decrease along system trajectories under the STA law, guaranteeing finite‑time convergence of both <span class="math notranslate nohighlight">\(\sigma\)</span> and <span class="math notranslate nohighlight">\(\dot{\sigma}\)</span> to zero. The project includes a test, <code class="docutils literal notranslate"><span class="pre">test_lyapunov_decrease_sta</span></code> in <code class="docutils literal notranslate"><span class="pre">tests/test_core/test_lyapunov.py</span></code>, that numerically confirms this property. The test evaluates <span class="math notranslate nohighlight">\(V\)</span> at successive time steps and asserts that <span class="math notranslate nohighlight">\(V(t_{i+1}) &lt; V(t_{i})\)</span>. This demonstrates that the implementation adheres to the theoretical stability proof and that the STA drives the system to the origin in the <span class="math notranslate nohighlight">\((\sigma,\dot{\sigma})\)</span>-plane more aggressively than classic SMC.</p>
+</section>
+<section id="tuning-guidance">
+<h3>Tuning guidance<a class="headerlink" href="#tuning-guidance" title="Link to this heading">¶</a></h3>
+<p>Tuning the STA gains <span class="math notranslate nohighlight">\(K_{1}\)</span> and <span class="math notranslate nohighlight">\(K_{2}\)</span> is crucial. In practice:</p>
+<ul class="simple">
+<li><p><strong>K₁</strong> determines the magnitude of the continuous term. It should be larger than the maximum possible derivative of the disturbance to ensure finite‑time convergence. Increasing <span class="math notranslate nohighlight">\(K_{1}\)</span> accelerates convergence but can amplify control effort.</p></li>
+<li><p><strong>K₂</strong> governs the integral action. A higher <span class="math notranslate nohighlight">\(K_{2}\)</span> increases the speed of the integral term, improving sliding accuracy, but excessive <span class="math notranslate nohighlight">\(K_{2}\)</span> may cause oscillations. Selecting <span class="math notranslate nohighlight">\(K_{2}\approx K_{1}\)</span> is common to balance the proportional and integral actions.</p></li>
+</ul>
+<p>The configuration file allows setting <code class="docutils literal notranslate"><span class="pre">K1_init</span></code> and <code class="docutils literal notranslate"><span class="pre">K2_init</span></code> for the hybrid controller and similar parameters for the pure STA controller under the <code class="docutils literal notranslate"><span class="pre">gains</span></code> entry. The <code class="docutils literal notranslate"><span class="pre">dt</span></code> parameter controls integration accuracy.</p>
+</section>
+</section>
+<section id="variant-iii-adaptive-smc">
+<h2>Variant III: Adaptive SMC<a class="headerlink" href="#variant-iii-adaptive-smc" title="Link to this heading">¶</a></h2>
+<section id="adaptation-law-and-dead-zone">
+<h3>Adaptation law and dead zone<a class="headerlink" href="#adaptation-law-and-dead-zone" title="Link to this heading">¶</a></h3>
+<p>Adaptive SMC adjusts the switching gain <span class="math notranslate nohighlight">\(K\)</span> on‑line to compensate for unknown disturbance bounds. Rather than fixing <span class="math notranslate nohighlight">\(K\)</span> using the worst‑case disturbance, the controller updates <span class="math notranslate nohighlight">\(K(t)\)</span> according to an adaptation law that increases the gain when the system is far from the sliding manifold and decreases it when the state enters a neighbourhood of the manifold. This approach eliminates the need for a priori knowledge of the disturbance bound and avoids overly conservative gains [7]. In <code class="docutils literal notranslate"><span class="pre">adaptive_smc.py</span></code>, the <code class="docutils literal notranslate"><span class="pre">compute_control</span></code> method implements the adaptation:</p>
+<ol class="arabic simple">
+<li><p>When <span class="math notranslate nohighlight">\(|\sigma|\)</span> exceeds a specified <strong>dead zone</strong> (parameter <code class="docutils literal notranslate"><span class="pre">dead_zone</span></code>), the switching gain grows proportionally to <span class="math notranslate nohighlight">\(|\sigma|\)</span>. Increasing the gain outside the dead zone enlarges the disturbance bound and improves robustness when the state is far from the sliding manifold. This piece‑wise adaptation strategy is supported by nonlinear control theory: adaptive sliding‑mode controllers that allow the gain to increase until the sliding mode occurs and then decrease once the state enters a neighbourhood of the manifold achieve semi‑global stability without requiring a priori disturbance bounds [8].</p></li>
+<li><p>Inside the dead zone the gain is held constant or allowed to decay slowly. Decreasing the gain in this neighbourhood prevents unnecessary wind‑up and reduces chattering caused by measurement noise. The nominal gain value is recovered through a leak term (<code class="docutils literal notranslate"><span class="pre">leak_rate</span></code>) and the growth rate is limited by <code class="docutils literal notranslate"><span class="pre">adapt_rate_limit</span></code> to avoid abrupt changes.</p></li>
+</ol>
+<p>The gain is confined between <code class="docutils literal notranslate"><span class="pre">K_min</span></code> and <code class="docutils literal notranslate"><span class="pre">K_max</span></code> to prevent unbounded growth. A leak term (<code class="docutils literal notranslate"><span class="pre">leak_rate</span></code>) pulls the gain back toward its nominal value and prevents indefinite wind‑up. An additional limit (<code class="docutils literal notranslate"><span class="pre">adapt_rate_limit</span></code>) restricts how quickly the gain can change, avoiding abrupt jumps during adaptation.</p>
+</section>
+<section id="practical-considerations">
+<h3>Practical considerations<a class="headerlink" href="#practical-considerations" title="Link to this heading">¶</a></h3>
+<p>Adaptive SMC eliminates the need for prior knowledge of disturbance bounds and produces a continuous control signal, reducing chattering. However, it introduces additional parameters (adaptation rate, leak rate, dead zone) that require tuning and may yield slower transient response compared to fixed‑gain SMC if tuned conservatively.</p>
+</section>
+</section>
+<section id="variant-iv-hybrid-adaptivesta-smc">
+<h2>Variant IV: Hybrid Adaptive–STA SMC<a class="headerlink" href="#variant-iv-hybrid-adaptivesta-smc" title="Link to this heading">¶</a></h2>
+<section id="unified-sliding-surface-and-recentering">
+<h3>Unified sliding surface and recentering<a class="headerlink" href="#unified-sliding-surface-and-recentering" title="Link to this heading">¶</a></h3>
+<p>The hybrid controller combines the adaptive law with the super‑twisting algorithm using a <strong>single sliding surface</strong> that captures both pendulum dynamics and cart recentering. By default the sliding surface uses absolute joint coordinates:</p>
+<div class="math notranslate nohighlight">
+\[\sigma = c_{1}\,(\dot{\theta}_{1} + \lambda_{1}\,\theta_{1}) + c_{2}\,(\dot{\theta}_{2} + \lambda_{2}\,\theta_{2}) + k_{c}\,(\dot{x} + \lambda_{c}\,x)\]</div>
+<p>where <span class="math notranslate nohighlight">\(c_{i}&gt;0\)</span> and <span class="math notranslate nohighlight">\(\lambda_{i}&gt;0\)</span> weight the pendulum angle and velocity errors, and <span class="math notranslate nohighlight">\(k_{c}\)</span>, <span class="math notranslate nohighlight">\(\lambda_{c}\)</span> weight the cart velocity and position in the sliding manifold. Selecting <strong>positive coefficients</strong> ensures that the sliding manifold is attractive and defines a stable reduced‑order error surface—this is a standard requirement in sliding‑mode design. The terms involving the cart state encourage the cart to recenter without destabilising the pendula. The implementation also supports a <strong>relative formulation</strong> in which the second pendulum is represented by <span class="math notranslate nohighlight">\(\theta_{2}-\theta_{1}\)</span> and <span class="math notranslate nohighlight">\(\dot{\theta}_{2}-\dot{\theta}_{1}\)</span>; users can enable this mode with <code class="docutils literal notranslate"><span class="pre">use_relative_surface=True</span></code> to study coupled pendulum dynamics. Keeping both options accessible avoids hard‑coding a specific manifold and lets users explore alternative designs.</p>
+<p>The PD recentering behaviour is further reinforced by separate proportional–derivative gains <span class="math notranslate nohighlight">\(p_{\mathrm{gain}}\)</span> and <span class="math notranslate nohighlight">\(p_{\lambda}\)</span> applied to the cart velocity and position. These gains shape the transient response of the cart and are exposed as <code class="docutils literal notranslate"><span class="pre">cart_p_gain</span></code> and <code class="docutils literal notranslate"><span class="pre">cart_p_lambda</span></code> in the configuration.</p>
+</section>
+<section id="supertwisting-with-adaptive-gains">
+<h3>Super‑twisting with adaptive gains<a class="headerlink" href="#supertwisting-with-adaptive-gains" title="Link to this heading">¶</a></h3>
+<p>The hybrid control input consists of an equivalent part, a <strong>super‑twisting continuous term</strong> and an <strong>integral term</strong>. The continuous term uses the square‑root law from the STA, <span class="math notranslate nohighlight">\(-k_{1}\sqrt{|\sigma|}\,\text{sgn}(\sigma)\)</span>, while the integral term <span class="math notranslate nohighlight">\(z\)</span> obeys <span class="math notranslate nohighlight">\(\dot{z} = -k_{2}\,\text{sgn}(\sigma)\)</span>. Both gains <span class="math notranslate nohighlight">\(k_{1}\)</span> and <span class="math notranslate nohighlight">\(k_{2}\)</span> adapt online according to the same dead‑zone logic as in the adaptive SMC: when <span class="math notranslate nohighlight">\(|\sigma|\)</span> exceeds the dead‑zone threshold, the gains increase proportionally to <span class="math notranslate nohighlight">\(|\sigma|\)</span>; inside the dead zone they are held constant or allowed to decay slowly. To prevent runaway adaptation the gains are clipped at configurable maxima <code class="docutils literal notranslate"><span class="pre">k1_max</span></code> and <code class="docutils literal notranslate"><span class="pre">k2_max</span></code>, and the integral term <code class="docutils literal notranslate"><span class="pre">u_int</span></code> is limited by <code class="docutils literal notranslate"><span class="pre">u_int_max</span></code>. Separating these bounds from the actuator saturation ensures that adaptation can proceed even when the actuator saturates. The equivalent control term <span class="math notranslate nohighlight">\(u_{\mathrm{eq}}\)</span> is <strong>enabled by default</strong>; it can be disabled via <code class="docutils literal notranslate"><span class="pre">enable_equivalent=False</span></code> if a purely sliding‑mode law is desired. This piece‑wise adaptation law is supported by recent research showing that the gain should increase until sliding occurs and then decrease once the trajectory enters a neighbourhood of the manifold to avoid over‑estimation.</p>
+</section>
+<section id="advantages-and-tuning">
+<h3>Advantages and tuning<a class="headerlink" href="#advantages-and-tuning" title="Link to this heading">¶</a></h3>
+<p>The hybrid adaptive–STA controller inherits the robustness of second‑order sliding mode and the flexibility of adaptive gain scheduling while remaining simpler than earlier dual‑surface designs. Its unified sliding surface ensures consistent dynamics across all modes, and the adaptive gains allow the controller to handle unknown disturbance bounds without a priori tuning. However, this comes at the expense of additional parameters: the sliding surface weights <span class="math notranslate nohighlight">\(c_{1},c_{2},\lambda_{1},\lambda_{2},k_{c},\lambda_{c}\)</span>, the PD recentering gains <span class="math notranslate nohighlight">\(p_{\mathrm{gain}},p_{\lambda}\)</span>, adaptation rates and dead‑zone widths. Careful tuning of these parameters is essential to balance response speed, robustness and chattering.</p>
+</section>
+</section>
+<section id="controller-configuration-and-config-yaml">
+<h2>Controller Configuration and config.yaml<a class="headerlink" href="#controller-configuration-and-config-yaml" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> file defines tunable parameters for each controller. Mapping these keys to the mathematical symbols used in the theory clarifies how to adjust the controllers in practice.</p>
+<section id="classical-smc">
+<h3>Classical SMC<a class="headerlink" href="#classical-smc" title="Link to this heading">¶</a></h3>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Classical SMC Configuration</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 30.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>config.yaml key</p></th>
+<th class="head"><p>Mathematical symbol(s)</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>gains (in controller_defaults)</p></td>
+<td><p><span class="math notranslate nohighlight">\(\lambda_{1},\lambda_{2},k_{1},k_{2},K,k_{\mathrm{d}}\)</span></p></td>
+<td><p>Initial values for sliding surface weights, velocity gains, switching gain and damping gain</p></td>
+</tr>
+<tr class="row-odd"><td><p>boundary_layer</p></td>
+<td><p><span class="math notranslate nohighlight">\(\epsilon\)</span></p></td>
+<td><p>Half‑width of the boundary layer used in the saturation function</p></td>
+</tr>
+<tr class="row-even"><td><p>max_force</p></td>
+<td><p>Saturation limit</p></td>
+<td><p>Maximum magnitude of the control input <span class="math notranslate nohighlight">\(u\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>controllability_threshold</p></td>
+<td><p>–</p></td>
+<td><p>Lower bound on <span class="math notranslate nohighlight">\(|L\cdot M^{-1}\cdot B|\)</span> used to decide when to compute the equivalent control</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="supertwisting-smc">
+<h3>Super‑Twisting SMC<a class="headerlink" href="#supertwisting-smc" title="Link to this heading">¶</a></h3>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">Super-Twisting SMC Configuration</span><a class="headerlink" href="#id2" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 30.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>config.yaml key</p></th>
+<th class="head"><p>Mathematical symbol(s)</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>gains</p></td>
+<td><p><span class="math notranslate nohighlight">\(\lambda_{1},\lambda_{2},k_{1},K_{1},K_{2},k_{\mathrm{d}}\)</span></p></td>
+<td><p>Sliding surface weights, velocity gains, super‑twisting proportional and integral gains</p></td>
+</tr>
+<tr class="row-odd"><td><p>damping_gain</p></td>
+<td><p><span class="math notranslate nohighlight">\(k_{\mathrm{d}}\)</span></p></td>
+<td><p>Linear damping added to the control law</p></td>
+</tr>
+<tr class="row-even"><td><p>dt</p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathrm{d}t\)</span></p></td>
+<td><p>Integration time step for updating the internal state <span class="math notranslate nohighlight">\(z\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>max_force</p></td>
+<td><p>Saturation limit</p></td>
+<td><p>Maximum control magnitude</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="adaptive-smc">
+<h3>Adaptive SMC<a class="headerlink" href="#adaptive-smc" title="Link to this heading">¶</a></h3>
+<table class="docutils align-default" id="id3">
+<caption><span class="caption-text">Adaptive SMC Configuration</span><a class="headerlink" href="#id3" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 30.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>config.yaml key</p></th>
+<th class="head"><p>Mathematical symbol(s)</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>gains</p></td>
+<td><p><span class="math notranslate nohighlight">\(\lambda_{1},\lambda_{2},k_{1},k_{2},K_{0}\)</span></p></td>
+<td><p>Initial sliding surface and switching gain values</p></td>
+</tr>
+<tr class="row-odd"><td><p>leak_rate</p></td>
+<td><p><span class="math notranslate nohighlight">\(\alpha\)</span></p></td>
+<td><p>Forgetting factor that allows the adaptive gain to decay when disturbances subside</p></td>
+</tr>
+<tr class="row-even"><td><p>dead_zone</p></td>
+<td><p><span class="math notranslate nohighlight">\(\delta\)</span></p></td>
+<td><p>Dead‑zone width for suppressing gain growth when <span class="math notranslate nohighlight">\(|\sigma|\)</span> is small</p></td>
+</tr>
+<tr class="row-odd"><td><p>adapt_rate_limit</p></td>
+<td><p><span class="math notranslate nohighlight">\(\Gamma_{\max}\)</span></p></td>
+<td><p>Upper limit on how fast the gain can grow</p></td>
+</tr>
+<tr class="row-even"><td><p>K_min, K_max</p></td>
+<td><p><span class="math notranslate nohighlight">\(K_{\min},K_{\max}\)</span></p></td>
+<td><p>Hard bounds on the adaptive gain</p></td>
+</tr>
+<tr class="row-odd"><td><p>dt</p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathrm{d}t\)</span></p></td>
+<td><p>Time step for numerical integration</p></td>
+</tr>
+<tr class="row-even"><td><p>smooth_switch</p></td>
+<td><p>–</p></td>
+<td><p>If true, uses a smooth transition function to improve continuity near switching events</p></td>
+</tr>
+<tr class="row-odd"><td><p>boundary_layer</p></td>
+<td><p><span class="math notranslate nohighlight">\(\epsilon\)</span></p></td>
+<td><p>Boundary layer width for the saturation function</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="robustness-and-singularity-handling">
+<h2>Robustness and Singularity Handling<a class="headerlink" href="#robustness-and-singularity-handling" title="Link to this heading">¶</a></h2>
+<p>High‑performance control of the DIP requires careful handling of numerical issues and singularities inherent in the dynamic model. The inertia matrix <span class="math notranslate nohighlight">\(M(q)\)</span> can become ill‑conditioned when the pendulum angles approach certain configurations, leading to large rounding errors in its inversion. The implementation addresses these problems as follows:</p>
+<ul class="simple">
+<li><p><strong>Condition‑number checking:</strong> The <code class="docutils literal notranslate"><span class="pre">_compute_equivalent_control</span></code> method in both <code class="docutils literal notranslate"><span class="pre">classic_smc.py</span></code> and <code class="docutils literal notranslate"><span class="pre">sta_smc.py</span></code> computes the condition number of <span class="math notranslate nohighlight">\(M(q)\)</span> (<code class="docutils literal notranslate"><span class="pre">np.linalg.cond</span></code>). If the condition number exceeds a threshold (<code class="docutils literal notranslate"><span class="pre">singularity_cond_threshold</span></code> in <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code>), the method logs a warning and uses a pseudo‑inverse instead of the standard inverse.</p></li>
+<li><p><strong>Matrix regularisation:</strong> To prevent singularities due to modelling uncertainties, a small regularisation term <span class="math notranslate nohighlight">\(\varepsilon I\)</span> is added to <span class="math notranslate nohighlight">\(M(q)\)</span> before inversion. This ensures that <span class="math notranslate nohighlight">\(M(q)+\varepsilon I\)</span> is always invertible, albeit with some approximation error.</p></li>
+<li><p><strong>Safe inversion with pseudo‑inverse:</strong> When the matrix is ill‑conditioned, the code uses <code class="docutils literal notranslate"><span class="pre">np.linalg.pinv</span></code>, which computes the Moore–Penrose pseudo‑inverse and yields a least‑squares solution that minimises the effect of noise.</p></li>
+<li><p><strong>Regularisation justification:</strong> Adding a positive constant to the diagonal of a symmetric matrix shifts all of its eigenvalues upward and can convert an indefinite matrix into a positive‑definite one. This mathematical result justifies the use of the diagonal regularisation term <span class="math notranslate nohighlight">\(\varepsilon I\)</span>: by perturbing <span class="math notranslate nohighlight">\(M(q)\)</span> in this way, <span class="math notranslate nohighlight">\(M(q)+\varepsilon I\)</span> remains invertible even when <span class="math notranslate nohighlight">\(M(q)\)</span> is nearly singular, though at the cost of a small approximation error.</p></li>
+<li><p><strong>Fallback control:</strong> If the pseudo‑inverse computation still fails (for example, if the system becomes uncontrollable), the controller saturates the output to zero and reports failure rather than producing unbounded values. This conservative action prevents destabilisation.</p></li>
+</ul>
+<p>By systematically checking for singularities and regularising the matrix inversion, the project ensures that the control law remains well‑defined even when the physical system operates near its limits or when the model parameters are uncertain.</p>
+</section>
+<section id="comparative-summary-and-recommendations">
+<h2>Comparative Summary and Recommendations<a class="headerlink" href="#comparative-summary-and-recommendations" title="Link to this heading">¶</a></h2>
+<p>The four implemented SMC variants offer a spectrum of robustness, smoothness and complexity. <strong>Classic SMC</strong> provides a simple and effective baseline; it achieves finite‑time convergence but suffers from chattering and requires known disturbance bounds. <strong>Super‑twisting SMC</strong> adds a second‑order sliding mechanism that reduces chattering and yields continuous control; it demands tuning of two gains and a higher computational cost. <strong>Adaptive SMC</strong> learns the disturbance bound on‑line, eliminating the need to specify <span class="math notranslate nohighlight">\(K\)</span> a priori; its continuous control avoids chattering but involves more parameters and possible slower response. <strong>Hybrid adaptive–STA</strong> combines adaptive gain adjustment with the super‑twisting algorithm while relying on a <strong>single sliding surface</strong>. This unified approach retains the robustness and smoothness of second‑order sliding mode, allows the gains to adapt to unknown disturbances, and simplifies the switching logic compared with earlier dual‑surface designs. The trade‑off is a larger set of tunable parameters (sliding surface weights, adaptation rates, dead‑zone widths and recentering gains), making careful tuning essential.</p>
+<p>For a given DIP application, the choice among these controllers should consider the available actuator bandwidth, desired response speed and tolerance to chattering. The configuration tables provide a starting point for tuning, and the robust implementation ensures safe operation even under parameter variations and modelling uncertainties.</p>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">¶</a></h2>
+<p>[1] A. Boubaker, “The inverted pendulum: a fundamental benchmark in control theory and robotics,” <em>International Journal of Automation &amp; Control</em>, vol. 8, no. 2, pp. 94–115, 2014.</p>
+<p>[2] I. Irfan, U. Irfan, M. W. Ahmad and A. Saleem, “Control strategies for a double inverted pendulum system,” <em>PLOS ONE</em>, vol. 18, no. 3, p. e0282522, 2023.</p>
+<p>[3] H. Dong, M. Zhu and S. Cui, “Integral sliding mode control for nonlinear systems with matched and unmatched perturbations,” <em>IEEE Transactions on Automatic Control</em>, vol. 57, no. 11, pp. 2986–2991, 2012.</p>
+<p>[4] S. Saha and S. Banerjee, “Methodologies of chattering attenuation in sliding mode controller,” <em>International Journal of Hybrid Information Technology</em>, vol. 9, no. 2, pp. 221–232, 2016.</p>
+<p>[5] A. Parvat, P. G. Kadam and V. R. Prasanna, “Design and implementation of sliding mode controller for level control,” in <em>Proc. Int. Conf. Control, Instrumentation, Energy and Communication</em>, 2013, pp. 71–75.</p>
+<p>[6] S. u. Din, A. Hussain, M. F. Iftikhar and M. A. Rahman, “Smooth super‑twisting sliding mode control for the class of underactuated systems,” <em>PLOS ONE</em>, vol. 13, no. 9, p. e0204095, 2018.</p>
+<p>[7] R. Roy, “Adaptive sliding mode control without knowledge of uncertainty bounds,” <em>International Journal of Control</em>, vol. 93, no. 12, pp. 3051–3062, 2020.</p>
+<p>[8] Y. Sun, Y. Wang and B. Wu, “Adaptive gain sliding mode control for uncertain nonlinear systems using barrier‑like functions,” <em>Nonlinear Dynamics</em>, vol. 99, no. 4, pp. 2775–2787, 2020.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">SMC Theory</a><ul>
+<li><a class="reference internal" href="#introduction-why-sliding-mode-control">Introduction – Why Sliding Mode Control?</a><ul>
+<li><a class="reference internal" href="#structure-of-the-report">Structure of the report</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#variant-i-classic-sliding-mode-control-smc">Variant I: Classic Sliding Mode Control (SMC)</a><ul>
+<li><a class="reference internal" href="#principles-and-sliding-surface">Principles and sliding surface</a></li>
+<li><a class="reference internal" href="#control-law-equivalent-and-switching-parts">Control law: equivalent and switching parts</a><ul>
+<li><a class="reference internal" href="#equivalent-control-computation">Equivalent control computation</a></li>
+<li><a class="reference internal" href="#boundary-layer-and-saturation">Boundary layer and saturation</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#numerical-robustness">Numerical robustness</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#variant-ii-supertwisting-algorithm-sta-smc">Variant II: Super‑Twisting Algorithm (STA) SMC</a><ul>
+<li><a class="reference internal" href="#theory-and-formulation">Theory and formulation</a></li>
+<li><a class="reference internal" href="#lyapunov-stability-and-numerical-verification">Lyapunov stability and numerical verification</a></li>
+<li><a class="reference internal" href="#tuning-guidance">Tuning guidance</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#variant-iii-adaptive-smc">Variant III: Adaptive SMC</a><ul>
+<li><a class="reference internal" href="#adaptation-law-and-dead-zone">Adaptation law and dead zone</a></li>
+<li><a class="reference internal" href="#practical-considerations">Practical considerations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#variant-iv-hybrid-adaptivesta-smc">Variant IV: Hybrid Adaptive–STA SMC</a><ul>
+<li><a class="reference internal" href="#unified-sliding-surface-and-recentering">Unified sliding surface and recentering</a></li>
+<li><a class="reference internal" href="#supertwisting-with-adaptive-gains">Super‑twisting with adaptive gains</a></li>
+<li><a class="reference internal" href="#advantages-and-tuning">Advantages and tuning</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#controller-configuration-and-config-yaml">Controller Configuration and config.yaml</a><ul>
+<li><a class="reference internal" href="#classical-smc">Classical SMC</a></li>
+<li><a class="reference internal" href="#supertwisting-smc">Super‑Twisting SMC</a></li>
+<li><a class="reference internal" href="#adaptive-smc">Adaptive SMC</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#robustness-and-singularity-handling">Robustness and Singularity Handling</a></li>
+<li><a class="reference internal" href="#comparative-summary-and-recommendations">Comparative Summary and Recommendations</a></li>
+<li><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="system-modeling.html"
+                          title="previous chapter">System Modeling</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="pso-optimization.html"
+                          title="next chapter">PSO Optimization</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/theory/smc-theory.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pso-optimization.html" title="PSO Optimization"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="system-modeling.html" title="System Modeling"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SMC Theory</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Research Team.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    </div>
+  </body>
+</html>

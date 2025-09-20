@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Statistical Benchmarks &#8212; DIP_SMC_PSO Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=fb9458d3" />
+    <script src="../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Statistical Benchmarks</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="statistical-benchmarks">
+<h1>Statistical Benchmarks<a class="headerlink" href="#statistical-benchmarks" title="Link to this heading">¶</a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>Statistical benchmarking utilities for the Double Inverted Pendulum project.</p>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">src.benchmarks.statistical_benchmarks</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+</section>
+<section id="api-summary">
+<h2>API Summary<a class="headerlink" href="#api-summary" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#module-src.benchmarks.statistical_benchmarks" title="src.benchmarks.statistical_benchmarks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">src.benchmarks.statistical_benchmarks</span></code></a></p></td>
+<td><p>Statistical benchmarking utilities for the Double Inverted Pendulum project.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-src.benchmarks.statistical_benchmarks">
+<span id="detailed-api"></span><h2>Detailed API<a class="headerlink" href="#module-src.benchmarks.statistical_benchmarks" title="Link to this heading">¶</a></h2>
+<p>Statistical benchmarking utilities for the Double Inverted Pendulum project.</p>
+<p>This module defines a lightweight harness for running multiple simulation
+trials of a controller and reporting aggregate performance metrics.  The
+Central Limit Theorem (CLT) implies that the distribution of sample means
+approaches normality as the sample size grows.  For skewed distributions a
+sample size of at least 25–30 is typically required for the sample mean to
+approximate a normal distribution【559538113951338†L77-L84】.  By default
+<code class="docutils literal notranslate"><span class="pre">run_trials</span></code> executes 30 independent trials, which yields reasonably
+accurate confidence intervals for the estimated metrics.  Users may increase
+<code class="docutils literal notranslate"><span class="pre">n_trials</span></code> to tighten the confidence bounds at the cost of longer
+execution times.</p>
+<p>Metrics computed include:</p>
+<ul class="simple">
+<li><p><strong>Integral of squared error (ISE)</strong> for all state variables, measuring
+cumulative state deviations.</p></li>
+<li><p><strong>Integral of time‑weighted absolute error (ITAE)</strong>, emphasising errors
+that occur later in the trajectory.</p></li>
+<li><p><strong>Root mean square (RMS) control effort</strong> of the input sequence.</p></li>
+<li><p><strong>Maximum overshoot</strong> across angular states (pendulum angles).</p></li>
+<li><p><strong>Constraint violations</strong>, counting the number of times the control
+input exceeds its allowed range.</p></li>
+</ul>
+<p>These metrics provide a comprehensive view of controller performance and
+robustness.  The functions in this module are independent of the specific
+controller implementation and rely only on the vectorised simulation
+interface.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="src.benchmarks.statistical_benchmarks.compute_metrics">
+<span class="sig-prename descclassname"><span class="pre">src.benchmarks.statistical_benchmarks.</span></span><span class="sig-name descname"><span class="pre">compute_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_force</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/src/benchmarks/statistical_benchmarks.html#compute_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.benchmarks.statistical_benchmarks.compute_metrics" title="Link to this definition">¶</a></dt>
+<dd><p>Compute performance metrics for a batch of trajectories.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>np.ndarray</em>) – One‑dimensional array of time stamps of length <code class="docutils literal notranslate"><span class="pre">N+1</span></code>.</p></li>
+<li><p><strong>x</strong> (<em>np.ndarray</em>) – Array of shape <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N+1,</span> <span class="pre">S)</span></code> containing the state trajectories for
+<code class="docutils literal notranslate"><span class="pre">B</span></code> particles over <code class="docutils literal notranslate"><span class="pre">S</span></code> state dimensions.</p></li>
+<li><p><strong>u</strong> (<em>np.ndarray</em>) – Array of shape <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N)</span></code> containing the control inputs.</p></li>
+<li><p><strong>sigma</strong> (<em>np.ndarray</em>) – Array of shape <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N)</span></code> containing sliding variables or auxiliary
+outputs.</p></li>
+<li><p><strong>max_force</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Maximum allowable magnitude of the control input.  Used to count
+constraint violations.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mapping of metric names to scalar values.  Each metric is averaged
+across the batch dimension.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.benchmarks.statistical_benchmarks.run_trials">
+<span class="sig-prename descclassname"><span class="pre">src.benchmarks.statistical_benchmarks.</span></span><span class="sig-name descname"><span class="pre">run_trials</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">controller_factory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_trials</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1234</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">randomise_physics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/src/benchmarks/statistical_benchmarks.html#run_trials"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.benchmarks.statistical_benchmarks.run_trials" title="Link to this definition">¶</a></dt>
+<dd><p>Run multiple simulations and return per‑trial metrics with confidence intervals.</p>
+<p>The function executes <code class="docutils literal notranslate"><span class="pre">n_trials</span></code> independent simulations of the
+double inverted pendulum under the supplied controller factory and
+configuration.  For each trial it collects performance metrics and
+computes a 95 % confidence interval for the mean of each metric.  A
+sample size of at least 25–30 trials is recommended to invoke the
+Central Limit Theorem for skewed distributions【559538113951338†L77-L84】.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>controller_factory</strong> (<em>Callable</em><em>[</em><em>[</em><em>np.ndarray</em><em>]</em><em>, </em><em>Any</em><em>]</em>) – Factory function that returns a controller instance when provided
+with a gain vector.  The returned controller must define an
+<code class="docutils literal notranslate"><span class="pre">n_gains</span></code> attribute and may define <code class="docutils literal notranslate"><span class="pre">max_force</span></code>.</p></li>
+<li><p><strong>cfg</strong> (<em>Any</em>) – Full configuration object (e.g., <code class="docutils literal notranslate"><span class="pre">ConfigSchema</span></code>) supplying
+physics and simulation parameters.  Only <code class="docutils literal notranslate"><span class="pre">simulation.duration</span></code>
+and <code class="docutils literal notranslate"><span class="pre">simulation.dt</span></code> are required by this harness.</p></li>
+<li><p><strong>n_trials</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>optional</em>) – Number of independent trials to run.  Defaults to 30.</p></li>
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>optional</em>) – Base random seed used to initialise each trial.  Individual trials
+draw their seeds from a NumPy generator seeded with this value.</p></li>
+<li><p><strong>randomise_physics</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – When True, randomly perturb the physical parameters between trials.
+Not implemented in this harness; reserved for future use.</p></li>
+<li><p><strong>noise_std</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Standard deviation of additive Gaussian noise applied to the state
+trajectories before metric computation.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list containing the raw metrics for each trial and a dictionary
+mapping metric names to tuples <code class="docutils literal notranslate"><span class="pre">(mean,</span> <span class="pre">ci)</span></code> where <code class="docutils literal notranslate"><span class="pre">ci</span></code> is
+half the width of the 95 % confidence interval.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Statistical Benchmarks</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#api-summary">API Summary</a></li>
+<li><a class="reference internal" href="#module-src.benchmarks.statistical_benchmarks">Detailed API</a><ul>
+<li><a class="reference internal" href="#src.benchmarks.statistical_benchmarks.compute_metrics"><code class="docutils literal notranslate"><span class="pre">compute_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#src.benchmarks.statistical_benchmarks.run_trials"><code class="docutils literal notranslate"><span class="pre">run_trials()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/api/benchmarks/statistical_benchmarks.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Statistical Benchmarks</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Research Team.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    </div>
+  </body>
+</html>

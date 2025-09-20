@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.fault_detection.fdi &#8212; DIP_SMC_PSO Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=fb9458d3" />
+    <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">src.fault_detection.fdi</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for src.fault_detection.fdi</h1><div class="highlight"><pre>
+<span></span><span class="c1">#==========================================================================================\\\</span>
+<span class="c1">#============================= src/fault_detection/fdi.py =============================\\\</span>
+<span class="c1">#==========================================================================================\\\</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Protocol</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<div class="viewcode-block" id="DynamicsProtocol">
+<a class="viewcode-back" href="../../../api/fault_detection/fdi.html#src.fault_detection.fdi.DynamicsProtocol">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DynamicsProtocol</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Protocol defining the expected interface for dynamics models.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="DynamicsProtocol.step">
+<a class="viewcode-back" href="../../../api/fault_detection/fdi.html#src.fault_detection.fdi.DynamicsProtocol.step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">u</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Advance the system dynamics by one timestep.&quot;&quot;&quot;</span>
+        <span class="o">...</span></div>
+</div>
+
+
+<div class="viewcode-block" id="FDIsystem">
+<a class="viewcode-back" href="../../../api/fault_detection/fdi.html#src.fault_detection.fdi.FDIsystem">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FDIsystem</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Lightweight, modular Fault Detection and Isolation (FDI) system with</span>
+<span class="sd">    optional adaptive thresholds and CUSUM drift detection.</span>
+
+<span class="sd">    A residual is formed by comparing the one‑step state prediction from a</span>
+<span class="sd">    dynamics model with the actual measurement.  If an extended Kalman</span>
+<span class="sd">    filter (EKF) is available it may provide a more statistically</span>
+<span class="sd">    informed residual (future enhancement).  The residual norm is</span>
+<span class="sd">    monitored against a threshold; persistent violations indicate a fault.</span>
+
+<span class="sd">    To improve robustness the detector can adapt its threshold based on</span>
+<span class="sd">    recent residual statistics and can optionally employ a cumulative sum</span>
+<span class="sd">    (CUSUM) statistic to detect slow drifts.  Adaptive thresholding has</span>
+<span class="sd">    been shown to enhance the robustness of fault diagnosis by</span>
+<span class="sd">    automatically adjusting to operating conditions【218697608892619†L682-L687】.  CUSUM</span>
+<span class="sd">    methods accumulate deviations from a reference and are sensitive to</span>
+<span class="sd">    faint changes【675426604190490†L699-L722】; however the choice of threshold and</span>
+<span class="sd">    reference value is critical to avoid false alarms【675426604190490†L746-L752】.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    residual_threshold : float</span>
+<span class="sd">        Base threshold for the residual norm.  Used when adaptive</span>
+<span class="sd">        thresholding is disabled or insufficient samples are available.</span>
+<span class="sd">    persistence_counter : int</span>
+<span class="sd">        Number of consecutive threshold violations required to declare a</span>
+<span class="sd">        fault.  Helps filter sporadic spikes.</span>
+<span class="sd">    use_ekf_residual : bool</span>
+<span class="sd">        Placeholder for future EKF innovation residual.</span>
+<span class="sd">    residual_states : list[int]</span>
+<span class="sd">        Indices of state variables to include in the residual.</span>
+<span class="sd">    residual_weights : list[float], optional</span>
+<span class="sd">        Optional weights applied elementwise to the residual before</span>
+<span class="sd">        computing the norm.</span>
+<span class="sd">    adaptive : bool</span>
+<span class="sd">        Enable adaptive thresholding.  When True the threshold is</span>
+<span class="sd">        computed as ``mu + threshold_factor * sigma`` over the last</span>
+<span class="sd">        ``window_size`` residuals.  This dynamic threshold adjusts to</span>
+<span class="sd">        changing operating conditions【218697608892619†L682-L687】.</span>
+<span class="sd">    window_size : int</span>
+<span class="sd">        Number of recent residuals used to estimate the mean and</span>
+<span class="sd">        standard deviation for adaptive thresholding.</span>
+<span class="sd">    threshold_factor : float</span>
+<span class="sd">        Multiplicative factor applied to the standard deviation when</span>
+<span class="sd">        computing the adaptive threshold.  Larger values reduce</span>
+<span class="sd">        sensitivity.</span>
+<span class="sd">    cusum_enabled : bool</span>
+<span class="sd">        Enable simple CUSUM drift detection.  When True the detector</span>
+<span class="sd">        accumulates deviations of the residual norm from its running</span>
+<span class="sd">        average and compares the sum against ``cusum_threshold`` to</span>
+<span class="sd">        detect slow drifts【675426604190490†L699-L722】.</span>
+<span class="sd">    cusum_threshold : float</span>
+<span class="sd">        Threshold for the cumulative sum.  When the cumulative sum</span>
+<span class="sd">        exceeds this value a fault is declared.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    * Adaptive thresholding and CUSUM can be enabled independently.</span>
+<span class="sd">    * When both methods are enabled the residual must exceed either</span>
+<span class="sd">      the adaptive threshold persistently or the CUSUM threshold to</span>
+<span class="sd">      trigger a fault.</span>
+<span class="sd">    * The FDI system reports status only (&quot;OK&quot;/&quot;FAULT&quot;) and does not modify</span>
+<span class="sd">      the control command path; external supervisors decide safe-state actions.  # [CIT-064]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">residual_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>  <span class="c1"># [CIT-048]</span>
+    <span class="n">persistence_counter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># [CIT-048]</span>
+    <span class="n">use_ekf_residual</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">residual_states</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+    <span class="n">residual_weights</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">adaptive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">window_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span>  <span class="c1"># [CIT-049]</span>
+    <span class="n">threshold_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span>  <span class="c1"># [CIT-049]</span>
+    <span class="n">cusum_enabled</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">cusum_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.0</span>  <span class="c1"># [CIT-049]</span>
+
+    <span class="c1"># Internal state</span>
+    <span class="n">_counter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">_last_state</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">tripped_at</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="c1"># For adaptive thresholding and CUSUM</span>
+    <span class="n">_residual_window</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">_cusum</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># History for plotting/analysis</span>
+    <span class="n">times</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">residuals</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FDIsystem.check">
+<a class="viewcode-back" href="../../../api/fault_detection/fdi.html#src.fault_detection.fdi.FDIsystem.check">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">check</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">meas</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">u</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">dynamics_model</span><span class="p">:</span> <span class="n">DynamicsProtocol</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check for a fault at the current time step.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            t: Current simulation time</span>
+<span class="sd">            meas: Current state measurement</span>
+<span class="sd">            u: Control input applied</span>
+<span class="sd">            dt: Time step</span>
+<span class="sd">            dynamics_model: Model with step(state, u, dt) method for prediction</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple of (status, residual_norm) where status is &quot;OK&quot; or &quot;FAULT&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Validate time step.  A non‑positive dt invalidates the residual</span>
+        <span class="c1"># computation and can produce spurious faults.  Raise an error</span>
+        <span class="c1"># rather than silently accepting a zero or negative sampling</span>
+        <span class="c1"># interval【738473614585036†L239-L256】.</span>
+        <span class="k">if</span> <span class="n">dt</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;dt must be positive for FDI residual computation.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tripped_at</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;FAULT&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_last_state</span> <span class="o">=</span> <span class="n">meas</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">return</span> <span class="s2">&quot;OK&quot;</span><span class="p">,</span> <span class="mf">0.0</span>
+
+        <span class="c1"># One-step prediction using the dynamics model</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">predicted_state</span> <span class="o">=</span> <span class="n">dynamics_model</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_last_state</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+            
+            <span class="c1"># Check for numerical issues in prediction</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">predicted_state</span><span class="p">)):</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;FDI check at t=</span><span class="si">{</span><span class="n">t</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s: dynamics model returned non-finite values &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;(nan or inf). Skipping residual computation.&quot;</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="s2">&quot;OK&quot;</span><span class="p">,</span> <span class="mf">0.0</span>
+                
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># If model fails, cannot compute residual; assume OK for now but log it</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;FDI check at t=</span><span class="si">{</span><span class="n">t</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s failed: dynamics model step raised &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">. Skipping residual computation.&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="s2">&quot;OK&quot;</span><span class="p">,</span> <span class="mf">0.0</span>
+
+        <span class="c1"># Residual is the difference between prediction and measurement</span>
+        <span class="n">residual</span> <span class="o">=</span> <span class="n">meas</span> <span class="o">-</span> <span class="n">predicted_state</span>
+
+        <span class="c1"># Compute weighted norm using specified indices and optional weights.</span>
+        <span class="c1"># Weighted residuals allow tuning the sensitivity of the detector to</span>
+        <span class="c1"># individual states.  When no weights are provided a standard 2‑norm is</span>
+        <span class="c1"># used on the selected indices.  If an index error occurs fallback</span>
+        <span class="c1"># gracefully to the full residual norm and log the error.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">sub</span> <span class="o">=</span> <span class="n">residual</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">residual_states</span><span class="p">]</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">residual_weights</span>
+            <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Multiply each residual component by its weight prior to</span>
+                <span class="c1"># computing the Euclidean norm.  Weights must match</span>
+                <span class="c1"># residual_states in length (validated in config).</span>
+                <span class="n">sub</span> <span class="o">=</span> <span class="n">sub</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">residual_norm</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">sub</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;FDI configuration error: residual_states </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">residual_states</span><span class="si">}</span><span class="s2"> or weights invalid &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;for state vector of size </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">residual</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="n">residual_norm</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">residual</span><span class="p">))</span>
+
+        <span class="c1"># Store history for analysis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">residuals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">residual_norm</span><span class="p">)</span>
+
+        <span class="c1"># Append to residual window for adaptive thresholding</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_residual_window</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">residual_norm</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_residual_window</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_size</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_residual_window</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Compute adaptive threshold when enabled and enough samples collected</span>
+        <span class="n">dynamic_threshold</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">residual_threshold</span>
+        <span class="n">mu</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">sigma</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">adaptive</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_residual_window</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_size</span><span class="p">:</span>
+            <span class="n">mu</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_residual_window</span><span class="p">))</span>
+            <span class="n">sigma</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_residual_window</span><span class="p">))</span>
+            <span class="c1"># Avoid zero variance; if sigma is extremely small fall back to</span>
+            <span class="c1"># base threshold to prevent division by zero</span>
+            <span class="k">if</span> <span class="n">sigma</span> <span class="o">&gt;</span> <span class="mf">1e-12</span><span class="p">:</span>
+                <span class="n">dynamic_threshold</span> <span class="o">=</span> <span class="n">mu</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold_factor</span> <span class="o">*</span> <span class="n">sigma</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dynamic_threshold</span> <span class="o">=</span> <span class="n">mu</span>
+
+        <span class="c1"># CUSUM drift detection: update cumulative sum of deviations</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cusum_enabled</span><span class="p">:</span>
+            <span class="c1"># Use current mean estimate if available, otherwise base threshold</span>
+            <span class="n">ref</span> <span class="o">=</span> <span class="n">mu</span> <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">adaptive</span> <span class="ow">and</span> <span class="n">mu</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">residual_threshold</span>
+            <span class="c1"># Deviation from reference; negative deviations are clipped at zero</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cusum</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cusum</span> <span class="o">+</span> <span class="p">(</span><span class="n">residual_norm</span> <span class="o">-</span> <span class="n">ref</span><span class="p">))</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cusum</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">cusum_threshold</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tripped_at</span> <span class="o">=</span> <span class="n">t</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;FDI CUSUM fault detected at t=</span><span class="si">{</span><span class="n">t</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s (cusum=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_cusum</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> &gt; threshold=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cusum_threshold</span><span class="si">}</span><span class="s2">)&quot;</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="s2">&quot;FAULT&quot;</span><span class="p">,</span> <span class="n">residual_norm</span>
+
+        <span class="c1"># Update persistence counter using dynamic threshold</span>
+        <span class="k">if</span> <span class="n">residual_norm</span> <span class="o">&gt;</span> <span class="n">dynamic_threshold</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_counter</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_counter</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Reset on any good measurement</span>
+
+        <span class="c1"># Check for fault condition based on persistence count</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_counter</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">persistence_counter</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tripped_at</span> <span class="o">=</span> <span class="n">t</span>
+            <span class="n">threshold_used</span> <span class="o">=</span> <span class="n">dynamic_threshold</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;FDI fault detected at t=</span><span class="si">{</span><span class="n">t</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s after </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_counter</span><span class="si">}</span><span class="s2"> consecutive &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;violations (residual_norm=</span><span class="si">{</span><span class="n">residual_norm</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> &gt; threshold=</span><span class="si">{</span><span class="n">threshold_used</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="s2">&quot;FAULT&quot;</span><span class="p">,</span> <span class="n">residual_norm</span>
+
+        <span class="c1"># Update state for next prediction</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_state</span> <span class="o">=</span> <span class="n">meas</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">return</span> <span class="s2">&quot;OK&quot;</span><span class="p">,</span> <span class="n">residual_norm</span></div>
+</div>
+
+<span class="c1">#===================================================================================\\\</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">src.fault_detection.fdi</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Research Team.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    </div>
+  </body>
+</html>

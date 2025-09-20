@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.utils.control_outputs &#8212; DIP_SMC_PSO Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=fb9458d3" />
+    <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">src.utils.control_outputs</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for src.utils.control_outputs</h1><div class="highlight"><pre>
+<span></span><span class="c1">#==========================================================================================\\</span>
+<span class="c1">#============================ src/utils/control_outputs.py ============================\\</span>
+<span class="c1">#==========================================================================================\\</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Structured return types for controllers.</span>
+
+<span class="sd">This module defines a collection of `NamedTuple` classes that formalise the</span>
+<span class="sd">output contract of the various controller classes in this project.  Each</span>
+<span class="sd">controller returns an instance of a corresponding named tuple rather than</span>
+<span class="sd">a bare tuple.  Returning a named tuple preserves backward compatibility</span>
+<span class="sd">with existing code that expects a tuple (because a named tuple inherits</span>
+<span class="sd">from ``tuple``) while also exposing descriptive attribute names to clarify</span>
+<span class="sd">the meaning of each element.  Explicit interfaces act as contracts</span>
+<span class="sd">between caller and callee: the client must satisfy preconditions and</span>
+<span class="sd">may rely on the supplier to guarantee postconditions.  As noted in</span>
+<span class="sd">interface‑based programming literature, the tighter the contract (for</span>
+<span class="sd">example through explicit return types), the less freedom the</span>
+<span class="sd">implementation has to deviate from expectations【738473614585036†L239-L256】.  By</span>
+<span class="sd">codifying controller outputs in named tuples, we communicate the</span>
+<span class="sd">structure of the returned data unambiguously and reduce the risk of</span>
+<span class="sd">misinterpretation by downstream components.</span>
+
+<span class="sd">References</span>
+<span class="sd">----------</span>
+<span class="sd">- F. Steimann and P. Mayer, “Patterns of interface‑based programming,” *Journal</span>
+<span class="sd">  of Object Technology*, vol. 4, no. 7, pp. 75–94, 2005.  The authors view</span>
+<span class="sd">  interfaces as contracts between a client and a supplier, emphasising that</span>
+<span class="sd">  clear preconditions and postconditions constrain the behaviour of</span>
+<span class="sd">  implementations【738473614585036†L239-L256】.  Encoding controller outputs as named</span>
+<span class="sd">  tuples tightens the return contract and prevents ambiguous slicing or</span>
+<span class="sd">  misuse.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NamedTuple</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
+
+
+<div class="viewcode-block" id="ClassicalSMCOutput">
+<a class="viewcode-back" href="../../../api/utils/control_outputs.html#src.utils.control_outputs.ClassicalSMCOutput">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ClassicalSMCOutput</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return type for :class:`classical_smc.ClassicalSMC.compute_control`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    u : float</span>
+<span class="sd">        The saturated control input applied to the actuator (N).</span>
+<span class="sd">    state : Tuple[(), ...]</span>
+<span class="sd">        Tuple representing internal controller state.  Classical SMC has</span>
+<span class="sd">        no internal state, so this is always an empty tuple.</span>
+<span class="sd">    history : Dict[str, Any]</span>
+<span class="sd">        A history dictionary used to record intermediate variables for</span>
+<span class="sd">        debugging or plotting.  May be empty.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">u</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">state</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">history</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="AdaptiveSMCOutput">
+<a class="viewcode-back" href="../../../api/utils/control_outputs.html#src.utils.control_outputs.AdaptiveSMCOutput">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AdaptiveSMCOutput</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return type for :class:`adaptive_smc.AdaptiveSMC.compute_control`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    u : float</span>
+<span class="sd">        The saturated control input (N).</span>
+<span class="sd">    state : Tuple[float, ...]</span>
+<span class="sd">        A tuple containing the updated integrator or adaptation states</span>
+<span class="sd">        returned by the controller.  The length of this tuple depends on</span>
+<span class="sd">        the controller implementation (e.g., leak integrator value).</span>
+<span class="sd">    history : Dict[str, Any]</span>
+<span class="sd">        Dictionary capturing intermediate variables and trajectories.</span>
+<span class="sd">    sigma : float</span>
+<span class="sd">        Current sliding surface value.  Exposing sigma allows the caller</span>
+<span class="sd">        to monitor the switching surface and verify sliding mode</span>
+<span class="sd">        convergence.  Providing it here rather than re‑computing avoids</span>
+<span class="sd">        redundant calculations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">u</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">state</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">history</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span></div>
+
+
+
+<div class="viewcode-block" id="STAOutput">
+<a class="viewcode-back" href="../../../api/utils/control_outputs.html#src.utils.control_outputs.STAOutput">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">STAOutput</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return type for super‑twisting controllers.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    u : float</span>
+<span class="sd">        The bounded control input (N).</span>
+<span class="sd">    state : Tuple[float, float]</span>
+<span class="sd">        A tuple containing the auxiliary integrator states (e.g., ``z`` and</span>
+<span class="sd">        ``sigma``).  These states evolve according to the super‑twisting</span>
+<span class="sd">        algorithm and are needed to resume control in the next time step.</span>
+<span class="sd">    history : Dict[str, Any]</span>
+<span class="sd">        History information for diagnostics and plotting.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">u</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">state</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">history</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="HybridSTAOutput">
+<a class="viewcode-back" href="../../../api/utils/control_outputs.html#src.utils.control_outputs.HybridSTAOutput">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">HybridSTAOutput</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return type for :class:`hybrid_adaptive_sta_smc.HybridAdaptiveSTASMC.compute_control`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    u : float</span>
+<span class="sd">        The saturated control input.</span>
+<span class="sd">    state : Tuple[float, float, float]</span>
+<span class="sd">        Tuple containing the adaptive gains and integral state, e.g.,</span>
+<span class="sd">        ``(k1, k2, u_int)``.</span>
+<span class="sd">    history : Dict[str, Any]</span>
+<span class="sd">        Dictionary capturing trajectories of gains, the integral term</span>
+<span class="sd">        and the sliding surface.</span>
+<span class="sd">    sigma : float</span>
+<span class="sd">        Current sliding surface value.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">u</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">state</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">history</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">src.utils.control_outputs</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Research Team.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    </div>
+  </body>
+</html>

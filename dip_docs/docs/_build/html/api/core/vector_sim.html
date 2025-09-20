@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Vector Sim &#8212; DIP_SMC_PSO Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=fb9458d3" />
+    <script src="../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Controllers" href="../controllers/index.html" />
+    <link rel="prev" title="Simulation Runner" href="simulation_runner.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../controllers/index.html" title="Controllers"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="simulation_runner.html" title="Simulation Runner"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >API Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" accesskey="U">Core</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector Sim</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="vector-sim">
+<h1>Vector Sim<a class="headerlink" href="#vector-sim" title="Link to this heading">¶</a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>Unified simulation façade with vectorized safety guards.</p>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">src.core.vector_sim</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+</section>
+<section id="api-summary">
+<h2>API Summary<a class="headerlink" href="#api-summary" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#module-src.core.vector_sim" title="src.core.vector_sim"><code class="xref py py-obj docutils literal notranslate"><span class="pre">src.core.vector_sim</span></code></a></p></td>
+<td><p>Unified simulation façade with vectorized safety guards.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-src.core.vector_sim">
+<span id="detailed-api"></span><h2>Detailed API<a class="headerlink" href="#module-src.core.vector_sim" title="Link to this heading">¶</a></h2>
+<p>Unified simulation façade with vectorized safety guards.</p>
+<p>This module provides a high‑level <code class="docutils literal notranslate"><span class="pre">simulate</span></code> function that accepts either
+scalar or batched initial states and control inputs.  It dispatches the
+underlying dynamics step through <code class="docutils literal notranslate"><span class="pre">src.core.simulation_runner.step</span></code> and
+invokes safety guards after each step and before returning results.  The
+interface maintains shape parity between scalar and batch modes: a single
+simulation returns an array of shape <code class="docutils literal notranslate"><span class="pre">(H+1,</span> <span class="pre">D)</span></code> while a batch of B
+simulations returns a tensor of shape <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">H+1,</span> <span class="pre">D)</span></code>.  The initial state is
+always included at index <code class="docutils literal notranslate"><span class="pre">0</span></code> of the time dimension.</p>
+<p>Early stopping is supported via a simple stop callback: if <code class="docutils literal notranslate"><span class="pre">stop_fn</span></code> is
+provided and returns True given the current state, all remaining steps are
+skipped and the output is truncated to the elapsed horizon plus one.  To
+preserve uniform batch shapes, the earliest stopping time across batch
+elements truncates the entire batch.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="src.core.vector_sim.simulate">
+<span class="sig-prename descclassname"><span class="pre">src.core.vector_sim.</span></span><span class="sig-name descname"><span class="pre">simulate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">control_inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">horizon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy_limits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/src/core/vector_sim.html#simulate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.core.vector_sim.simulate" title="Link to this definition">¶</a></dt>
+<dd><p>Simulate a dynamical system forward in time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>initial_state</strong> (<em>array-like</em>) – Initial state of shape <code class="docutils literal notranslate"><span class="pre">(D,)</span></code> or <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">D)</span></code>.  A missing batch
+dimension implies <code class="docutils literal notranslate"><span class="pre">B=1</span></code>.</p></li>
+<li><p><strong>control_inputs</strong> (<em>array-like</em>) – Control sequence with shape <code class="docutils literal notranslate"><span class="pre">(H,)</span></code> or <code class="docutils literal notranslate"><span class="pre">(H,</span> <span class="pre">U)</span></code> for scalar runs or
+<code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">H)</span></code>/<code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">H,</span> <span class="pre">U)</span></code> for batched runs.  The control dimension U
+must be broadcastable to the state dimension.</p></li>
+<li><p><strong>dt</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Timestep between control inputs.</p></li>
+<li><p><strong>horizon</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>optional</em>) – Number of simulation steps <code class="docutils literal notranslate"><span class="pre">H</span></code>.  If not provided it is inferred
+from the length of <code class="docutils literal notranslate"><span class="pre">control_inputs</span></code>.</p></li>
+<li><p><strong>energy_limits</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Maximum allowed total energy.  When provided the energy guard
+compares <code class="docutils literal notranslate"><span class="pre">sum(state**2)</span></code> against this limit after each step.</p></li>
+<li><p><strong>state_bounds</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>, </em><em>optional</em>) – Pair <code class="docutils literal notranslate"><span class="pre">(lower,</span> <span class="pre">upper)</span></code> specifying per‑dimension bounds.  Bounds may
+be scalars or arrays broadcastable to the state shape.  A <code class="docutils literal notranslate"><span class="pre">None</span></code>
+value disables that side of the bound.</p></li>
+<li><p><strong>stop_fn</strong> (<em>callable</em><em>, </em><em>optional</em>) – Optional predicate <code class="docutils literal notranslate"><span class="pre">stop_fn(state)</span></code>.  If provided and returns
+True, the simulation stops early and the output is truncated.</p></li>
+<li><p><strong>t0</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>default 0.0</em>) – Initial simulation time used in bound violation messages.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Array of simulated states including the initial state.  Shape is
+<code class="docutils literal notranslate"><span class="pre">(H_stop+1,</span> <span class="pre">D)</span></code> for scalar runs or <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">H_stop+1,</span> <span class="pre">D)</span></code> for
+batched runs, where <code class="docutils literal notranslate"><span class="pre">H_stop</span> <span class="pre">&lt;=</span> <span class="pre">horizon</span></code> if early stopping
+occurred.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)">numpy.ndarray</a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Scalar simulation:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">simulate</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(3, 2)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># initial state</span>
+<span class="go">array([1., 0.])</span>
+</pre></div>
+</div>
+<p>Batch simulation with early stopping:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x0_batch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">u_batch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stop_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">10.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">simulate</span><span class="p">(</span><span class="n">x0_batch</span><span class="p">,</span> <span class="n">u_batch</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">stop_fn</span><span class="o">=</span><span class="n">stop_fn</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span>  <span class="c1"># batch size preserved</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">3</span>  <span class="c1"># may be truncated due to early stop</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.core.vector_sim.simulate_system_batch">
+<span class="sig-prename descclassname"><span class="pre">src.core.vector_sim.</span></span><span class="sig-name descname"><span class="pre">simulate_system_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">controller_factory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">particles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convergence_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grace_period</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/src/core/vector_sim.html#simulate_system_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.core.vector_sim.simulate_system_batch" title="Link to this definition">¶</a></dt>
+<dd><p>Vectorised batch simulation of multiple controllers.</p>
+<p>This function wraps <code class="docutils literal notranslate"><span class="pre">run_simulation</span></code> to simultaneously simulate a batch
+of controllers with distinct gain vectors (<code class="docutils literal notranslate"><span class="pre">particles</span></code>).  It returns
+time, state, control and sliding-surface arrays for the entire batch.
+Optional early stopping is available: once the magnitude of the sliding
+surface <code class="docutils literal notranslate"><span class="pre">sigma</span></code> falls below <code class="docutils literal notranslate"><span class="pre">convergence_tol</span></code> for all particles (after
+a grace period), integration halts early and the outputs are truncated.</p>
+<p>When <code class="docutils literal notranslate"><span class="pre">params_list</span></code> is provided, the simulation is repeated for each
+element in the list.  The return value is then a list of results, one per
+parameter set.  For backward compatibility, the dynamics model is
+determined internally by the controller factory; perturbed physics
+parameters are ignored and results are replicated across the list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>controller_factory</strong> (<em>callable</em>) – Factory <code class="docutils literal notranslate"><span class="pre">controller_factory(p)</span></code> that returns a controller given a
+gain vector <code class="docutils literal notranslate"><span class="pre">p</span></code>.  The returned controller must expose a
+<code class="docutils literal notranslate"><span class="pre">dynamics_model</span></code> attribute defining the system dynamics.</p></li>
+<li><p><strong>particles</strong> (<em>array-like</em>) – Array of shape <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">G)</span></code> where each row contains a gain vector for
+one particle.  A single particle may be provided as shape <code class="docutils literal notranslate"><span class="pre">(G,)</span></code>.</p></li>
+<li><p><strong>sim_time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Total simulation duration (seconds).</p></li>
+<li><p><strong>dt</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Timestep for integration (seconds).</p></li>
+<li><p><strong>u_max</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Control saturation limit.  Overrides controller-specific <code class="docutils literal notranslate"><span class="pre">max_force</span></code>.</p></li>
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>optional</em>) – Deprecated.  Ignored; retained for signature compatibility.</p></li>
+<li><p><strong>params_list</strong> (<em>iterable</em><em>, </em><em>optional</em>) – Optional list of physics parameter objects.  When provided, the
+simulation is repeated for each element.  The current implementation
+ignores these parameters and replicates the base results.</p></li>
+<li><p><strong>initial_state</strong> (<em>array-like</em><em>, </em><em>optional</em>) – Initial state(s) for the batch.  If <code class="docutils literal notranslate"><span class="pre">None</span></code>, a zero state is used.
+If a 1D array of length <code class="docutils literal notranslate"><span class="pre">D</span></code> is provided, it is broadcast across all
+particles.  If a 2D array of shape <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">D)</span></code> is provided, it is used
+directly.</p></li>
+<li><p><strong>convergence_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Threshold for sliding-surface convergence.  When provided and
+positive, the integration stops once <code class="docutils literal notranslate"><span class="pre">max(|sigma|)</span> <span class="pre">&lt;</span> <span class="pre">convergence_tol</span></code>
+across all particles (after the grace period).</p></li>
+<li><p><strong>grace_period</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Duration (seconds) to wait before checking the convergence criterion.</p></li>
+<li><p><strong>rng</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/random/generator.html#numpy.random.Generator" title="(in NumPy v2.3)"><em>numpy.random.Generator</em></a><em>, </em><em>optional</em>) – Unused in this implementation.  Present for API compatibility.</p></li>
+<li><p><strong>_kwargs</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>If <code class="docutils literal notranslate"><span class="pre">params_list</span></code> is not provided, returns a tuple <code class="docutils literal notranslate"><span class="pre">(t,</span> <span class="pre">x_b,</span> <span class="pre">u_b,</span> <span class="pre">sigma_b)</span></code></p></li>
+<li><p><strong>- ``t``</strong> (ndarray of shape <code class="docutils literal notranslate"><span class="pre">(N+1,)</span></code> of time points)</p></li>
+<li><p><strong>- ``x_b``</strong> (ndarray of shape <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N+1,</span> <span class="pre">D)</span></code> of states)</p></li>
+<li><p><strong>- ``u_b``</strong> (ndarray of shape <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N)</span></code> of controls)</p></li>
+<li><p><strong>- ``sigma_b``</strong> (ndarray of shape <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N)</span></code> of sliding-surface values)</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">params_list</span></code> is provided, returns a list of such tuples (one per</p></li>
+<li><p>element in <code class="docutils literal notranslate"><span class="pre">params_list</span></code>).</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Any</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Vector Sim</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#api-summary">API Summary</a></li>
+<li><a class="reference internal" href="#module-src.core.vector_sim">Detailed API</a><ul>
+<li><a class="reference internal" href="#src.core.vector_sim.simulate"><code class="docutils literal notranslate"><span class="pre">simulate()</span></code></a></li>
+<li><a class="reference internal" href="#src.core.vector_sim.simulate_system_batch"><code class="docutils literal notranslate"><span class="pre">simulate_system_batch()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="simulation_runner.html"
+                          title="previous chapter">Simulation Runner</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="../controllers/index.html"
+                          title="next chapter">Controllers</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/api/core/vector_sim.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../controllers/index.html" title="Controllers"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="simulation_runner.html" title="Simulation Runner"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">DIP_SMC_PSO Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >API Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" >Core</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector Sim</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Research Team.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    </div>
+  </body>
+</html>
