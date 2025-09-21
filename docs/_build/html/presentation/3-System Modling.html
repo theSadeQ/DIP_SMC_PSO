@@ -1,0 +1,774 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" />
+
+    <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
+        <title>A Comprehensive Technical Report on the Modeling and Configuration of a Cart‑Based Double Inverted Pendulum System - DIP_SMC_PSO Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">DIP_SMC_PSO Documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  
+  <span class="sidebar-brand-text">DIP_SMC_PSO Documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">📚 Core Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Optimal Sliding Mode Control for a Double-Inverted Pendulum via PSO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../theory_overview.html">1. Theoretical Background â€” Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">3. System Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plant_model.html">1.x Plant Model</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">🎮 Control Systems</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../controllers/index.html">Control Systems Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Control Systems Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../optimization/index.html">PSO Optimization Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of PSO Optimization Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../analysis_plan.html">5. Analysis &amp; Verification Plan</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">🧪 Development &amp; Testing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../TESTING.html">Testing Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../test_protocols.html">5.x Test Protocols</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../use_cases.html">4. Use Cases &amp; Operating Modes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../context.html">2. Application Context</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">📊 Research Presentation</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="index.html">Research Presentation Materials</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Research Presentation Materials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">Abstract</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#introduction-and-motivation">Introduction and Motivation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#the-double-inverted-pendulum-as-a-canonical-control-problem">The Double Inverted Pendulum as a Canonical Control Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#the-primary-control-objectives-and-challenges">The Primary Control Objectives and Challenges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#sliding-mode-control-as-a-robust-solution">Sliding Mode Control as a Robust Solution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#the-gain-tuning-dilemma-and-the-need-for-optimization">The Gain Tuning Dilemma and the Need for Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#particle-swarm-optimization-for-automated-design">Particle Swarm Optimization for Automated Design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#synthesis-and-motivation">Synthesis and Motivation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problem-statement.html">Problem Statement for Double‑Inverted Pendulum (DIP) Control with SMC and PSO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="previous-works.html">Previous Work Before the Project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="system-modeling.html"><strong>A Comprehensive Technical Report on the Modeling and Configuration of a Cart‑Based Double Inverted Pendulum System</strong></a></li>
+<li class="toctree-l2"><a class="reference internal" href="smc-theory.html">Sliding Mode Control for a Double‑Inverted Pendulum: Bridging Theory and Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html">Abstract</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#introduction">1 Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#system-modelling-and-problem-formulation">2 System Modelling and Problem Formulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#simulation-methodology">3 Simulation Methodology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#classic-sliding-mode-control">4 Classic Sliding Mode Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#chattering-mitigation-strategy-i-boundary-layer-method">5 Chattering Mitigation Strategy I: Boundary Layer Method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#chattering-mitigation-strategy-ii-supertwisting-algorithm">6 Chattering Mitigation Strategy II: Super‑Twisting Algorithm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#chattering-mitigation-strategy-iii-adaptive-sliding-mode-control">7 Chattering Mitigation Strategy III: Adaptive Sliding Mode Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#chattering-mitigation-strategy-iv-hybrid-adaptivesta">8 Chattering Mitigation Strategy IV: Hybrid Adaptive–STA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#synthesis-and-comparative-analysis">9 Synthesis and Comparative Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pso-optimization.html"><strong>Comprehensive Simulation Analysis and Enhancements for the Double Inverted Pendulum Control System</strong></a></li>
+<li class="toctree-l2"><a class="reference internal" href="simulation-setup.html">Particle Swarm Optimization for Sliding‑Mode Controller Tuning of a Double Inverted Pendulum</a></li>
+<li class="toctree-l2"><a class="reference internal" href="results-discussion.html">8 – Results and Discussion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="results-discussion.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Abstract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#introduction-and-motivation">Introduction and Motivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#the-double-inverted-pendulum-as-a-canonical-control-problem">The Double Inverted Pendulum as a Canonical Control Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#the-primary-control-objectives-and-challenges">The Primary Control Objectives and Challenges</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#sliding-mode-control-as-a-robust-solution">Sliding Mode Control as a Robust Solution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#the-gain-tuning-dilemma-and-the-need-for-optimization">The Gain Tuning Dilemma and the Need for Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#particle-swarm-optimization-for-automated-design">Particle Swarm Optimization for Automated Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#synthesis-and-motivation">Synthesis and Motivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problem-statement.html">Problem Statement for Double‑Inverted Pendulum (DIP) Control with SMC and PSO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="previous-works.html">Previous Work Before the Project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="system-modeling.html"><strong>A Comprehensive Technical Report on the Modeling and Configuration of a Cart‑Based Double Inverted Pendulum System</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="smc-theory.html">Sliding Mode Control for a Double‑Inverted Pendulum: Bridging Theory and Implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html">Abstract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#introduction">1 Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#system-modelling-and-problem-formulation">2 System Modelling and Problem Formulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#simulation-methodology">3 Simulation Methodology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#classic-sliding-mode-control">4 Classic Sliding Mode Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#chattering-mitigation-strategy-i-boundary-layer-method">5 Chattering Mitigation Strategy I: Boundary Layer Method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#chattering-mitigation-strategy-ii-supertwisting-algorithm">6 Chattering Mitigation Strategy II: Super‑Twisting Algorithm</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#chattering-mitigation-strategy-iii-adaptive-sliding-mode-control">7 Chattering Mitigation Strategy III: Adaptive Sliding Mode Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#chattering-mitigation-strategy-iv-hybrid-adaptivesta">8 Chattering Mitigation Strategy IV: Hybrid Adaptive–STA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#synthesis-and-comparative-analysis">9 Synthesis and Comparative Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pso-optimization.html"><strong>Comprehensive Simulation Analysis and Enhancements for the Double Inverted Pendulum Control System</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulation-setup.html">Particle Swarm Optimization for Sliding‑Mode Controller Tuning of a Double Inverted Pendulum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="results-discussion.html">8 – Results and Discussion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="results-discussion.html#references">References</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">🔧 Project Management</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../CONTRIBUTING.html">Contributing – ResearchPlanSpec Validation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../RELEASE_CHECKLIST.html">Release Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CHANGELOG.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../symbols.html">Symbols &amp; Units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../results_readme.html">Results &amp; Plots</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">📖 API Reference</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api/index.html">API Reference Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of API Reference Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/presentation/3-System Modling.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section class="tex2jax_ignore mathjax_ignore" id="a-comprehensive-technical-report-on-the-modeling-and-configuration-of-a-cartbased-double-inverted-pendulum-system">
+<h1><strong>A Comprehensive Technical Report on the Modeling and Configuration of a Cart‑Based Double Inverted Pendulum System</strong><a class="headerlink" href="#a-comprehensive-technical-report-on-the-modeling-and-configuration-of-a-cartbased-double-inverted-pendulum-system" title="Link to this heading">¶</a></h1>
+<section id="introduction">
+<h2><strong>Introduction</strong><a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
+<section id="purpose-and-scope">
+<h3><strong>Purpose and Scope</strong><a class="headerlink" href="#purpose-and-scope" title="Link to this heading">¶</a></h3>
+<p>This report provides a theoretical and practical foundation for modelling and controlling a cart‑based double inverted pendulum (DIP) system<span id="id1">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>.  The goal is to deliver a self‑contained guide for control systems engineers working with Python‑based simulations<span id="id2">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>.  The document derives the nonlinear equations of motion from first principles, enumerates all required physical, simulation and controller parameters, and proposes a formal configuration schema.  Where appropriate, the report cross‑references the accompanying project files (particularly the high‑fidelity implementation in <code class="docutils literal notranslate"><span class="pre">src/core/dynamics.py</span></code> and the configuration file <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code>) to ensure applicability to real simulation code <code class="docutils literal notranslate"><span class="pre">DIP_SMC_PSO/src/core/dynamics.py</span></code> <code class="docutils literal notranslate"><span class="pre">DIP_SMC_PSO/config.yaml</span></code>.</p>
+</section>
+<section id="the-double-inverted-pendulum-as-a-benchmark-problem">
+<h3><strong>The Double Inverted Pendulum as a Benchmark Problem</strong><a class="headerlink" href="#the-double-inverted-pendulum-as-a-benchmark-problem" title="Link to this heading">¶</a></h3>
+<p>A double inverted pendulum consists of two pendulums attached in series to a cart.  The second pendulum is attached to the end of the first, so the system has three degrees of freedom: the cart position and the two pendulum angles.  Only one actuator applies a horizontal force to the cart, making the system underactuated; there is one control input for three state variables.  Control of such a system is challenging because it is inherently unstable and will fall over unless stabilised <span id="id3">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>.  Classical control literature emphasises that the DIPC’s single actuator must regulate three degrees of freedom, making the system underactuated<span id="id4">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>.</p>
+<p>The double inverted pendulum also exhibits chaotic dynamics.  The motion is governed by coupled ordinary differential equations that display strong sensitivity to initial conditions<span id="id5">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>.  Small changes in starting state can lead to vastly different trajectories, so an accurate nonlinear model is essential for control design.  These properties make the DIP a popular benchmark for advanced control strategies, including sliding‑mode control, optimal control and reinforcement learning.</p>
+</section>
+<section id="methodology">
+<h3><strong>Methodology</strong><a class="headerlink" href="#methodology" title="Link to this heading">¶</a></h3>
+<p>The dynamic model is derived using Lagrangian mechanics, an energy‑based formulation widely used for open‑chain robots and underactuated systems <span id="id6">[<a class="reference internal" href="#id61" title="Vadim Utkin, J&quot;urgen Guldner, and Jingxin Shi. Sliding Mode Control in Electro-Mechanical Systems. CRC Press, Boca Raton, FL, 2 edition, 2009. Second edition. doi:10.1201/9781420065619.">2</a>]</span>.  In this approach the kinetic and potential energies of each component are computed and combined to form the Lagrangian L=T−VL = T - V.  The Euler–Lagrange equations are then applied to obtain the equations of motion (EOM).  For the double inverted pendulum, the Lagrangian is the difference between the sum of kinetic energies and the sum of gravitational potentials <span id="id7">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>.  The resulting nonlinear second‑order differential equations are transformed into a state‑space form suitable for control design.  The derived model is validated by comparing with the high‑fidelity implementation in the accompanying Python project (<code class="docutils literal notranslate"><span class="pre">DoubleInvertedPendulum</span></code> class), ensuring that parameter names and units match those in <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code>.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="section-1-system-dynamics-and-mathematical-modeling">
+<h2><strong>Section 1: System Dynamics and Mathematical Modeling</strong><a class="headerlink" href="#section-1-system-dynamics-and-mathematical-modeling" title="Link to this heading">¶</a></h2>
+<section id="system-definition-assumptions-and-nomenclature">
+<h3><strong>1.1 System Definition, Assumptions, and Nomenclature</strong><a class="headerlink" href="#system-definition-assumptions-and-nomenclature" title="Link to this heading">¶</a></h3>
+<section id="system-diagram">
+<h4><strong>System Diagram</strong><a class="headerlink" href="#system-diagram" title="Link to this heading">¶</a></h4>
+<p>The double inverted pendulum on a cart comprises a cart of mass mcm_{c} that translates horizontally on a track.  Two rigid pendulum links are attached in series; the first link (mass m1m_{1}, length l1l_{1}) is pinned to the cart and the second link (mass m2m_{2}, length l2l_{2}) is attached to the end of the first.  The centres of mass of the links are located at distances lc1l_{c1} and lc2l_{c2} from their respective pivots.  Angles θ1\theta_{1} and θ2\theta_{2} are measured from the upward vertical, and the horizontal displacement of the cart is xx.  Gravity acts downward with acceleration gg.  A horizontal force uu applied to the cart constitutes the single control input.  A schematic of the system is shown in Figure 1<span id="id8">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>.</p>
+<p><img alt="Double‑Inverted Pendulum on a Cart" src="https://chatgpt.com/c/media/rId25.png" /></p>
+</section>
+<section id="model-assumptions">
+<h4><strong>Model Assumptions</strong><a class="headerlink" href="#model-assumptions" title="Link to this heading">¶</a></h4>
+<ol class="arabic simple">
+<li><p><strong>Rigid links.</strong> Each pendulum link is treated as a rigid body with constant mass and moment of inertia.  There is no flexural deformation<span id="id9">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>.</p></li>
+<li><p><strong>Planar motion.</strong> The cart moves along a one‑dimensional horizontal track, and the pendulums swing in the vertical plane.  Lateral motions are neglected<span id="id10">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>.</p></li>
+<li><p><strong>Angles measured from the upward vertical.</strong> The angles θ1\theta_{1} and θ2\theta_{2} are measured from the upright vertical; positive rotations correspond to counter‑clockwise motion<span id="id11">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>.</p></li>
+<li><p><strong>Viscous friction.</strong> Friction at the cart and joints is modelled as linear viscous friction with coefficients bx,bθ1,bθ2b_{x},b_{\theta_{1}},b_{\theta_{2}}.  Coulomb friction and stiction are neglected<span id="id12">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>.</p></li>
+<li><p><strong>Instantaneous motor dynamics.</strong> The actuator that applies the force uu to the cart is assumed to have negligible dynamics; the force is applied directly to the cart mass<span id="id13">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>.</p></li>
+<li><p><strong>Unactuated pendulum joints.</strong> Only the cart is actuated.  The pendulum joints do not receive external torques; therefore the generalized forces associated with θ1\theta_{1} and θ2\theta_{2} consist solely of viscous damping<span id="id14">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>.</p></li>
+</ol>
+</section>
+<section id="nomenclature">
+<h4><strong>Nomenclature</strong><a class="headerlink" href="#nomenclature" title="Link to this heading">¶</a></h4>
+<p>Table 1.1 summarises the symbols used in the mathematical model and their correspondence with the project’s configuration file.  All physical parameters are defined in the <code class="docutils literal notranslate"><span class="pre">physics</span></code> section of <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> <code class="docutils literal notranslate"><span class="pre">DIP_SMC_PSO/config.yaml</span></code>.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Symbol</p></th>
+<th class="head"><p>Parameter Name (<code class="docutils literal notranslate"><span class="pre">config.yaml</span></code>)</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>SI Units</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>mcm_{c}</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cart_mass</span></code></p></td>
+<td><p>Mass of the cart</p></td>
+<td><p>kg</p></td>
+</tr>
+<tr class="row-odd"><td><p>m1m_{1}</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pendulum1_mass</span></code></p></td>
+<td><p>Mass of the first pendulum link</p></td>
+<td><p>kg</p></td>
+</tr>
+<tr class="row-even"><td><p>m2m_{2}</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pendulum2_mass</span></code></p></td>
+<td><p>Mass of the second pendulum link</p></td>
+<td><p>kg</p></td>
+</tr>
+<tr class="row-odd"><td><p>l1l_{1}</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pendulum1_length</span></code></p></td>
+<td><p>Full length of the first pendulum</p></td>
+<td><p>m</p></td>
+</tr>
+<tr class="row-even"><td><p>l2l_{2}</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pendulum2_length</span></code></p></td>
+<td><p>Full length of the second pendulum</p></td>
+<td><p>m</p></td>
+</tr>
+<tr class="row-odd"><td><p>lc1l_{c1}</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pendulum1_com</span></code></p></td>
+<td><p>Distance from the first joint to the centre of mass of link 1</p></td>
+<td><p>m</p></td>
+</tr>
+<tr class="row-even"><td><p>lc2l_{c2}</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pendulum2_com</span></code></p></td>
+<td><p>Distance from the second joint to the centre of mass of link 2</p></td>
+<td><p>m</p></td>
+</tr>
+<tr class="row-odd"><td><p>I1I_{1}</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pendulum1_inertia</span></code></p></td>
+<td><p>Moment of inertia of link 1 about its centre of mass</p></td>
+<td><p>kg·m²</p></td>
+</tr>
+<tr class="row-even"><td><p>I2I_{2}</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pendulum2_inertia</span></code></p></td>
+<td><p>Moment of inertia of link 2 about its centre of mass</p></td>
+<td><p>kg·m²</p></td>
+</tr>
+<tr class="row-odd"><td><p>gg</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gravity</span></code></p></td>
+<td><p>Gravitational acceleration</p></td>
+<td><p>m·s⁻²</p></td>
+</tr>
+<tr class="row-even"><td><p>bxb_{x}</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cart_friction</span></code></p></td>
+<td><p>Viscous friction coefficient of the cart</p></td>
+<td><p>N·s·m⁻¹</p></td>
+</tr>
+<tr class="row-odd"><td><p>bθ1b_{\theta_{1}}</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">joint1_friction</span></code></p></td>
+<td><p>Viscous friction coefficient of the first joint</p></td>
+<td><p>N·m·s·rad⁻¹</p></td>
+</tr>
+<tr class="row-even"><td><p>bθ2b_{\theta_{2}}</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">joint2_friction</span></code></p></td>
+<td><p>Viscous friction coefficient of the second joint</p></td>
+<td><p>N·m·s·rad⁻¹</p></td>
+</tr>
+<tr class="row-odd"><td><p>κ_mthr\kappa_ \text{mthr}</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">singularity_cond_threshold</span></code></p></td>
+<td><p>Condition‑number threshold for inertia matrix regularisation</p></td>
+<td><p>—</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="lagrangian-formulation-and-derivation">
+<h3><strong>1.2 Lagrangian Formulation and Derivation</strong><a class="headerlink" href="#lagrangian-formulation-and-derivation" title="Link to this heading">¶</a></h3>
+<p>Lagrangian mechanics provides a systematic way of deriving the equations of motion for systems with generalized coordinates.  The Lagrangian LL is defined as the difference between the total kinetic energy TT and the total potential energy VV: L=T−VL = T - V.  For the double inverted pendulum on a cart, the generalized coordinates are q=[x,θ1,θ2]⊤q = \left[ x,\theta_{1},\theta_{2} \right]^{\top} and their time derivatives q˙=[x˙,θ˙1,θ˙2]⊤\dot{q} = \left[ \dot{x},{\dot{\theta}}<em>{1},{\dot{\theta}}</em>{2} \right]^{\top}.</p>
+<section id="kinetic-energy-t">
+<h4><strong>Kinetic Energy (T)</strong><a class="headerlink" href="#kinetic-energy-t" title="Link to this heading">¶</a></h4>
+<p>The kinetic energy of the system consists of translational and rotational energies of the cart and both pendulum links<span id="id15">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>.  To derive these terms, first express the positions of the centres of mass relative to an inertial frame.  Taking the cart’s origin as the zero height and measuring angles from the upward vertical (see Figure 1), the coordinates of the centres of mass are<span id="id16">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span></p>
+<p>x1=x+lc1sin⁡θ1,y1=lc1cos⁡θ1,x2=x+l1sin⁡θ1+lc2sin⁡θ2,y2=l1cos⁡θ1+lc2cos⁡θ2.\begin{aligned} x_1 &amp;= x + l_{c1} \sin \theta_1, &amp;\quad y_1 &amp;= l_{c1} \cos \theta_1,\ x_2 &amp;= x + l_{1} \sin \theta_1 + l_{c2} \sin \theta_2, &amp;\quad y_2 &amp;= l_{1} \cos \theta_1 + l_{c2} \cos \theta_2. \end{aligned}</p>
+<p>Differentiating these expressions gives the velocities of the centres of mass<span id="id17">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>:</p>
+<p>x˙_1=x˙+lc1θ˙_1cos⁡θ1,y˙_1=− lc1θ˙_1sin⁡θ1,x˙_2=x˙+l1θ˙_1cos⁡θ1+lc2θ˙_2cos⁡θ2,y˙_2=− l1θ˙_1sin⁡θ1−lc2θ˙_2sin⁡θ2.\begin{aligned} \dot{x}_1 &amp;= \dot{x} + l_{c1}\dot{\theta}_1 \cos \theta_1, &amp;\quad \dot{y}_1 &amp;= -,l_{c1}\dot{\theta}_1 \sin \theta_1,\ \dot{x}_2 &amp;= \dot{x} + l_{1}\dot{\theta}_1 \cos \theta_1 + l_{c2} \dot{\theta}_2 \cos \theta_2, &amp;\quad \dot{y}_2 &amp;= -,l_{1}\dot{\theta}_1 \sin \theta_1 - l_{c2} \dot{\theta}_2 \sin \theta_2. \end{aligned}</p>
+<p>The cart has no rotational energy, so its kinetic energy is purely translational: Tc=12mcx˙2T_{c} = \frac12 m_{c}\dot{x}^{2}<span id="id18">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>.  For the pendulum links, each centre of mass has translational kinetic energy and each link has rotational kinetic energy about its centre of mass.  Denoting I1I_{1} and I2I_{2} as the moments of inertia of the links about their centres of mass, the energies are<span id="id19">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span></p>
+<p>T_1=12m_1(x˙_12+y˙_12)+12I_1θ˙_12,T_2=12m_2(x˙_22+y˙_22)+12I_2θ˙_22.\begin{aligned} T_{1} &amp;= \frac{1}{2} m_{1}\Bigl( \dot{x}_1^2 + \dot{y}_1^2 \Bigr) + \frac{1}{2} I_{1}\dot{\theta}_1^2,\ T_{2} &amp;= \frac{1}{2} m_{2}\Bigl( \dot{x}_2^2 + \dot{y}_2^2 \Bigr) + \frac{1}{2} I_{2}\dot{\theta}_2^2. \end{aligned}</p>
+<p>Substituting the velocity expressions and simplifying yields<span id="id20">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span></p>
+<p>T_1=12m_1(x˙+lc1θ˙_1cos⁡θ1)2+12m_1(lc1θ˙_1sin⁡θ1)2+12I_1θ˙_12,T_2=12m_2(x˙+l1θ˙_1cos⁡θ1+lc2θ˙_2cos⁡θ2)2+12m_2(l1θ˙_1sin⁡θ1+lc2θ˙_2sin⁡θ2)2+12I_2θ˙_22.\begin{aligned} T_{1} &amp;= \frac{1}{2} m_{1} \bigl( \dot{x} + l_{c1}\dot{\theta}_1 \cos \theta_1 \bigr)^2 + \frac{1}{2} m_{1} \bigl( l_{c1}\dot{\theta}_1 \sin \theta_1 \bigr)^2 + \frac{1}{2} I_{1}\dot{\theta}_1^2,\ T_{2} &amp;= \frac{1}{2} m_{2} \bigl( \dot{x} + l_{1}\dot{\theta}_1 \cos \theta_1 + l_{c2}\dot{\theta}_2 \cos \theta_2 \bigr)^2 + \frac{1}{2} m_{2} \bigl( l_{1}\dot{\theta}_1 \sin \theta_1 + l_{c2}\dot{\theta}_2 \sin \theta_2 \bigr)^2 + \frac{1}{2} I_{2}\dot{\theta}_2^2. \end{aligned}</p>
+<p>The total kinetic energy is the sum T=Tc+T1+T2T = T_{c} + T_{1} + T_{2}<span id="id21">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>.</p>
+</section>
+<section id="potential-energy-v">
+<h4><strong>Potential Energy (V)</strong><a class="headerlink" href="#potential-energy-v" title="Link to this heading">¶</a></h4>
+<p>Choosing the cart’s height as the zero potential energy reference, the gravitational potential energy of each pendulum depends on its vertical position<span id="id22">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>:</p>
+<p>V_1=m_1g l_c1cos⁡θ_1,V_2=m_2g(l_1cos⁡θ_1+l_c2cos⁡θ_2)<span id="id23">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>.V_{1} = m_{1} g,l_{c1} \cos \theta_{1},\qquad V_{2} = m_{2} g \bigl( l_{1} \cos \theta_{1} + l_{c2} \cos \theta_{2} \bigr)<span id="id24">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>.</p>
+<p>The total potential energy is</p>
+<p>V=V_1+V_2=m_1g l_c1cos⁡θ_1+m_2g(l_1cos⁡θ_1+l_c2cos⁡θ_2)<span id="id25">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>.V = V_{1} + V_{2} = m_{1} g,l_{c1} \cos \theta_{1} + m_{2} g \bigl( l_{1} \cos \theta_{1} + l_{c2} \cos \theta_{2} \bigr)<span id="id26">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>.</p>
+</section>
+<section id="the-lagrangian-l">
+<h4><strong>The Lagrangian (L)</strong><a class="headerlink" href="#the-lagrangian-l" title="Link to this heading">¶</a></h4>
+<p>The Lagrangian is defined as the difference between kinetic and potential energies<span id="id27">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>:</p>
+<p>L(q,q˙)=T−V.L\left( q,\dot{q} \right) = T - V.</p>
+</section>
+</section>
+<section id="derivation-of-the-equations-of-motion-eom">
+<h3><strong>1.3 Derivation of the Equations of Motion (EOM)</strong><a class="headerlink" href="#derivation-of-the-equations-of-motion-eom" title="Link to this heading">¶</a></h3>
+<p>To derive the equations of motion we apply the Euler–Lagrange equations<span id="id28">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span></p>
+<p>ddt(∂L∂q˙_i)−∂L∂q_i=Q_i,\frac{d}{dt}\Bigl( \frac{\partial L}{\partial \dot{q}_{i}} \Bigr) - \frac{\partial L}{\partial q_{i}} = Q_{i},</p>
+<p>where qi∈{x,θ1,θ2}q_{i} \in { x,\theta_{1},\theta_{2}} and QiQ_{i} are the generalized forces.  The cart experiences an external force uu and viscous friction −bxx˙- b_{x}\dot{x}, so Qx=u−bxx˙Q_{x} = u - b_{x}\dot{x}.  The pendulum joints are unactuated, so their generalized forces consist solely of viscous damping: Qθ1=−bθ1θ˙1Q_{\theta_{1}} = - b_{\theta_{1}}{\dot{\theta}}<em>{1} and Qθ2=−bθ2θ˙2Q</em>{\theta_{2}} = - b_{\theta_{2}}{\dot{\theta}}_{2}<span id="id29">[<a class="reference internal" href="#id61" title="Vadim Utkin, J&quot;urgen Guldner, and Jingxin Shi. Sliding Mode Control in Electro-Mechanical Systems. CRC Press, Boca Raton, FL, 2 edition, 2009. Second edition. doi:10.1201/9781420065619.">2</a>]</span>.</p>
+<section id="equation-for-the-cart-coordinate-x">
+<h4><strong>Equation for the Cart Coordinate (x)</strong><a class="headerlink" href="#equation-for-the-cart-coordinate-x" title="Link to this heading">¶</a></h4>
+<p>The derivative of the Lagrangian with respect to x˙\dot{x} collects the contributions of the translational velocities of all three bodies:</p>
+<p>∂L∂x˙=m_cx˙+m_1(x˙+lc1θ˙_1cos⁡θ_1)+m_2(x˙+l1θ˙_1cos⁡θ_1+lc2θ˙_2cos⁡θ_2).\frac{\partial L}{\partial \dot{x}} = m_{c} \dot{x} + m_{1} \bigl( \dot{x} + l_{c1}\dot{\theta}_{1} \cos \theta_{1} \bigr) + m_{2} \bigl( \dot{x} + l_{1}\dot{\theta}_{1} \cos \theta_{1} + l_{c2}\dot{\theta}_{2} \cos \theta_{2} \bigr).</p>
+<p>Taking the time derivative and noting that ∂L/∂x=0\partial L/\partial x = 0 (the Lagrangian does not depend explicitly on xx), the Euler–Lagrange equation for xx becomes</p>
+<p>(mc+m1+m2)x¨+(m1lc1+m2l1)θ¨1cos⁡θ1+m2lc2θ¨2cos⁡θ2−(m1lc1+m2l1)θ˙12sin⁡θ1−m2lc2θ˙22sin⁡θ2=u−bxx˙.\begin{aligned} &amp;\bigl( m_{c} + m_{1} + m_{2} \bigr)\ddot{x} + \bigl( m_{1}l_{c1} + m_{2}l_{1} \bigr){\ddot{\theta}}<em>{1}\cos \theta</em>{1} + m_{2}l_{c2}{\ddot{\theta}}<em>{2}\cos \theta</em>{2}\ &amp;\quad - \bigl( m_{1}l_{c1} + m_{2}l_{1} \bigr){\dot{\theta}}<em>{1}^{2}\sin \theta</em>{1} - m_{2}l_{c2}{\dot{\theta}}<em>{2}^{2}\sin \theta</em>{2} = u - b_{x}\dot{x}. \end{aligned}</p>
+<p>The first three terms group the accelerations of the cart and the pendulum angles weighted by their mass distributions, whereas the sine terms originate from differentiating cos⁡θ\cos \theta.  The viscous friction bxx˙b_{x}\dot{x} opposes motion and appears on the right‑hand side along with the input force uu<span id="id30">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span> <code class="docutils literal notranslate"><span class="pre">DIP_SMC_PSO/src/core/dynamics.py</span></code> <code class="docutils literal notranslate"><span class="pre">DIP_SMC_PSO/src/core/dynamics_full.py</span></code>.</p>
+</section>
+<section id="equation-for-the-first-pendulum-angle-1-theta-1">
+<h4><strong>Equation for the First Pendulum Angle (θ1\theta_{1})</strong><a class="headerlink" href="#equation-for-the-first-pendulum-angle-1-theta-1" title="Link to this heading">¶</a></h4>
+<p>Applying the Euler–Lagrange equation to θ1\theta_{1} involves differentiating LL with respect to θ˙1{\dot{\theta}}<em>{1} and θ1\theta</em>{1}.  After grouping terms and making use of trigonometric identities (see, for example, the derivation for the simple double pendulum <span id="id31">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>), one obtains</p>
+<p>(m_1l_c1+m_2l_1)x¨cos⁡θ_1+(I_1+m_1l_c12+m_2l_12)θ¨_1+m_2l_1l_c2cos⁡(θ_1−θ_2) θ¨_2−m_2l_1l_c2sin⁡(θ_1−θ_2) θ˙22+(m_1l_c1+m_2l_1)g sin⁡θ_1=−bθ_1θ˙_1.\begin{aligned} &amp;(m_{1}l_{c1} + m_{2}l_{1})\ddot{x}\cos \theta_{1} + \bigl( I_{1} + m_{1}l_{c1}^{2} + m_{2}l_{1}^{2} \bigr)\ddot{\theta}_{1} + m_{2}l_{1}l_{c2}\cos\bigl( \theta_{1}- \theta_{2} \bigr),\ddot{\theta}_{2}\ &amp;\quad - m_{2}l_{1}l_{c2}\sin\bigl( \theta_{1}- \theta_{2} \bigr),{\dot{\theta}}<em>{2}^{2} + \bigl( m_{1}l_{c1} + m_{2}l_{1} \bigr)g,\sin \theta_{1} = - b</em>{\theta_{1}}\dot{\theta}_{1}. \end{aligned}</p>
+<p>The term proportional to θ˙22sin⁡(θ1−θ2){\dot{\theta}}<em>{2}^{2}\sin\left( \theta</em>{1} - \theta_{2} \right) arises from Coriolis and centrifugal effects and couples the dynamics of θ1\theta_{1} and θ2\theta_{2}.  The gravitational torque terms are proportional to sin⁡θ1\sin \theta_{1} and vanish when the pendulum is upright<span id="id32">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span> <code class="docutils literal notranslate"><span class="pre">DIP_SMC_PSO/src/core/dynamics.py</span></code> <code class="docutils literal notranslate"><span class="pre">DIP_SMC_PSO/src/core/dynamics_full.py</span></code>.</p>
+</section>
+<section id="equation-for-the-second-pendulum-angle-2-theta-2">
+<h4><strong>Equation for the Second Pendulum Angle (θ2\theta_{2})</strong><a class="headerlink" href="#equation-for-the-second-pendulum-angle-2-theta-2" title="Link to this heading">¶</a></h4>
+<p>Repeating the procedure for θ2\theta_{2} yields</p>
+<p>m_2l_c2x¨cos⁡θ_2+m_2l_1l_c2cos⁡(θ_1−θ_2) θ¨_1+(I_2+m_2l_c22)θ¨_2+m_2l_1l_c2sin⁡(θ_1−θ_2) θ˙12+m_2l_c2g sin⁡θ_2=−bθ_2θ˙_2.\begin{aligned} &amp;m_{2}l_{c2}\ddot{x}\cos \theta_{2} + m_{2}l_{1}l_{c2}\cos\bigl( \theta_{1}- \theta_{2} \bigr),\ddot{\theta}_{1} + \bigl( I_{2} + m_{2}l_{c2}^{2} \bigr)\ddot{\theta}_{2}\ &amp;\quad + m_{2}l_{1}l_{c2}\sin\bigl( \theta_{1}- \theta_{2} \bigr),{\dot{\theta}}<em>{1}^{2} + m_{2}l_{c2} g,\sin \theta_{2} = - b</em>{\theta_{2}}\dot{\theta}_{2}. \end{aligned}</p>
+<p>The two coupled pendulum equations highlight the nonlinear interactions between θ1\theta_{1} and θ2\theta_{2}.  The terms containing cos⁡(θ1−θ2)\cos\left( \theta_{1} - \theta_{2} \right) multiply the angular accelerations and represent inertial coupling, whereas those containing sin⁡(θ1−θ2)\sin\left( \theta_{1} - \theta_{2} \right) multiply squared angular velocities and correspond to Coriolis/centrifugal effects<span id="id33">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span> <code class="docutils literal notranslate"><span class="pre">DIP_SMC_PSO/src/core/dynamics.py</span></code> <code class="docutils literal notranslate"><span class="pre">DIP_SMC_PSO/src/core/dynamics_full.py</span></code>.</p>
+</section>
+</section>
+<section id="statespace-representation-in-matrix-form">
+<h3><strong>1.4 State‑Space Representation in Matrix Form</strong><a class="headerlink" href="#statespace-representation-in-matrix-form" title="Link to this heading">¶</a></h3>
+<p>The derived equations can be rearranged into the standard manipulator form<span id="id34">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span></p>
+<p>M(q) q¨+C(q,q˙) q˙+G(q)=B u,M(q),\ddot{q} + C\bigl( q,\dot{q} \bigr),\dot{q} + G(q) = B, u,</p>
+<p>where q=[x,θ1,θ2]⊤q = \left[ x,\theta_{1},\theta_{2} \right]^{\top}, q˙=[x˙,θ˙1,θ˙2]⊤\dot{q} = \left[ \dot{x},{\dot{\theta}}<em>{1},{\dot{\theta}}</em>{2} \right]^{\top}, q¨\ddot{q} contains the accelerations, and BB maps the scalar input force to the generalized coordinates.  The matrices M(q)M(q), C(q,q˙)C\bigl( q,\dot{q} \bigr) and G(q)G(q) are derived directly from the equations of motion<span id="id35">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span> <code class="docutils literal notranslate"><span class="pre">DIP_SMC_PSO/src/core/dynamics.py</span></code> <code class="docutils literal notranslate"><span class="pre">DIP_SMC_PSO/src/core/dynamics_full.py</span></code>.</p>
+<section id="inertia-matrix-m-q-m-q">
+<h4><strong>Inertia Matrix</strong> M(q)M(q)<a class="headerlink" href="#inertia-matrix-m-q-m-q" title="Link to this heading">¶</a></h4>
+<p>M(q)=[m_c+m_1+m_2(m_1l_c1+m_2l_1)cos⁡θ_1m_2l_c2cos⁡θ_2(m_1l_c1+m_2l_1)cos⁡θ_1I_1+m_1l_c12+m_2l_12m_2l_1l_c2cos⁡(θ_1−θ_2)m_2l_c2cos⁡θ_2m_2l_1l_c2cos⁡(θ_1−θ_2)I_2+m_2l_c22].M(q) = \begin{bmatrix} m_{c} + m_{1} + m_{2} &amp; \bigl(m_{1}l_{c1} + m_{2}l_{1}\bigr)\cos \theta_{1} &amp; m_{2}l_{c2}\cos \theta_{2} \ \bigl(m_{1}l_{c1} + m_{2}l_{1}\bigr)\cos \theta_{1} &amp; I_{1} + m_{1}l_{c1}^{2} + m_{2}l_{1}^{2} &amp; m_{2}l_{1}l_{c2}\cos\bigl( \theta_{1} - \theta_{2} \bigr) \ m_{2}l_{c2}\cos \theta_{2} &amp; m_{2}l_{1}l_{c2}\cos\bigl( \theta_{1} - \theta_{2} \bigr) &amp; I_{2} + m_{2}l_{c2}^{2} \end{bmatrix}.</p>
+<p>This symmetric, positive‑definite matrix reflects the mass distribution of the system and the coupling between coordinates<span id="id36">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span> <code class="docutils literal notranslate"><span class="pre">DIP_SMC_PSO/src/core/dynamics.py</span></code> <code class="docutils literal notranslate"><span class="pre">DIP_SMC_PSO/src/core/dynamics_full.py</span></code>.</p>
+</section>
+<section id="coriolis-centrifugal-and-damping-matrix-c-q-q-c-bigl-q-dot-q-bigr">
+<h4><strong>Coriolis, Centrifugal and Damping Matrix</strong> C(q,q˙)C\bigl( q,\dot{q} \bigr)<a class="headerlink" href="#coriolis-centrifugal-and-damping-matrix-c-q-q-c-bigl-q-dot-q-bigr" title="Link to this heading">¶</a></h4>
+<p>The matrix C(q,q˙)C\bigl( q,\dot{q} \bigr) multiplies the velocity vector q˙\dot{q} and aggregates viscous damping and Coriolis/centrifugal terms.  Matching the structure implemented in <code class="docutils literal notranslate"><span class="pre">compute_matrices_numba</span></code> within <code class="docutils literal notranslate"><span class="pre">src/core/dynamics.py</span></code>, it is<span id="id37">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span> <code class="docutils literal notranslate"><span class="pre">DIP_SMC_PSO/src/core/dynamics.py</span></code> <code class="docutils literal notranslate"><span class="pre">DIP_SMC_PSO/src/core/dynamics_full.py</span></code></p>
+<p>C(q,q˙)=[b_x000b_θ_1− m_2 l_1 l_c2 sin⁡(θ_1−θ_2) θ˙_20m_2 l_1 l_c2 sin⁡(θ_1−θ_2) θ˙_1b_θ_2].C(q, \dot{q}) = \begin{bmatrix} b_{x} &amp; 0 &amp; 0 \ 0 &amp; b_{\theta_{1}} &amp; -,m_{2},l_{1},l_{c2},\sin\bigl( \theta_{1} - \theta_{2} \bigr),\dot{\theta}_{2} \ 0 &amp; m_{2},l_{1},l_{c2},\sin\bigl( \theta_{1} - \theta_{2} \bigr),\dot{\theta}_{1} &amp; b_{\theta_{2}} \end{bmatrix}.</p>
+<p>The diagonal entries represent viscous friction at the cart and joints, whereas the off‑diagonal terms couple the pendulum velocities.  Notice that CC is not symmetric; the skew‑symmetric part generates the Coriolis and centrifugal forces while the symmetric part corresponds to damping<span id="id38">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span> <code class="docutils literal notranslate"><span class="pre">DIP_SMC_PSO/src/core/dynamics.py</span></code> <code class="docutils literal notranslate"><span class="pre">DIP_SMC_PSO/src/core/dynamics_full.py</span></code>.</p>
+</section>
+<section id="gravity-vector-g-q-g-q">
+<h4><strong>Gravity Vector</strong> G(q)G(q)<a class="headerlink" href="#gravity-vector-g-q-g-q" title="Link to this heading">¶</a></h4>
+<p>G(q)=[0(m_1l_c1+m_2l_1)g sin⁡θ_1m_2l_c2g sin⁡θ_2].G(q) = \begin{bmatrix} 0 \ \bigl(m_{1}l_{c1} + m_{2}l_{1}\bigr) g,\sin \theta_{1} \ m_{2}l_{c2} g,\sin \theta_{2} \end{bmatrix}.</p>
+<p>The input matrix is B=[1,0,0]⊤B = [ 1,0,0]^{\top} because only the cart coordinate is actuated<span id="id39">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span> <code class="docutils literal notranslate"><span class="pre">DIP_SMC_PSO/src/core/dynamics.py</span></code> <code class="docutils literal notranslate"><span class="pre">DIP_SMC_PSO/src/core/dynamics_full.py</span></code>.</p>
+</section>
+<section id="code-implementation-and-verification">
+<h4><strong>Code Implementation and Verification</strong><a class="headerlink" href="#code-implementation-and-verification" title="Link to this heading">¶</a></h4>
+<p>The theoretical matrices MM, CC and GG derived above are implemented in the Python project through JIT‑compiled functions <code class="docutils literal notranslate"><span class="pre">DIP_SMC_PSO/src/core/dynamics.py</span></code> <code class="docutils literal notranslate"><span class="pre">DIP_SMC_PSO/src/core/dynamics_full.py</span></code>.  Table 1.2 maps key terms in the matrices to their implementations in <code class="docutils literal notranslate"><span class="pre">src/core/dynamics.py</span></code> and <code class="docutils literal notranslate"><span class="pre">src/core/dynamics_full.py</span></code> to verify correctness.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Derived term</p></th>
+<th class="head"><p>Mathematical expression</p></th>
+<th class="head"><p>Corresponding code snippet</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Inertia M11M_{11}</p></td>
+<td><p>mc+m1+m2m_{c} + m_{1} + m_{2}</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">h11</span> <span class="pre">=</span> <span class="pre">m_c</span> <span class="pre">+</span> <span class="pre">m1</span> <span class="pre">+</span> <span class="pre">m2</span></code> in <code class="docutils literal notranslate"><span class="pre">compute_matrices_numba</span></code> (simplified) and <code class="docutils literal notranslate"><span class="pre">compute_inertia_numba</span></code> (full)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Inertia M12M_{12}</p></td>
+<td><p>(m1lc1+m2l1)cos⁡θ1\bigl( m_{1}l_{c1} + m_{2}l_{1} \bigr)\cos \theta_{1}</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">h12</span> <span class="pre">=</span> <span class="pre">(m1</span> <span class="pre">*</span> <span class="pre">lc1</span> <span class="pre">+</span> <span class="pre">m2</span> <span class="pre">*</span> <span class="pre">l1)</span> <span class="pre">*</span> <span class="pre">c1</span></code> in the simplified model and full model</p></td>
+</tr>
+<tr class="row-even"><td><p>Coriolis term C12C_{12}</p></td>
+<td><p>− m2l1lc2sin⁡(θ1−θ2) θ˙2-, m_{2}l_{1}l_{c2}\sin\bigl( \theta_{1} - \theta_{2} \bigr),{\dot{\theta}}_{2}</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">C[1,2]</span> <span class="pre">=</span> <span class="pre">-c_coeff</span> <span class="pre">*</span> <span class="pre">s12</span> <span class="pre">*</span> <span class="pre">q2dot</span></code> where <code class="docutils literal notranslate"><span class="pre">c_coeff</span> <span class="pre">=</span> <span class="pre">m2</span> <span class="pre">*</span> <span class="pre">l1</span> <span class="pre">*</span> <span class="pre">lc2</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Coriolis term C23C_{23}</p></td>
+<td><p>+ m2l1lc2sin⁡(θ1−θ2) θ˙1+, m_{2}l_{1}l_{c2}\sin\bigl( \theta_{1} - \theta_{2} \bigr),{\dot{\theta}}_{1}</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">C[2,1]</span> <span class="pre">=</span> <span class="pre">+c_coeff</span> <span class="pre">*</span> <span class="pre">s12</span> <span class="pre">*</span> <span class="pre">q1dot</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Gravity term G2G_{2}</p></td>
+<td><p>(m1lc1+m2l1)g sin⁡θ1\bigl( m_{1}l_{c1} + m_{2}l_{1} \bigr)g,\sin \theta_{1}</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">g2</span> <span class="pre">=</span> <span class="pre">(m1</span> <span class="pre">*</span> <span class="pre">lc1</span> <span class="pre">+</span> <span class="pre">m2</span> <span class="pre">*</span> <span class="pre">l1)</span> <span class="pre">*</span> <span class="pre">gravity</span> <span class="pre">*</span> <span class="pre">s1</span></code> and stored in <code class="docutils literal notranslate"><span class="pre">G{cite}</span></code>dip_khalil_2002_nonlinear_systems``</p></td>
+</tr>
+<tr class="row-odd"><td><p>Gravity term G3G_{3}</p></td>
+<td><p>m2lc2g sin⁡θ2m_{2}l_{c2}g,\sin \theta_{2}</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">g3</span> <span class="pre">=</span> <span class="pre">(m2</span> <span class="pre">*</span> <span class="pre">lc2)</span> <span class="pre">*</span> <span class="pre">gravity</span> <span class="pre">*</span> <span class="pre">s2</span></code> and stored in <code class="docutils literal notranslate"><span class="pre">G{cite}</span></code>dip_khalil_2002_nonlinear_systems``</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Both <code class="docutils literal notranslate"><span class="pre">dynamics.py</span></code> (simplified) and <code class="docutils literal notranslate"><span class="pre">dynamics_full.py</span></code> implement the same inertia matrix M(q)M(q) <code class="docutils literal notranslate"><span class="pre">DIP_SMC_PSO/src/core/dynamics.py</span></code> <code class="docutils literal notranslate"><span class="pre">DIP_SMC_PSO/src/core/dynamics_full.py</span></code><span id="id40">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>.  The simplified model represents damping and Coriolis/centrifugal effects via a 3×33 \times 3 matrix C(q,q˙)C\bigl( q,\dot{q} \bigr) multiplied by the velocity vector.  The full model (<code class="docutils literal notranslate"><span class="pre">dynamics_full.py</span></code>) uses a 3×13 \times 1 vector <code class="docutils literal notranslate"><span class="pre">c</span></code> returned by <code class="docutils literal notranslate"><span class="pre">compute_centrifugal_coriolis_vector_numba</span></code>, which contains both damping and nonlinear velocity products.  The sign conventions in the full model were tuned so that subtracting this vector in the equation Mq¨=B u−c−GM\ddot{q} = B,u - c - G reproduces the same dynamics as the simplified model.  Additionally, the full model includes a mechanism to compute the condition number of MM and return NaNs when the matrix is ill‑conditioned, a safeguard absent from the simplified version <code class="docutils literal notranslate"><span class="pre">DIP_SMC_PSO/config.yaml</span></code><span id="id41">[<a class="reference internal" href="#id62" title="Arie Levant. Higher-order sliding modes, differentiation and output-feedback control. International Journal of Control, 76(9–10):924–941, 2003. doi:10.1080/0020717031000099029.">3</a>]</span>.</p>
+</section>
+<section id="firstorder-statespace-representation">
+<h4><strong>First‑Order State‑Space Representation</strong><a class="headerlink" href="#firstorder-statespace-representation" title="Link to this heading">¶</a></h4>
+<p>For control design and simulation it is convenient to rewrite the manipulator equation as a first‑order system<span id="id42">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>.  Define the six‑dimensional state vector</p>
+<p>x_s=[xθ_1θ_2x˙θ˙_1θ˙_2]⊤<span id="id43">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>.\boldsymbol{x}_{s} = \begin{bmatrix} x &amp; \theta_{1} &amp; \theta_{2} &amp; \dot{x} &amp; \dot{\theta}_{1} &amp; \dot{\theta}_{2} \end{bmatrix}^{\top}<span id="id44">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>.</p>
+<p>The time derivative of this vector follows from the manipulator form<span id="id45">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span>.  Solving M(q) q¨=B u−C(q,q˙) q˙−G(q)M(q),\ddot{q} = B,u - C\bigl( q,\dot{q} \bigr),\dot{q} - G(q) for q¨\ddot{q} gives</p>
+<p>q¨=M(q)−1(B u−C(q,q˙) q˙−G(q)).\ddot{q} = M(q)^{-1}\Bigl( B,u - C(q, \dot{q}),\dot{q} - G(q) \Bigr).</p>
+<p>Stacking the velocities and accelerations yields the first‑order state‑space equations<span id="id46">[<a class="reference internal" href="#id76" title="Hassan K. Khalil. Nonlinear Systems. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.">1</a>]</span></p>
+<p>x˙_s=[x˙θ˙_1θ˙_2M(q)−1(B u−C(q,q˙) q˙−G(q))]=f(x_s)+g(x_s) u,\dot{\boldsymbol{x}}_{s} = \begin{bmatrix} \dot{x} \ \dot{\theta}_{1} \ \dot{\theta}_{2} \ M(q)^{-1}\bigl( B,u - C(q,\dot{q}),\dot{q} - G(q) \bigr) \end{bmatrix} = f(\boldsymbol{x}_{s}) + g(\boldsymbol{x}_{s}),u,</p>
+<p>where ff encodes the drift dynamics (including friction and gravity) and gg maps the input force to accelerations.  This compact representation is used by the simulator to propagate the state through numerical integration.</p>
+</section>
+</section>
+<section id="derivation-of-the-coriolis-matrix-using-christoffel-symbols">
+<h3><strong>1.5 Derivation of the Coriolis Matrix Using Christoffel Symbols</strong><a class="headerlink" href="#derivation-of-the-coriolis-matrix-using-christoffel-symbols" title="Link to this heading">¶</a></h3>
+<p>The velocity‑dependent terms in the manipulator equation can be systematically derived from the inertia matrix rather than guessed.  A rigorous approach introduces the <strong>Christoffel symbols of the first kind</strong>, which relate derivatives of the inertia matrix to velocity‑product terms<span id="id47">[<a class="reference internal" href="#id60" title="Jean-Jacques E. Slotine and Weiping Li. Applied Nonlinear Control. Prentice Hall, Englewood Cliffs, NJ, 1991. ISBN 0-13-040890-5.">4</a>]</span><span id="id48">[<a class="reference internal" href="#id60" title="Jean-Jacques E. Slotine and Weiping Li. Applied Nonlinear Control. Prentice Hall, Englewood Cliffs, NJ, 1991. ISBN 0-13-040890-5.">4</a>]</span>.  For an nn‑DOF system with inertia matrix M(q)M(q), the symbol Γijk\Gamma_{ijk} is defined by partial derivatives of the mass matrix as</p>
+<p>Γijk=∂Mik∂qj−12 ∂Mij∂qk.\Gamma_{ijk} = \frac{\partial M_{ik}}{\partial q_{j}} - \frac{1}{2},\frac{\partial M_{ij}}{\partial q_{k}}.</p>
+<p>This formula arises from Lagrangian variational calculus and expresses how changes in the inertia matrix along one coordinate couple to accelerations in another<span id="id49">[<a class="reference internal" href="#id60" title="Jean-Jacques E. Slotine and Weiping Li. Applied Nonlinear Control. Prentice Hall, Englewood Cliffs, NJ, 1991. ISBN 0-13-040890-5.">4</a>]</span><span id="id50">[<a class="reference internal" href="#id60" title="Jean-Jacques E. Slotine and Weiping Li. Applied Nonlinear Control. Prentice Hall, Englewood Cliffs, NJ, 1991. ISBN 0-13-040890-5.">4</a>]</span>.  Once the three‑dimensional array of Christoffel symbols has been computed, the Coriolis matrix is obtained by summing over the joint velocities:</p>
+<p>Cij(q,q˙)=∑k=1nΓijk q˙k,C_{ij}\bigl( q,\dot{q} \bigr) = \sum_{k = 1}^{n}\Gamma_{ijk},{\dot{q}}_{k},</p>
+<p>so that each entry CijC_{ij} is linear in the velocity vector q˙\dot{q}<span id="id51">[<a class="reference internal" href="#id60" title="Jean-Jacques E. Slotine and Weiping Li. Applied Nonlinear Control. Prentice Hall, Englewood Cliffs, NJ, 1991. ISBN 0-13-040890-5.">4</a>]</span><span id="id52">[<a class="reference internal" href="#id60" title="Jean-Jacques E. Slotine and Weiping Li. Applied Nonlinear Control. Prentice Hall, Englewood Cliffs, NJ, 1991. ISBN 0-13-040890-5.">4</a>]</span>.  Computing CC for the double inverted pendulum therefore proceeds in three steps:</p>
+<ol class="arabic simple">
+<li><p><strong>Differentiate the inertia matrix.</strong>  Starting from the matrix M(q)M(q) derived earlier, take partial derivatives of each element with respect to the generalized coordinates θ1\theta_{1} and θ2\theta_{2}.  The mass matrix does not depend on xx, so ∂M/∂x=0\partial M/\partial x = 0.  For example, differentiating the off‑diagonal term M12=(m1lc1+m2l1)cos⁡θ1M_{12} = \bigl( m_{1}l_{c1} + m_{2}l_{1} \bigr)\cos\theta_{1} with respect to θ1\theta_{1} yields −(m1lc1+m2l1)sin⁡θ1- \bigl( m_{1}l_{c1} + m_{2}l_{1} \bigr)\sin\theta_{1}, whereas ∂M12/∂θ2=0\partial M_{12}/\partial\theta_{2} = 0<span id="id53">[<a class="reference internal" href="#id60" title="Jean-Jacques E. Slotine and Weiping Li. Applied Nonlinear Control. Prentice Hall, Englewood Cliffs, NJ, 1991. ISBN 0-13-040890-5.">4</a>]</span><span id="id54">[<a class="reference internal" href="#id60" title="Jean-Jacques E. Slotine and Weiping Li. Applied Nonlinear Control. Prentice Hall, Englewood Cliffs, NJ, 1991. ISBN 0-13-040890-5.">4</a>]</span>.</p></li>
+<li><p><strong>Form the Christoffel symbols.</strong>  For each index triple (i,j,k)(i,j,k), use the definition above to compute Γijk\Gamma_{ijk}.  Because MM is symmetric, many symbols vanish.  For instance, the only non‑zero symbols with i=2i = 2 or i=3i = 3 correspond to derivatives of the coupling term m2l1lc2cos⁡(θ1−θ2)m_{2}l_{1}l_{c2}\cos\bigl( \theta_{1} - \theta_{2} \bigr)<span id="id55">[<a class="reference internal" href="#id60" title="Jean-Jacques E. Slotine and Weiping Li. Applied Nonlinear Control. Prentice Hall, Englewood Cliffs, NJ, 1991. ISBN 0-13-040890-5.">4</a>]</span><span id="id56">[<a class="reference internal" href="#id60" title="Jean-Jacques E. Slotine and Weiping Li. Applied Nonlinear Control. Prentice Hall, Englewood Cliffs, NJ, 1991. ISBN 0-13-040890-5.">4</a>]</span>.</p></li>
+<li><p><strong>Construct</strong> C(q,q˙)C\bigl( q,\dot{q} \bigr).  Summing Γijk q˙k\Gamma_{ijk},{\dot{q}}_{k} over kk gives each entry of the Coriolis matrix<span id="id57">[<a class="reference internal" href="#id60" title="Jean-Jacques E. Slotine and Weiping Li. Applied Nonlinear Control. Prentice Hall, Englewood Cliffs, NJ, 1991. ISBN 0-13-040890-5.">4</a>]</span><span id="id58">[<a class="reference internal" href="#id60" title="Jean-Jacques E. Slotine and Weiping Li. Applied Nonlinear Control. Prentice Hall, Englewood Cliffs, NJ, 1991. ISBN 0-13-040890-5.">4</a>]</span>.  For the double inverted pendulum, this procedure reproduces exactly the off‑diagonal velocity‑product terms shown in Section 1.4; for example,</p></li>
+</ol>
+<p>C23=m2l1lc2 sin⁡(θ1−θ2) θ˙1,C12=− m2l1lc2 sin⁡(θ1−θ2) θ˙2,C_{23} = m_{2}l_{1}l_{c2},\sin\bigl( \theta_{1} - \theta_{2} \bigr),{\dot{\theta}}<em>{1},\quad\quad C</em>{12} = -, m_{2}l_{1}l_{c2},\sin\bigl( \theta_{1} - \theta_{2} \bigr),{\dot{\theta}}_{2},</p>
+<p>while the diagonal entries C11=bxC_{11} = b_{x}, C22=bθ1C_{22} = b_{\theta_{1}} and C33=bθ2C_{33} = b_{\theta_{2}} arise from viscous damping (see the next subsection).  The explicit derivation via Christoffel symbols confirms that the final matrix C(q,q˙)C\bigl( q,\dot{q} \bigr) presented earlier is correct.</p>
+</section>
+<section id="derivation-of-nonactuated-generalized-forces">
+<h3><strong>1.6 Derivation of Non‑Actuated Generalized Forces</strong><a class="headerlink" href="#derivation-of-nonactuated-generalized-forces" title="Link to this heading">¶</a></h3>
+<p>The Euler–Lagrange equations require generalized forces QiQ_{i} on the right‑hand side.  In our model, the only non‑conservative effects are viscous friction and the input force uu.  A convenient way of incorporating dissipation is through the <strong>Rayleigh dissipation function</strong> DD.  For a mechanical system with viscous damping coefficients CjkC_{jk}, Rayleigh showed that one can define</p>
+<p>D=12∑j=1m∑k=1mCjk q˙j q˙k,D = \frac{1}{2}\sum_{j = 1}^{m}{\sum_{k = 1}^{m}C_{jk}},{\dot{q}}<em>{j},{\dot{q}}</em>{k},</p>
+<p>and then the generalized forces are given by</p>
+<p>Qj=− ∂V∂qj−∂D∂q˙j,Q_{j} = - ,\frac{\partial V}{\partial q_{j}} - \frac{\partial D}{\partial{\dot{q}}_{j}},</p>
+<p>so that the Euler–Lagrange equations become ddt(∂L/∂q˙j)−∂L/∂qj+∂D/∂q˙j=0\frac{d}{dt}\bigl( \partial L/\partial{\dot{q}}<em>{j} \bigr) - \partial L/\partial q</em>{j} + \partial D/\partial{\dot{q}}_{j} = 0.  In the double inverted pendulum, the potential energy VV depends only on the angles and yields the gravity vector G(q)G(q); the dissipative forces arise from linear viscous friction.  Choosing</p>
+<p>D=12 bx x˙2+12 bθ1 θ˙_12+12 bθ2 θ˙_22,D = \frac{1}{2}, b_{x},\dot{x}^{2} + \frac{1}{2}, b_{\theta_{1}},\dot{\theta}_{1}^{2} + \frac{1}{2}, b_{\theta_{2}},\dot{\theta}_{2}^{2},</p>
+<p>we obtain the generalized forces</p>
+<p>Qx=u−bx x˙,Qθ1=− bθ1 θ˙1,Qθ2=− bθ2 θ˙2.Q_{x} = u - b_{x},\dot{x},\quad Q_{\theta_{1}} = - , b_{\theta_{1}},{\dot{\theta}}<em>{1},\quad Q</em>{\theta_{2}} = - , b_{\theta_{2}},{\dot{\theta}}_{2}.</p>
+<p>Only the cart coordinate experiences the external input uu; the pendulum joints are unactuated, so their generalized forces consist solely of viscous damping.  These expressions complete the derivation of the right‑hand side terms used in Section 1.3.</p>
+</section>
+<section id="model-singularities-and-regularisation">
+<h3><strong>1.7 Model Singularities and Regularisation</strong><a class="headerlink" href="#model-singularities-and-regularisation" title="Link to this heading">¶</a></h3>
+<p>In multibody systems the inertia matrix may lose rank in certain configurations, leading to <strong>singularities</strong> in the equations of motion.  When a robot is near a singularity, it effectively loses one or more degrees of freedom and may require infinite joint accelerations to follow a finite Cartesian motion.  A singularity can be detected mathematically when the rank of the robot’s Jacobian or, equivalently, the determinant of the inertia matrix falls to zero.</p>
+<p>For the double inverted pendulum, singular configurations occur when the pendulum links align colinearly with each other or with the vertical axis.  In these cases the coupling terms in the inertia matrix vanish, and the determinant of M(q)M(q) becomes zero.  Physically, the system can no longer generate independent accelerations in all three coordinates: for example, if both links are aligned and hanging downward, a horizontal force on the cart cannot change the relative angles, so θ¨1{\ddot{\theta}}<em>{1} and θ¨2{\ddot{\theta}}</em>{2} become indeterminate.  The manipulator‑form equations M(q) q¨=B u−C(q,q˙) q˙−G(q)M(q),\ddot{q} = B, u - C\bigl( q,\dot{q} \bigr),\dot{q} - G(q) therefore fail because M(q)M(q) is not invertible.</p>
+<p>The accompanying software mitigates this issue by monitoring the <strong>condition number</strong> of M(q)M(q).  The <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> file defines a parameter <code class="docutils literal notranslate"><span class="pre">singularity_cond_threshold</span></code> that specifies the maximum acceptable condition number; if κ(M)=∥M∥ ∥M−1∥\kappa(M) = | M |,| M^{- 1} | exceeds this threshold, the functions <code class="docutils literal notranslate"><span class="pre">compute_matrices_numba</span></code> or <code class="docutils literal notranslate"><span class="pre">compute_inertia_numba</span></code> flag a singularity and return <code class="docutils literal notranslate"><span class="pre">NaN</span></code> values.  This regularisation prevents numerical instabilities during simulation.  By carefully choosing the initial conditions and limiting the range of motion (e.g., avoiding configurations where θ1≈θ2\theta_{1} \approx \theta_{2} or both angles approach ±π\pm \pi), controllers can steer the system away from singularities <code class="docutils literal notranslate"><span class="pre">DIP_SMC_PSO/config.yaml</span></code>.</p>
+<hr class="docutils" />
+<p>[11](https://apmonitor.com/do/index.php/Main/DoubleInvertedPendulum#:~:text=L %3D T - V where T is the kinetic energy and V is the potential energy.) Double Inverted Pendulum Control — Dynamic Optimization</p>
+<p>https://apmonitor.com/do/index.php/Main/DoubleInvertedPendulum</p>
+<p>[22](https://en.wikipedia.org/wiki/Double_pendulum#:~:text=double pendulum is a physical system that exhibits rich dynamic behavior with a strong sensitivity to initial conditions) Double pendulum – chaotic motion and sensitivity to initial conditions</p>
+<p>https://en.wikipedia.org/wiki/Double_pendulum</p>
+<p>[33](https://en.wikipedia.org/wiki/Lagrangian_mechanics#:~:text=Dissipation (i.e. non,54) Lagrangian mechanics – Rayleigh dissipation and generalized forces</p>
+<p>https://en.wikipedia.org/wiki/Lagrangian_mechanics</p>
+<p>[44](https://adamheins.com/blog/lagrangian-mechanics-three-ways#:~:text=The Coriolis matrix) Implementing Lagrangian Mechanics Three Ways</p>
+<p>https://adamheins.com/blog/lagrangian-mechanics-three-ways</p>
+<p>[55](https://modernrobotics.northwestern.edu/nu-gm-book-resource/8-1-lagrangian-formulation-of-dynamics-part-2-of-2/#:~:text=Gamma of theta depends only on the joint values theta) Modern Robotics – Lagrangian formulation of dynamics (velocity‑product terms and Christoffel symbols)</p>
+<p>https://modernrobotics.northwestern.edu/nu-gm-book-resource/8-1-lagrangian-formulation-of-dynamics-part-2-of-2/</p>
+<p>[66](https://robodk.com/blog/robot-singularities/#:~:text=A singularity is a particular,move in an unexpected manner) Robot Singularities: What Are They and How to Beat Them – RoboDK blog</p>
+<p>https://robodk.com/blog/robot-singularities/</p>
+</section>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">¶</a></h2>
+<div class="docutils container" id="id59">
+<p class="rubric">References</p>
+<div role="list" class="citation-list">
+<div class="citation" id="id76" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id1">1</a>,<a role="doc-backlink" href="#id2">2</a>,<a role="doc-backlink" href="#id3">3</a>,<a role="doc-backlink" href="#id4">4</a>,<a role="doc-backlink" href="#id5">5</a>,<a role="doc-backlink" href="#id7">6</a>,<a role="doc-backlink" href="#id8">7</a>,<a role="doc-backlink" href="#id9">8</a>,<a role="doc-backlink" href="#id10">9</a>,<a role="doc-backlink" href="#id11">10</a>,<a role="doc-backlink" href="#id12">11</a>,<a role="doc-backlink" href="#id13">12</a>,<a role="doc-backlink" href="#id14">13</a>,<a role="doc-backlink" href="#id15">14</a>,<a role="doc-backlink" href="#id16">15</a>,<a role="doc-backlink" href="#id17">16</a>,<a role="doc-backlink" href="#id18">17</a>,<a role="doc-backlink" href="#id19">18</a>,<a role="doc-backlink" href="#id20">19</a>,<a role="doc-backlink" href="#id21">20</a>,<a role="doc-backlink" href="#id22">21</a>,<a role="doc-backlink" href="#id23">22</a>,<a role="doc-backlink" href="#id24">23</a>,<a role="doc-backlink" href="#id25">24</a>,<a role="doc-backlink" href="#id26">25</a>,<a role="doc-backlink" href="#id27">26</a>,<a role="doc-backlink" href="#id28">27</a>,<a role="doc-backlink" href="#id30">28</a>,<a role="doc-backlink" href="#id31">29</a>,<a role="doc-backlink" href="#id32">30</a>,<a role="doc-backlink" href="#id33">31</a>,<a role="doc-backlink" href="#id34">32</a>,<a role="doc-backlink" href="#id35">33</a>,<a role="doc-backlink" href="#id36">34</a>,<a role="doc-backlink" href="#id37">35</a>,<a role="doc-backlink" href="#id38">36</a>,<a role="doc-backlink" href="#id39">37</a>,<a role="doc-backlink" href="#id40">38</a>,<a role="doc-backlink" href="#id42">39</a>,<a role="doc-backlink" href="#id43">40</a>,<a role="doc-backlink" href="#id44">41</a>,<a role="doc-backlink" href="#id45">42</a>,<a role="doc-backlink" href="#id46">43</a>)</span>
+<p>Hassan K. Khalil. <em>Nonlinear Systems</em>. Prentice Hall, Upper Saddle River, NJ, 3 edition, 2002. ISBN 0-13-067389-7. Third Edition.</p>
+</div>
+<div class="citation" id="id61" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id6">1</a>,<a role="doc-backlink" href="#id29">2</a>)</span>
+<p>Vadim Utkin, J&quot;urgen Guldner, and Jingxin Shi. <em>Sliding Mode Control in Electro-Mechanical Systems</em>. CRC Press, Boca Raton, FL, 2 edition, 2009. Second edition. <a class="reference external" href="https://doi.org/10.1201/9781420065619">doi:10.1201/9781420065619</a>.</p>
+</div>
+<div class="citation" id="id62" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id41">3</a><span class="fn-bracket">]</span></span>
+<p>Arie Levant. Higher-order sliding modes, differentiation and output-feedback control. <em>International Journal of Control</em>, 76(9–10):924–941, 2003. <a class="reference external" href="https://doi.org/10.1080/0020717031000099029">doi:10.1080/0020717031000099029</a>.</p>
+</div>
+<div class="citation" id="id60" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id47">1</a>,<a role="doc-backlink" href="#id48">2</a>,<a role="doc-backlink" href="#id49">3</a>,<a role="doc-backlink" href="#id50">4</a>,<a role="doc-backlink" href="#id51">5</a>,<a role="doc-backlink" href="#id52">6</a>,<a role="doc-backlink" href="#id53">7</a>,<a role="doc-backlink" href="#id54">8</a>,<a role="doc-backlink" href="#id55">9</a>,<a role="doc-backlink" href="#id56">10</a>,<a role="doc-backlink" href="#id57">11</a>,<a role="doc-backlink" href="#id58">12</a>)</span>
+<p>Jean-Jacques E. Slotine and Weiping Li. <em>Applied Nonlinear Control</em>. Prentice Hall, Englewood Cliffs, NJ, 1991. ISBN 0-13-040890-5.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2024, Research Team
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#"><strong>A Comprehensive Technical Report on the Modeling and Configuration of a Cart‑Based Double Inverted Pendulum System</strong></a><ul>
+<li><a class="reference internal" href="#introduction"><strong>Introduction</strong></a><ul>
+<li><a class="reference internal" href="#purpose-and-scope"><strong>Purpose and Scope</strong></a></li>
+<li><a class="reference internal" href="#the-double-inverted-pendulum-as-a-benchmark-problem"><strong>The Double Inverted Pendulum as a Benchmark Problem</strong></a></li>
+<li><a class="reference internal" href="#methodology"><strong>Methodology</strong></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#section-1-system-dynamics-and-mathematical-modeling"><strong>Section 1: System Dynamics and Mathematical Modeling</strong></a><ul>
+<li><a class="reference internal" href="#system-definition-assumptions-and-nomenclature"><strong>1.1 System Definition, Assumptions, and Nomenclature</strong></a><ul>
+<li><a class="reference internal" href="#system-diagram"><strong>System Diagram</strong></a></li>
+<li><a class="reference internal" href="#model-assumptions"><strong>Model Assumptions</strong></a></li>
+<li><a class="reference internal" href="#nomenclature"><strong>Nomenclature</strong></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#lagrangian-formulation-and-derivation"><strong>1.2 Lagrangian Formulation and Derivation</strong></a><ul>
+<li><a class="reference internal" href="#kinetic-energy-t"><strong>Kinetic Energy (T)</strong></a></li>
+<li><a class="reference internal" href="#potential-energy-v"><strong>Potential Energy (V)</strong></a></li>
+<li><a class="reference internal" href="#the-lagrangian-l"><strong>The Lagrangian (L)</strong></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#derivation-of-the-equations-of-motion-eom"><strong>1.3 Derivation of the Equations of Motion (EOM)</strong></a><ul>
+<li><a class="reference internal" href="#equation-for-the-cart-coordinate-x"><strong>Equation for the Cart Coordinate (x)</strong></a></li>
+<li><a class="reference internal" href="#equation-for-the-first-pendulum-angle-1-theta-1"><strong>Equation for the First Pendulum Angle (θ1\theta_{1})</strong></a></li>
+<li><a class="reference internal" href="#equation-for-the-second-pendulum-angle-2-theta-2"><strong>Equation for the Second Pendulum Angle (θ2\theta_{2})</strong></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#statespace-representation-in-matrix-form"><strong>1.4 State‑Space Representation in Matrix Form</strong></a><ul>
+<li><a class="reference internal" href="#inertia-matrix-m-q-m-q"><strong>Inertia Matrix</strong> M(q)M(q)</a></li>
+<li><a class="reference internal" href="#coriolis-centrifugal-and-damping-matrix-c-q-q-c-bigl-q-dot-q-bigr"><strong>Coriolis, Centrifugal and Damping Matrix</strong> C(q,q˙)C\bigl( q,\dot{q} \bigr)</a></li>
+<li><a class="reference internal" href="#gravity-vector-g-q-g-q"><strong>Gravity Vector</strong> G(q)G(q)</a></li>
+<li><a class="reference internal" href="#code-implementation-and-verification"><strong>Code Implementation and Verification</strong></a></li>
+<li><a class="reference internal" href="#firstorder-statespace-representation"><strong>First‑Order State‑Space Representation</strong></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#derivation-of-the-coriolis-matrix-using-christoffel-symbols"><strong>1.5 Derivation of the Coriolis Matrix Using Christoffel Symbols</strong></a></li>
+<li><a class="reference internal" href="#derivation-of-nonactuated-generalized-forces"><strong>1.6 Derivation of Non‑Actuated Generalized Forces</strong></a></li>
+<li><a class="reference internal" href="#model-singularities-and-regularisation"><strong>1.7 Model Singularities and Regularisation</strong></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    </body>
+</html>

@@ -1,0 +1,665 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" />
+
+    <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
+        <title>Previous Work Before the Project - DIP_SMC_PSO Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">DIP_SMC_PSO Documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  
+  <span class="sidebar-brand-text">DIP_SMC_PSO Documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">📚 Core Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Optimal Sliding Mode Control for a Double-Inverted Pendulum via PSO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../theory_overview.html">1. Theoretical Background â€” Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">3. System Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plant_model.html">1.x Plant Model</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">🎮 Control Systems</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../controllers/index.html">Control Systems Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Control Systems Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../optimization/index.html">PSO Optimization Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of PSO Optimization Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../analysis_plan.html">5. Analysis &amp; Verification Plan</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">🧪 Development &amp; Testing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../TESTING.html">Testing Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../test_protocols.html">5.x Test Protocols</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../use_cases.html">4. Use Cases &amp; Operating Modes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../context.html">2. Application Context</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">📊 Research Presentation</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="index.html">Research Presentation Materials</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Research Presentation Materials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">Abstract</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#introduction-and-motivation">Introduction and Motivation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#the-double-inverted-pendulum-as-a-canonical-control-problem">The Double Inverted Pendulum as a Canonical Control Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#the-primary-control-objectives-and-challenges">The Primary Control Objectives and Challenges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#sliding-mode-control-as-a-robust-solution">Sliding Mode Control as a Robust Solution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#the-gain-tuning-dilemma-and-the-need-for-optimization">The Gain Tuning Dilemma and the Need for Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#particle-swarm-optimization-for-automated-design">Particle Swarm Optimization for Automated Design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#synthesis-and-motivation">Synthesis and Motivation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problem-statement.html">Problem Statement for Double‑Inverted Pendulum (DIP) Control with SMC and PSO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="previous-works.html">Previous Work Before the Project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="system-modeling.html"><strong>A Comprehensive Technical Report on the Modeling and Configuration of a Cart‑Based Double Inverted Pendulum System</strong></a></li>
+<li class="toctree-l2"><a class="reference internal" href="smc-theory.html">Sliding Mode Control for a Double‑Inverted Pendulum: Bridging Theory and Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html">Abstract</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#introduction">1 Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#system-modelling-and-problem-formulation">2 System Modelling and Problem Formulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#simulation-methodology">3 Simulation Methodology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#classic-sliding-mode-control">4 Classic Sliding Mode Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#chattering-mitigation-strategy-i-boundary-layer-method">5 Chattering Mitigation Strategy I: Boundary Layer Method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#chattering-mitigation-strategy-ii-supertwisting-algorithm">6 Chattering Mitigation Strategy II: Super‑Twisting Algorithm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#chattering-mitigation-strategy-iii-adaptive-sliding-mode-control">7 Chattering Mitigation Strategy III: Adaptive Sliding Mode Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#chattering-mitigation-strategy-iv-hybrid-adaptivesta">8 Chattering Mitigation Strategy IV: Hybrid Adaptive–STA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#synthesis-and-comparative-analysis">9 Synthesis and Comparative Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pso-optimization.html"><strong>Comprehensive Simulation Analysis and Enhancements for the Double Inverted Pendulum Control System</strong></a></li>
+<li class="toctree-l2"><a class="reference internal" href="simulation-setup.html">Particle Swarm Optimization for Sliding‑Mode Controller Tuning of a Double Inverted Pendulum</a></li>
+<li class="toctree-l2"><a class="reference internal" href="results-discussion.html">8 – Results and Discussion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="results-discussion.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Abstract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#introduction-and-motivation">Introduction and Motivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#the-double-inverted-pendulum-as-a-canonical-control-problem">The Double Inverted Pendulum as a Canonical Control Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#the-primary-control-objectives-and-challenges">The Primary Control Objectives and Challenges</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#sliding-mode-control-as-a-robust-solution">Sliding Mode Control as a Robust Solution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#the-gain-tuning-dilemma-and-the-need-for-optimization">The Gain Tuning Dilemma and the Need for Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#particle-swarm-optimization-for-automated-design">Particle Swarm Optimization for Automated Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#synthesis-and-motivation">Synthesis and Motivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problem-statement.html">Problem Statement for Double‑Inverted Pendulum (DIP) Control with SMC and PSO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="previous-works.html">Previous Work Before the Project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="system-modeling.html"><strong>A Comprehensive Technical Report on the Modeling and Configuration of a Cart‑Based Double Inverted Pendulum System</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="smc-theory.html">Sliding Mode Control for a Double‑Inverted Pendulum: Bridging Theory and Implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html">Abstract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#introduction">1 Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#system-modelling-and-problem-formulation">2 System Modelling and Problem Formulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#simulation-methodology">3 Simulation Methodology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#classic-sliding-mode-control">4 Classic Sliding Mode Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#chattering-mitigation-strategy-i-boundary-layer-method">5 Chattering Mitigation Strategy I: Boundary Layer Method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#chattering-mitigation-strategy-ii-supertwisting-algorithm">6 Chattering Mitigation Strategy II: Super‑Twisting Algorithm</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#chattering-mitigation-strategy-iii-adaptive-sliding-mode-control">7 Chattering Mitigation Strategy III: Adaptive Sliding Mode Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#chattering-mitigation-strategy-iv-hybrid-adaptivesta">8 Chattering Mitigation Strategy IV: Hybrid Adaptive–STA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#synthesis-and-comparative-analysis">9 Synthesis and Comparative Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pso-optimization.html"><strong>Comprehensive Simulation Analysis and Enhancements for the Double Inverted Pendulum Control System</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulation-setup.html">Particle Swarm Optimization for Sliding‑Mode Controller Tuning of a Double Inverted Pendulum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="results-discussion.html">8 – Results and Discussion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="results-discussion.html#references">References</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">🔧 Project Management</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../CONTRIBUTING.html">Contributing – ResearchPlanSpec Validation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../RELEASE_CHECKLIST.html">Release Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CHANGELOG.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../symbols.html">Symbols &amp; Units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../results_readme.html">Results &amp; Plots</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">📖 API Reference</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api/index.html">API Reference Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of API Reference Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/presentation/2-Previous Works.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section class="tex2jax_ignore mathjax_ignore" id="previous-work-before-the-project">
+<h1>Previous Work Before the Project<a class="headerlink" href="#previous-work-before-the-project" title="Link to this heading">¶</a></h1>
+<p>This document synthesises pre‑project research on sliding‑mode control (SMC) and optimisation for a double‑inverted pendulum (DIP). It combines insights extracted from the project’s source code with a detailed review of recent literature. Throughout, references are cited using the numerical style and a full list is provided at the end.</p>
+<section id="architectural-overview">
+<h2>1 Architectural Overview<a class="headerlink" href="#architectural-overview" title="Link to this heading">¶</a></h2>
+<section id="controller-subsystem-src-controllers">
+<h3>1.1 Controller subsystem (<code class="docutils literal notranslate"><span class="pre">src/controllers</span></code>)<a class="headerlink" href="#controller-subsystem-src-controllers" title="Link to this heading">¶</a></h3>
+<p>The project contains several controllers implementing different variants of sliding‑mode control and other strategies. A <strong>factory</strong> (<code class="docutils literal notranslate"><span class="pre">factory.py</span></code>) maps a descriptive name to the appropriate class. It performs tolerant imports (first attempting to import from a top‑level <code class="docutils literal notranslate"><span class="pre">controllers</span></code> namespace and falling back to <code class="docutils literal notranslate"><span class="pre">src.controllers</span></code>) and validates configuration keys and gain lists. It also centralises common parameter checks (e.g., boundary‑layer positivity, horizon integer checking for model‑predictive control) to ensure that incorrect configurations are caught early.</p>
+<p>The controllers are implemented as follows:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">classic_smc.py</span></code> <strong>– Classical SMC.</strong> The controller constructs a linear sliding surface</p></li>
+</ul>
+<div class="highlight-math notranslate"><div class="highlight"><pre><span></span>\sigma = \lambda_{1}\theta_{1} + \lambda_{2}\theta_{2} + k_{1}{\dot{\theta}}_{1} + k_{2}{\dot{\theta}}_{2},
+</pre></div>
+</div>
+<p>where $(\theta_{1},\theta_{2})$ are the pendulum angles and $\dot{\theta}_{i}$ their velocities. The equivalent control term is computed by inverting the system’s inertia matrix and compensating Coriolis and gravity terms (functions provided by <code class="docutils literal notranslate"><span class="pre">src/core/dynamics.py</span></code>). A discontinuous <strong>robust term</strong> uses a sign or saturation function to counteract uncertainties: <code class="docutils literal notranslate"><span class="pre">u_robust</span> <span class="pre">=</span> <span class="pre">-K\,\mathrm{sat}(\sigma/\varepsilon)</span> <span class="pre">-</span> <span class="pre">k_d</span> <span class="pre">\sigma</span></code>. The control output is clipped to the actuator limit (<code class="docutils literal notranslate"><span class="pre">max_force</span></code>). This implementation prioritises robustness but results in significant chattering, consistent with classical SMC theory.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sta_smc.py</span></code> <strong>– Super‑twisting SMC.</strong> This file implements the <em>super‑twisting algorithm</em>, a second‑order sliding‑mode controller. It defines the same sliding surface but applies a continuous control law</p></li>
+</ul>
+<div class="highlight-math notranslate"><div class="highlight"><pre><span></span>u = u_{eq} - k_{1}|\sigma|^{1/2}sat(\sigma/\varepsilon) - k_{2}z,
+</pre></div>
+</div>
+<p>where $z$ is an integral of $\mathrm{sign}(\sigma)$ and $k_1, k_2$ are gains. A damping gain may be added to the sliding surface. Because the discontinuous sign function is integrated, the resulting control signal is continuous and reduces chattering. The project supports toggling the equivalent control and adjusting the integration method (semi‑implicit or explicit).</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">adaptive_smc.py</span></code> <strong>– Adaptive SMC.</strong> The adaptive controller extends classical SMC by introducing an adaptive switching gain $K$. In the <code class="docutils literal notranslate"><span class="pre">compute_control</span></code> method the gain is updated according to</p></li>
+</ul>
+<div class="highlight-math notranslate"><div class="highlight"><pre><span></span>\dot{K} = \gamma\,|\sigma| - \alpha\,\left( K - K_{init} \right)\quad\quad\text{when }|\sigma| &gt; \text{dead\_zone},
+</pre></div>
+</div>
+<p>and $\dot{K}= -\alpha\(K-K_{\mathrm{init}})$ inside the dead zone. Here <code class="docutils literal notranslate"><span class="pre">gamma</span></code> and <code class="docutils literal notranslate"><span class="pre">alpha</span></code> are adaptation and leak rates, respectively. This <em>dead‑zone mechanism</em> prevents gain wind‑up by halting adaptation when the sliding surface is small. The updated $K$ is clamped between <code class="docutils literal notranslate"><span class="pre">K_min</span></code> and <code class="docutils literal notranslate"><span class="pre">K_max</span></code>, and a rate limiter avoids abrupt jumps. The control law thus adapts the switching gain on‑line to maintain robustness while limiting chattering.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">hybrid_adaptive_sta_smc.py</span></code> <strong>– Hybrid STA–adaptive SMC.</strong> This advanced controller combines super‑twisting control with adaptive gains. It maintains two adaptive gains $k_1$ (associated with the square‑root term) and $k_2$ (associated with the integral term). The adaptation laws are similar to the single‑gain case but applied separately. A PD term penalises cart displacement to keep the cart centred. Inside the <code class="docutils literal notranslate"><span class="pre">compute_control</span></code> method the sliding surface is computed, dead‑zone conditions are checked, and integrals are updated. The hybrid controller aims to achieve finite‑time convergence and low chattering by blending continuous control with adaptive robustness.</p></li>
+<li><p><strong>Other controllers.</strong> <code class="docutils literal notranslate"><span class="pre">mpc_controller.py</span></code> implements a model‑predictive controller for reference tracking. <code class="docutils literal notranslate"><span class="pre">swing_up_smc.py</span></code> uses an energy‑based strategy to swing the pendulum upright before handing control to a stabilising SMC. These are beyond the scope of this review but illustrate the modularity of the controller subsystem.</p></li>
+</ul>
+</section>
+<section id="core-subsystem-src-core">
+<h3>1.2 Core subsystem (<code class="docutils literal notranslate"><span class="pre">src/core</span></code>)<a class="headerlink" href="#core-subsystem-src-core" title="Link to this heading">¶</a></h3>
+<p>The <strong>core</strong> module encapsulates the physical model and simulation routines:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">dynamics.py</span></code> defines a simplified double‑inverted pendulum model. It computes inertia, Coriolis and gravity matrices from physical parameters, implements friction terms and integrates the equations of motion using a fixed‑step Runge–Kutta 4 solver. The file also defines <code class="docutils literal notranslate"><span class="pre">DIPParams</span></code>, a data class representing the physical parameters.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dynamics_full.py</span></code> extends the model with additional nonlinearities (e.g., dynamic friction and mass distributions) to match high‑fidelity dynamics. The selection between <code class="docutils literal notranslate"><span class="pre">dynamics.py</span></code> and <code class="docutils literal notranslate"><span class="pre">dynamics_full.py</span></code> is controlled by the configuration file (<code class="docutils literal notranslate"><span class="pre">use_full_dynamics</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">simulation_context.py</span></code> loads the validated configuration via <code class="docutils literal notranslate"><span class="pre">load_config</span></code>, selects the appropriate dynamics model and uses the controller factory to instantiate controllers. It hides details about physics selection and provides accessors <code class="docutils literal notranslate"><span class="pre">get_dynamics_model</span></code> and <code class="docutils literal notranslate"><span class="pre">create_controller</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">simulation_runner.py</span></code> orchestrates simulations. It determines the number of integration steps deterministically by rounding the desired simulation time to an integer multiple of the time step, ensuring that the actual simulation duration matches the configuration. The runner injects faults (sensor freeze or actuator stuck) via a <code class="docutils literal notranslate"><span class="pre">FaultInjector</span></code>, calls the controller’s <code class="docutils literal notranslate"><span class="pre">compute_control</span></code> at each step, and accumulates time, state and control histories. By explicitly computing the number of steps and using consistent seeds for any randomness, the runner ensures that repeated simulations with the same configuration produce identical results.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vector_sim.py</span></code> (used by the optimizer) performs batch simulations of many particles in parallel. It leverages NumPy array operations to evaluate hundreds of candidate gain sets simultaneously.</p></li>
+</ul>
+</section>
+<section id="optimizer-subsystem-src-optimizer">
+<h3>1.3 Optimizer subsystem (<code class="docutils literal notranslate"><span class="pre">src/optimizer</span></code>)<a class="headerlink" href="#optimizer-subsystem-src-optimizer" title="Link to this heading">¶</a></h3>
+<p>The project uses <strong>Particle Swarm Optimization (PSO)</strong> to tune controller gains. The class <code class="docutils literal notranslate"><span class="pre">PSOTuner</span></code> in <code class="docutils literal notranslate"><span class="pre">pso_optimizer.py</span></code> accepts a controller factory and a configuration object. Key features include:</p>
+<ul class="simple">
+<li><p><strong>Seeding and determinism.</strong> The constructor records a global seed from the configuration (<code class="docutils literal notranslate"><span class="pre">global_seed</span></code>) or an explicit argument. During optimisation the internal RNG is reset to this seed before generating perturbed physics models or drawing random numbers. A context manager (<code class="docutils literal notranslate"><span class="pre">_seeded_global_numpy</span></code>) temporarily sets NumPy’s global seed. These measures ensure that PSO runs are reproducible.</p></li>
+<li><p><strong>Robust optimisation.</strong> The method <code class="docutils literal notranslate"><span class="pre">_iter_perturbed_physics</span></code> yields a sequence of physical parameter sets: the nominal parameters followed by random perturbations sampled within ±5 % of nominal values (the ranges come from <code class="docutils literal notranslate"><span class="pre">physics_uncertainty.n_evals</span></code> and other fields). For each candidate controller, the cost function simulates the system under each perturbed model and combines costs using a convex combination (70 % mean, 30 % max) to penalise worst‑case performance. This robust sampling encourages gains that perform well across model uncertainties.</p></li>
+<li><p><strong>Cost components and normalization.</strong> The cost function weights tracking error, control effort, control rate and sliding surface magnitude. Normalisation functions avoid divide‑by‑zero errors and apply penalties if trajectories contain NaNs or if the controller becomes unstable. Vectorised batch simulations allow evaluating many particles per PSO iteration efficiently.</p></li>
+</ul>
+</section>
+<section id="hardwareintheloop-and-tests">
+<h3>1.4 Hardware‑in‑the‑Loop and tests<a class="headerlink" href="#hardwareintheloop-and-tests" title="Link to this heading">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">hil</span></code> directory contains <code class="docutils literal notranslate"><span class="pre">plant_server.py</span></code> and <code class="docutils literal notranslate"><span class="pre">controller_client.py</span></code>, which implement a network interface between the simulated/physical plant and the controller. The client sends computed control commands and receives sensor measurements. The plant may run in simulation or on actual hardware. The HIL interface includes safety features such as saturating commands and falling back to a PD controller during communication failures.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">tests</span></code> directory includes unit and integration tests covering controllers, dynamics, the factory, and the optimizer. Of particular importance are tests for <strong>determinism</strong> (<code class="docutils literal notranslate"><span class="pre">tests/test_optimizer/test_cli_determinism.py</span></code>) that verify repeated PSO runs yield identical results and tests for <strong>fault injection</strong>.</p>
+</section>
+<section id="configuration-config-yaml">
+<h3>1.5 Configuration (<code class="docutils literal notranslate"><span class="pre">config.yaml</span></code>)<a class="headerlink" href="#configuration-config-yaml" title="Link to this heading">¶</a></h3>
+<p>The configuration file defines physical parameters, default controller gains, simulation parameters and PSO settings. For instance, the <strong>PSO</strong> section specifies <code class="docutils literal notranslate"><span class="pre">n_particles=20</span></code>, cognitive and social coefficients <code class="docutils literal notranslate"><span class="pre">c1</span></code> and <code class="docutils literal notranslate"><span class="pre">c2</span></code> both set to 2.0, inertia weight <code class="docutils literal notranslate"><span class="pre">w=0.7</span></code>, and iteration count <code class="docutils literal notranslate"><span class="pre">iters=200</span></code>. The file also configures the number of robust samples (<code class="docutils literal notranslate"><span class="pre">physics_uncertainty.n_evals=10</span></code>), the time step (<code class="docutils literal notranslate"><span class="pre">dt=0.01</span></code>) and the <code class="docutils literal notranslate"><span class="pre">global_seed=42</span></code>. Controller sections provide boundaries for gains (e.g., <code class="docutils literal notranslate"><span class="pre">K_min</span></code> and <code class="docutils literal notranslate"><span class="pre">K_max</span></code> in adaptive SMC), adaptation rates (<code class="docutils literal notranslate"><span class="pre">gamma1</span></code>, <code class="docutils literal notranslate"><span class="pre">gamma2</span></code> in hybrid STA–adaptive SMC), dead‑zone widths and boundary layers. The <strong>hybrid STA–adaptive SMC</strong> configuration maps directly to the theoretical formulation of the hybrid super‑twisting controller and ensures that the sliding surface and adaptation laws match the design. By centralising parameters in <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code>, the project enables reproducible experiments and systematic tuning.</p>
+</section>
+</section>
+<section id="controller-implementation-analysis">
+<h2>2 Controller Implementation Analysis<a class="headerlink" href="#controller-implementation-analysis" title="Link to this heading">¶</a></h2>
+<p>This section analyses each controller’s implementation in relation to sliding‑mode theory and references recent research.</p>
+<section id="classical-smc">
+<h3>2.1 Classical SMC<a class="headerlink" href="#classical-smc" title="Link to this heading">¶</a></h3>
+<p>The classical SMC implements a first‑order sliding surface and a discontinuous control. In <code class="docutils literal notranslate"><span class="pre">classic_smc.py</span></code>, the equivalent control is obtained by inverting the inertia matrix and subtracting the Coriolis and gravity vectors. The robust term uses <code class="docutils literal notranslate"><span class="pre">sat(\sigma/\epsilon)</span></code>; the <code class="docutils literal notranslate"><span class="pre">boundary_layer</span></code> parameter sets the width of the saturation region. Gains <code class="docutils literal notranslate"><span class="pre">(k_1,k_2,\lambda_1,\lambda_2,K,k_d)</span></code> are read from the configuration or provided explicitly. The <code class="docutils literal notranslate"><span class="pre">saturate</span></code> function prevents division by zero when the boundary layer is extremely small. Control outputs are limited to <code class="docutils literal notranslate"><span class="pre">±max_force</span></code>.</p>
+<p>Classical SMC offers strong robustness against matched uncertainties but suffers from high‑frequency chattering. Researchers continue to refine classical SMC using adaptive laws and disturbance observers. For example, recent work on permanent‑magnet synchronous motors introduces a <strong>full‑order adaptive SMC with an extended state observer</strong>; the controller adapts the switching gain through a law that minimises chattering while maintaining robustness, and the observer estimates disturbances that are compensated in the control law<a class="reference external" href="https://www.nature.com/articles/s41598-023-33455-x#:~:text=In%20order%20to%20achieve%20speed,been%20validated%20in%20the%20test">[1]</a>. Although this project’s implementation does not include an observer, the adaptation and observer ideas are relevant when considering future extensions.</p>
+</section>
+<section id="supertwisting-sta-smc">
+<h3>2.2 Super‑twisting (STA) SMC<a class="headerlink" href="#supertwisting-sta-smc" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">sta_smc.py</span></code> implements the super‑twisting algorithm (STA), a high‑order sliding‑mode method that achieves continuous control and finite‑time convergence. The algorithm updates an auxiliary state variable <code class="docutils literal notranslate"><span class="pre">z</span></code> (the integral of the sign function) and computes the control as <code class="docutils literal notranslate"><span class="pre">-k1*np.sqrt(abs(sigma))*np.sign(sigma)</span> <span class="pre">-</span> <span class="pre">k2*z</span></code> plus an optional equivalent control. Damping and boundary‑layer parameters help adjust convergence speed and reduce chattering.</p>
+<p>Recent literature reports that <strong>super‑twisting algorithms</strong> mitigate chattering while retaining robustness. In a 2024 study on quadrotor control, an improved <em>nonsingular adaptive super‑twisting sliding mode controller</em> uses the super‑twisting algorithm and optimises the gains using particle swarm optimization (PSO)<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11466434/#:~:text=This%20paper%20presents%20an%20improved,Simulation%20results%20demonstrate">[2]</a>. The authors design an adaptive law based on Lyapunov stability to adjust the gains, ensuring that the controller can reject unknown disturbances. Simulation results show that PSO‑tuned super‑twisting controllers reduce tracking errors and effectively reject disturbances<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11466434/#:~:text=This%20paper%20presents%20an%20improved,Simulation%20results%20demonstrate">[2]</a>. This aligns with the project’s hybrid STA–adaptive controller, where adaptive gains and PSO tuning are used to improve performance.</p>
+</section>
+<section id="adaptive-smc">
+<h3>2.3 Adaptive SMC<a class="headerlink" href="#adaptive-smc" title="Link to this heading">¶</a></h3>
+<p>The adaptive SMC adjusts the switching gain on‑line. In <code class="docutils literal notranslate"><span class="pre">adaptive_smc.py</span></code>, the <code class="docutils literal notranslate"><span class="pre">compute_control</span></code> method calculates the sliding surface and updates the gain $K$ based on the magnitude of $\sigma$. The adaptation law uses a <strong>dead‑zone</strong>: if $|\sigma|\leq \text{dead_zone}$, the gain decays towards its initial value at rate <code class="docutils literal notranslate"><span class="pre">leak_rate</span></code>; if $|\sigma|$ is large, the gain grows proportionally to <code class="docutils literal notranslate"><span class="pre">adapt_rate</span></code>, but the growth is limited by <code class="docutils literal notranslate"><span class="pre">adapt_rate_limit</span></code> and clamped between <code class="docutils literal notranslate"><span class="pre">K_min</span></code> and <code class="docutils literal notranslate"><span class="pre">K_max</span></code>. A leak term prevents wind‑up and resets the gain when the system nears the sliding surface.</p>
+<p>Adaptive SMC techniques aim to reduce chattering by adjusting gains according to system states. An illustrative example is the <strong>full‑order adaptive SMC with extended state observer</strong> for high‑speed motor drives<a class="reference external" href="https://www.nature.com/articles/s41598-023-33455-x#:~:text=In%20order%20to%20achieve%20speed,been%20validated%20in%20the%20test">[1]</a>: the switching gain adaptation law minimises chattering, and an extended state observer estimates disturbances for compensation, enhancing anti‑disturbance capability. Another trend is to combine adaptive SMC with higher‑order methods, as in the project’s hybrid controller.</p>
+</section>
+<section id="hybrid-staadaptive-smc">
+<h3>2.4 Hybrid STA–adaptive SMC<a class="headerlink" href="#hybrid-staadaptive-smc" title="Link to this heading">¶</a></h3>
+<p>The hybrid controller merges super‑twisting dynamics and adaptive gain adaptation. In <code class="docutils literal notranslate"><span class="pre">hybrid_adaptive_sta_smc.py</span></code>, the sliding surface is formed using gains <code class="docutils literal notranslate"><span class="pre">c1,</span> <span class="pre">c2,</span> <span class="pre">lambda1,</span> <span class="pre">lambda2</span></code>. Two adaptive gains <code class="docutils literal notranslate"><span class="pre">k1</span></code> and <code class="docutils literal notranslate"><span class="pre">k2</span></code> are updated based on the sliding surface: <code class="docutils literal notranslate"><span class="pre">k1</span></code> growth is driven by <code class="docutils literal notranslate"><span class="pre">gamma1*|sigma|</span></code> outside a dead zone and decays otherwise; <code class="docutils literal notranslate"><span class="pre">k2</span></code> follows a similar law with rate <code class="docutils literal notranslate"><span class="pre">gamma2</span></code>. The control law combines an STA term (<code class="docutils literal notranslate"><span class="pre">-k1*sqrt(|sigma|)*sat(sigma)</span></code>), an integral term using <code class="docutils literal notranslate"><span class="pre">k2</span></code> and an integral state <code class="docutils literal notranslate"><span class="pre">u_int</span></code>, and a PD term that penalises cart displacement. The adaptation ensures that the gains increase when errors are large and decrease when the system is near the sliding surface. The file also enforces rate limits and clamps to prevent unbounded growth.</p>
+<p>Hybrid STA–adaptive controllers integrate features from multiple SMC formulations. Recent research demonstrates that <strong>hybrid methods</strong> can achieve finite‑time convergence and robustness. For example, combining STA with adaptive gain laws and PSO tuning improved quadrotor control performance in the PLoS One study<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11466434/#:~:text=This%20paper%20presents%20an%20improved,Simulation%20results%20demonstrate">[2]</a>. Future work could formalise stability proofs for such hybrid systems and explore more sophisticated adaptation laws.</p>
+</section>
+</section>
+<section id="optimization-engine-breakdown">
+<h2>3 Optimization Engine Breakdown<a class="headerlink" href="#optimization-engine-breakdown" title="Link to this heading">¶</a></h2>
+<p>The PSO tuner implements robust optimisation and deterministic sampling. PSO parameters (e.g., <code class="docutils literal notranslate"><span class="pre">n_particles</span></code>, <code class="docutils literal notranslate"><span class="pre">w</span></code>, <code class="docutils literal notranslate"><span class="pre">c1</span></code>, <code class="docutils literal notranslate"><span class="pre">c2</span></code>) are defined in <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code>. The algorithm iteratively updates particle positions (candidate gain vectors) based on local and global best positions, weighting inertia, cognitive and social components. Key implementation aspects include:</p>
+<ul class="simple">
+<li><p><strong>Robust sampling via</strong> <code class="docutils literal notranslate"><span class="pre">_iter_perturbed_physics</span></code><strong>.</strong> Before computing a cost, the tuner yields the nominal physics parameters and several perturbed sets. For each candidate, the system is simulated under each perturbation using <code class="docutils literal notranslate"><span class="pre">vector_sim.py</span></code>. Costs are aggregated using 0.7 mean + 0.3 max to penalise outliers. Perturbations ensure that tuned gains generalise to model uncertainties.</p></li>
+<li><p><strong>Cost computation and penalties.</strong> The cost function integrates squared tracking error, squared control effort, and squared control rate, weighted by <code class="docutils literal notranslate"><span class="pre">weights.state_error</span></code>, <code class="docutils literal notranslate"><span class="pre">weights.control_effort</span></code> and <code class="docutils literal notranslate"><span class="pre">weights.control_rate</span></code>. If simulation trajectories contain NaNs or the system diverges, a large penalty <code class="docutils literal notranslate"><span class="pre">instability_penalty</span></code> is applied. Normalisation prevents dividing by small numbers.</p></li>
+<li><p><strong>Determinism.</strong> The tuner stores a seed and uses a local random number generator (<code class="docutils literal notranslate"><span class="pre">rng</span> <span class="pre">=</span> <span class="pre">np.random.default_rng(seed)</span></code>). Before generating perturbations, it resets the RNG to this seed, ensuring that each call to the cost function yields the same sequence of perturbations. Combined with deterministic integration in <code class="docutils literal notranslate"><span class="pre">simulation_runner.py</span></code>, this guarantees reproducible optimisation results.</p></li>
+<li><p><strong>PSO hyper‑parameter search.</strong> The configuration includes a <code class="docutils literal notranslate"><span class="pre">hyper_search</span></code> sub‑section specifying ranges for inertia and acceleration coefficients. The script <code class="docutils literal notranslate"><span class="pre">reoptimize_controllers.py</span></code> performs random searches over these ranges to find meta‑parameters that improve convergence. The PSO tuner can thus be used hierarchically: meta‑optimization tunes PSO parameters, which in turn tune controller gains.</p></li>
+</ul>
+</section>
+<section id="innovations-in-slidingmode-control-formulations">
+<h2>4 Innovations in Sliding‑Mode Control Formulations<a class="headerlink" href="#innovations-in-slidingmode-control-formulations" title="Link to this heading">¶</a></h2>
+<p>The project implements classical and high‑order SMC controllers. Recent literature has proposed several innovations that extend these formulations.</p>
+<section id="highorder-and-supertwisting-methods">
+<h3>4.1 High‑order and Super‑twisting Methods<a class="headerlink" href="#highorder-and-supertwisting-methods" title="Link to this heading">¶</a></h3>
+<p>High‑order sliding‑mode control (HOSM) achieves finite‑time convergence with continuous control. The <strong>super‑twisting algorithm</strong> implemented in the project is a second‑order HOSM method. Recent work has extended it further: the PLoS One study on quadrotor control proposes a <strong>nonsingular adaptive super‑twisting controller</strong> tuned via PSO. The controller combines an adaptive law that adjusts gains based on the sliding surface and a super‑twisting term. Simulations demonstrate improved disturbance rejection and smaller tracking errors<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11466434/#:~:text=This%20paper%20presents%20an%20improved,Simulation%20results%20demonstrate">[2]</a>. These results motivate using adaptive HOSM with metaheuristic optimisation in other systems such as the DIP.</p>
+</section>
+<section id="terminal-and-prescribedperformance-smc">
+<h3>4.2 Terminal and Prescribed‑Performance SMC<a class="headerlink" href="#terminal-and-prescribedperformance-smc" title="Link to this heading">¶</a></h3>
+<p><strong>Terminal sliding‑mode control (TSMC)</strong> uses nonlinear sliding surfaces to achieve finite‑time convergence. A recent open‑access article designs a <strong>prescribed‑performance non‑singular fast terminal sliding mode (PPNFTSM) controller</strong> for robotic manipulators<a class="reference external" href="https://jeas.springeropen.com/articles/10.1186/s44147-024-00553-0#:~:text=Considering%20the%20improvement%20of%20transient,performance%20and%20strong%20robust%20performance">[3]</a>. The controller introduces performance functions with constraint effects, transforms the tracking error using a hyperbolic tangent, designs a new error performance index, and combines the resulting variable with a non‑singular fast terminal sliding‑mode term. Stability is proven via Lyapunov functions, and simulations show that tracking deviations approach a delimited region with prescribed transient performance and strong robustness without requiring an initial tracking condition<a class="reference external" href="https://jeas.springeropen.com/articles/10.1186/s44147-024-00553-0#:~:text=Considering%20the%20improvement%20of%20transient,performance%20and%20strong%20robust%20performance">[3]</a>. Integrating such PPNFTSM surfaces into the DIP controller could yield faster convergence and improved transient performance.</p>
+</section>
+<section id="integral-and-dynamic-integral-smc">
+<h3>4.3 Integral and Dynamic Integral SMC<a class="headerlink" href="#integral-and-dynamic-integral-smc" title="Link to this heading">¶</a></h3>
+<p><strong>Integral sliding‑mode control (ISMC)</strong> eliminates the reaching phase by adding an integral of the error to the sliding surface. A recent Science Progress paper proposes a <strong>dynamic integral sliding mode control</strong> (DISMC) for power electronic converters<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10450744/#:~:text=for%20power%20electronic%20converters%2C%20which,cost%2C%20conversion%20speed%20and%20implementation">[4]</a>. The dynamic integral sliding manifold eliminates the reaching phase and reduces matched and unmatched uncertainties, producing a continuous control signal suitable for pulse‑width modulation. The authors combine dynamic and integral SMC to provide a smooth control signal and robust performance<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10450744/#:~:text=In%20this%20section%2C%20the%20design,achieve%20the%20required%20performance%20and">[5]</a>. Adapting a dynamic integral sliding surface to the DIP could improve chattering behaviour and robustness from the initial time.</p>
+</section>
+<section id="hierarchical-slidingmode-control">
+<h3>4.4 Hierarchical Sliding‑Mode Control<a class="headerlink" href="#hierarchical-slidingmode-control" title="Link to this heading">¶</a></h3>
+<p><strong>Hierarchical sliding‑mode control (HSMC)</strong> constructs multiple sliding surfaces in a hierarchical structure, enabling control of underactuated systems. In a recent hierarchical SMC for a rotary inverted pendulum, the authors design separate sliding surfaces for the underactuated angles and use PSO to tune controller gains. Their results show that PSO‑tuned hierarchical SMC improves adaptability and robustness, successfully swinging up and stabilising the pendulum<a class="reference external" href="https://www.researchgate.net/publication/382125063_Optimized_Hierarchical_Sliding_Mode_Control_for_the_Swing-up_and_Stabilization_of_a_Rotary_Inverted_Pendulum#:~:text=This%20paper%20presents%20a%20study,of%20combining%20optimization%20algorithms%20with">[6]</a>. Integrating hierarchical sliding surfaces into the DIP controller could handle underactuation and improve energy efficiency.</p>
+</section>
+</section>
+<section id="advancements-in-metaheuristic-optimisation-for-smc-parameter-tuning">
+<h2>5 Advancements in Metaheuristic Optimisation for SMC Parameter Tuning<a class="headerlink" href="#advancements-in-metaheuristic-optimisation-for-smc-parameter-tuning" title="Link to this heading">¶</a></h2>
+<p>Metaheuristic algorithms automate controller tuning by searching high‑dimensional parameter spaces. The project employs standard PSO; recent research explores hybrid and enhanced variants.</p>
+<section id="hybrid-pso-and-enhanced-pso">
+<h3>5.1 Hybrid PSO and Enhanced PSO<a class="headerlink" href="#hybrid-pso-and-enhanced-pso" title="Link to this heading">¶</a></h3>
+<p>Hybrid PSO variants incorporate mechanisms such as inertia weight adaptation, genetic crossover or elitism to improve convergence. A 2024 study proposes a <strong>hybrid enhanced PSO (HEPSO)‑SMC</strong> for manipulators, combining PSO with adaptive inertia weights, uniform distribution factors and golden search to avoid local minima. While the full article is not reproduced here, such hybrids generally yield faster convergence and better robustness. Applying HEPSO to tune the DIP controllers could reduce the computational cost of optimisation.</p>
+</section>
+<section id="psotuned-supertwisting-smc-a-concrete-example">
+<h3>5.2 PSO‑tuned Super‑twisting SMC – A Concrete Example<a class="headerlink" href="#psotuned-supertwisting-smc-a-concrete-example" title="Link to this heading">¶</a></h3>
+<p>The PLoS One paper on quadrotor control provides a concrete example of PSO‑tuned SMC. The authors use PSO to optimise the gains of a nonsingular adaptive super‑twisting controller. Their PSO parameters include population size, inertia, cognitive and social coefficients, and they minimise a cost combining tracking errors and control effort. The resulting controller exhibits improved tracking accuracy and disturbance rejection compared with manual tuning<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11466434/#:~:text=This%20paper%20presents%20an%20improved,Simulation%20results%20demonstrate">[2]</a>. This demonstrates that PSO can effectively tune high‑order SMC controllers in practice.</p>
+</section>
+<section id="psotuned-hierarchical-smc">
+<h3>5.3 PSO‑tuned Hierarchical SMC<a class="headerlink" href="#psotuned-hierarchical-smc" title="Link to this heading">¶</a></h3>
+<p>In the hierarchical SMC for rotary inverted pendulum, PSO is used to tune multiple layers of sliding surfaces. The method defines separate sliding surfaces for the underactuated dynamics and applies PSO to optimise the gains associated with each surface. The authors report that PSO‑tuned hierarchical SMC enhances adaptability and robustness, making it well suited for swing‑up and stabilisation tasks<a class="reference external" href="https://www.researchgate.net/publication/382125063_Optimized_Hierarchical_Sliding_Mode_Control_for_the_Swing-up_and_Stabilization_of_a_Rotary_Inverted_Pendulum#:~:text=This%20paper%20presents%20a%20study,of%20combining%20optimization%20algorithms%20with">[6]</a>. This illustrates the effectiveness of PSO in tuning complex sliding‑mode structures.</p>
+</section>
+</section>
+<section id="intelligent-and-adaptive-smc-for-dynamic-environments">
+<h2>6 Intelligent and Adaptive SMC for Dynamic Environments<a class="headerlink" href="#intelligent-and-adaptive-smc-for-dynamic-environments" title="Link to this heading">¶</a></h2>
+<p>Recent research integrates artificial intelligence techniques with SMC to handle dynamic environments and unknown nonlinearities.</p>
+<section id="fuzzy-logic-in-smc">
+<h3>6.1 Fuzzy Logic in SMC<a class="headerlink" href="#fuzzy-logic-in-smc" title="Link to this heading">¶</a></h3>
+<p>Fuzzy logic can approximate unknown functions and tune switching surfaces. A 2021 PLoS One article develops <strong>fractional and integral order fuzzy sliding mode controllers</strong> for a skid‑steered vehicle subject to friction variations<a class="reference external" href="https://journals.plos.org/plosone/article#:~:text=caused%20by%20wheel,minimized%20by%20fuzzy%20tuning%20approach">[7]</a>. The fuzzy controller reduces the effect of ground–tire interaction and minimises chattering by adjusting the switching function. Simulations show that fuzzy sliding‑mode controllers reduce state errors and chattering compared with conventional SMC<a class="reference external" href="https://journals.plos.org/plosone/article#:~:text=caused%20by%20wheel,minimized%20by%20fuzzy%20tuning%20approach">[7]</a>. Incorporating fuzzy logic into the DIP controllers could enhance robustness to friction and parameter variations.</p>
+</section>
+<section id="neuralnetworkbased-smc">
+<h3>6.2 Neural‑network‑based SMC<a class="headerlink" href="#neuralnetworkbased-smc" title="Link to this heading">¶</a></h3>
+<p>Neural networks can approximate unknown dynamics and adapt sliding surfaces. A 2025 article introduces a <strong>radial basis function neural network adaptive hierarchical sliding‑mode control (RBFNNA‑HSMC)</strong> for a tendon‑driven manipulator<a class="reference external" href="https://cjme.springeropen.com/articles/10.1186/s10033-024-01172-9#:~:text=Tracking%20control%20of%20tendon,3%7D%20rad">[8]</a>. The method combines a high‑fidelity elastic tendon model with radial basis neural network adaptive control and hierarchical sliding‑mode control. Lyapunov analysis demonstrates stability, and simulations and experiments show superior trajectory tracking compared with classical HSMC. The maximum tracking errors in a two‑degree‑of‑freedom manipulator are below $2.6\times 10^{-3}\text{rad}$<a class="reference external" href="https://cjme.springeropen.com/articles/10.1186/s10033-024-01172-9#:~:text=Tracking%20control%20of%20tendon,3%7D%20rad">[8]</a>. This highlights the potential of neural networks to enhance sliding‑mode control for complex manipulators; similar techniques could be applied to the DIP to approximate unmodelled dynamics.</p>
+</section>
+<section id="reinforcement-learning-with-smc">
+<h3>6.3 Reinforcement Learning with SMC<a class="headerlink" href="#reinforcement-learning-with-smc" title="Link to this heading">¶</a></h3>
+<p>Reinforcement learning (RL) offers model‑free adaptation by learning control policies from interactions. A 2024 arXiv preprint proposes an <strong>adaptive integral terminal sliding‑mode controller (AITSM) combined with deep reinforcement learning</strong> for zero‑force control of upper‑limb exoskeleton robots<a class="reference external" href="https://arxiv.org/abs/2407.18309">[9]</a>. The controller uses an integral terminal sliding surface to ensure finite‑time convergence and includes an exponential switching term to reduce chattering. A Proximal Policy Optimization (PPO) agent with an attention mechanism and LSTM networks adjusts controller parameters in real time, enabling the system to cope with uncertainties and disturbances. Simulations show that the RL‑enhanced controller achieves robust zero‑force control while reducing chattering<a class="reference external" href="https://arxiv.org/abs/2407.18309">[9]</a>. Applying RL to tune sliding‑mode gains in the DIP could enable adaptation to changing dynamics without requiring explicit models.</p>
+</section>
+</section>
+<section id="experimental-validation-and-practical-insights">
+<h2>7 Experimental Validation and Practical Insights<a class="headerlink" href="#experimental-validation-and-practical-insights" title="Link to this heading">¶</a></h2>
+<p>While this project focuses on simulation and optimisation, experimental validation is critical. Hardware‑in‑the‑Loop (HIL) testing bridges the gap between simulation and reality. The project’s HIL interface allows the same controller code to run on both simulated and physical plants. During HIL tests the controller must account for sensor noise, communication delays and unmodelled dynamics; observers (e.g., neural networks) and adaptive gains help compensate these effects. Studies on hierarchical SMC for rotary inverted pendulums show that PSO‑tuned sliding‑mode controllers can be successfully implemented on hardware<a class="reference external" href="https://www.researchgate.net/publication/382125063_Optimized_Hierarchical_Sliding_Mode_Control_for_the_Swing-up_and_Stabilization_of_a_Rotary_Inverted_Pendulum#:~:text=This%20paper%20presents%20a%20study,of%20combining%20optimization%20algorithms%20with">[6]</a>. Future work should extend the DIP controllers to physical experiments, using the robust optimisation and adaptation techniques described here.</p>
+</section>
+<section id="synthesis-and-recommendations">
+<h2>8 Synthesis and Recommendations<a class="headerlink" href="#synthesis-and-recommendations" title="Link to this heading">¶</a></h2>
+<section id="key-trends">
+<h3>8.1 Key Trends<a class="headerlink" href="#key-trends" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Finite‑time convergence and chattering reduction.</strong> High‑order methods such as super‑twisting and terminal sliding mode achieve finite‑time convergence and continuous control, significantly reducing chattering<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11466434/#:~:text=This%20paper%20presents%20an%20improved,Simulation%20results%20demonstrate">[2]</a><a class="reference external" href="https://jeas.springeropen.com/articles/10.1186/s44147-024-00553-0#:~:text=Considering%20the%20improvement%20of%20transient,performance%20and%20strong%20robust%20performance">[3]</a>.</p></li>
+<li><p><strong>Adaptive and intelligent tuning.</strong> Adaptive SMC, fuzzy logic, neural networks and reinforcement learning allow controllers to adjust gains or compensate unknown dynamics online. These methods improve robustness and performance in dynamic environments<a class="reference external" href="https://journals.plos.org/plosone/article#:~:text=caused%20by%20wheel,minimized%20by%20fuzzy%20tuning%20approach">[7]</a><a class="reference external" href="https://cjme.springeropen.com/articles/10.1186/s10033-024-01172-9#:~:text=Tracking%20control%20of%20tendon,3%7D%20rad">[8]</a><a class="reference external" href="https://arxiv.org/abs/2407.18309">[9]</a>.</p></li>
+<li><p><strong>Metaheuristic optimisation.</strong> Particle swarm optimisation and its hybrid variants automate tuning of sliding surfaces and gains. Robust sampling and seeding ensure reproducibility and good performance under uncertainty<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11466434/#:~:text=This%20paper%20presents%20an%20improved,Simulation%20results%20demonstrate">[2]</a><a class="reference external" href="https://www.researchgate.net/publication/382125063_Optimized_Hierarchical_Sliding_Mode_Control_for_the_Swing-up_and_Stabilization_of_a_Rotary_Inverted_Pendulum#:~:text=This%20paper%20presents%20a%20study,of%20combining%20optimization%20algorithms%20with">[6]</a>.</p></li>
+<li><p><strong>Hierarchical and integral formulations.</strong> Hierarchical SMC and dynamic integral SMC eliminate the reaching phase and handle underactuated dynamics or slow convergence, offering new avenues for robust control<a class="reference external" href="https://www.researchgate.net/publication/382125063_Optimized_Hierarchical_Sliding_Mode_Control_for_the_Swing-up_and_Stabilization_of_a_Rotary_Inverted_Pendulum#:~:text=This%20paper%20presents%20a%20study,of%20combining%20optimization%20algorithms%20with">[6]</a><a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10450744/#:~:text=for%20power%20electronic%20converters%2C%20which,cost%2C%20conversion%20speed%20and%20implementation">[4]</a>.</p></li>
+</ol>
+</section>
+<section id="research-gaps-and-open-questions">
+<h3>8.2 Research Gaps and Open Questions<a class="headerlink" href="#research-gaps-and-open-questions" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Stability proofs for hybrid controllers.</strong> Hybrid STA–adaptive controllers combine multiple adaptation laws and high‑order terms; rigorous Lyapunov proofs for such systems are still limited.</p></li>
+<li><p><strong>Sample efficiency and safety in RL.</strong> Reinforcement‑learning‑based SMC requires many interactions and may be unsafe on hardware. Reducing sample requirements and ensuring safe exploration remain open problems.</p></li>
+<li><p><strong>Sim‑to‑real transfer.</strong> Optimisation in simulation may not translate directly to hardware. Domain randomisation, robust optimisation and HIL testing are critical to bridge this gap.</p></li>
+<li><p><strong>Computational complexity.</strong> Higher‑order sliding modes and hybrid metaheuristics increase computational load. Efficient implementations and model reduction techniques are needed for real‑time control on embedded hardware.</p></li>
+</ul>
+</section>
+<section id="actionable-recommendations">
+<h3>8.3 Actionable Recommendations<a class="headerlink" href="#actionable-recommendations" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Explore hierarchical and terminal sliding surfaces for the DIP.</strong> Combining hierarchical sliding surfaces with PPNFTSM or dynamic integral manifolds could yield faster convergence and improved robustness.</p></li>
+<li><p><strong>Apply hybrid PSO variants.</strong> Use hybrid PSO (e.g., HEPSO) to tune high‑order and adaptive SMC parameters, balancing exploration and exploitation.</p></li>
+<li><p><strong>Integrate intelligent adaptation.</strong> Incorporate fuzzy logic, neural networks or reinforcement learning to adapt switching functions and gains. For example, use an RBF network to estimate unmodelled dynamics and combine it with an adaptive SMC law.</p></li>
+<li><p><strong>Pursue experimental validation.</strong> Implement the optimised controllers on physical hardware via the HIL interface. Use domain randomisation and robust tuning to ensure that controllers handle friction, delays and disturbances.</p></li>
+</ol>
+</section>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Xin Zhang &amp; Ruikang Wang, “Non‑singular fast terminal sliding mode control of robotic manipulator with prescribed performance,” <em>Journal of Engineering and Applied Science</em>, 2024. The paper designs a PPNFTSM controller that introduces performance functions, transforms errors using a hyperbolic tangent and combines them with a non‑singular fast terminal sliding surface. Stability is proven via Lyapunov analysis and simulations show finite‑time convergence and robust performance<a class="reference external" href="https://jeas.springeropen.com/articles/10.1186/s44147-024-00553-0#:~:text=Considering%20the%20improvement%20of%20transient,performance%20and%20strong%20robust%20performance">[3]</a>.</p></li>
+<li><p>Yasir Mehmood <em>et al.</em>, “Robust fractional and integral fuzzy sliding mode controller for a skid‑steered vehicle subjected to friction variations,” <em>PLOS One</em>, 2021. The authors design fuzzy fractional and integral sliding mode controllers that reduce the effects of friction variations and minimise chattering<a class="reference external" href="https://journals.plos.org/plosone/article#:~:text=caused%20by%20wheel,minimized%20by%20fuzzy%20tuning%20approach">[7]</a>.</p></li>
+<li><p>Yudong Zhang <em>et al.</em>, “Neural Network Adaptive Hierarchical Sliding Mode Control for the Trajectory Tracking of a Tendon‑Driven Manipulator,” <em>Chinese Journal of Mechanical Engineering</em>, 2025. The paper proposes an RBF neural network adaptive hierarchical SMC method that combines elastic tendon dynamics with hierarchical SMC and radial basis neural networks. Stability is established and experiments demonstrate superior tracking accuracy<a class="reference external" href="https://cjme.springeropen.com/articles/10.1186/s10033-024-01172-9#:~:text=Tracking%20control%20of%20tendon,3%7D%20rad">[8]</a>.</p></li>
+<li><p>Morteza Mirzaee &amp; Reza Kazemi, “Adaptive Terminal Sliding Mode Control Using Deep Reinforcement Learning for Zero‑Force Control of Exoskeleton Robot Systems,” arXiv preprint 2024. The controller combines an adaptive integral terminal sliding surface with an exponential reaching law and a PPO‑based DRL agent with attention and LSTM mechanisms. It achieves finite‑time convergence, reduces chattering and adapts to disturbances<a class="reference external" href="https://arxiv.org/abs/2407.18309">[9]</a>.</p></li>
+<li><p>Xin Zhang <em>et al.</em>, “Optimized hierarchical sliding mode control for the swing‑up and stabilisation of a rotary inverted pendulum,” ResearchGate preprint 2024. This work constructs hierarchical sliding surfaces and uses particle swarm optimisation to tune controller gains, achieving improved adaptability and robustness for swing‑up and stabilization<a class="reference external" href="https://www.researchgate.net/publication/382125063_Optimized_Hierarchical_Sliding_Mode_Control_for_the_Swing-up_and_Stabilization_of_a_Rotary_Inverted_Pendulum#:~:text=This%20paper%20presents%20a%20study,of%20combining%20optimization%20algorithms%20with">[6]</a>.</p></li>
+<li><p>Mudasar Riaz <em>et al.</em>, “A novel dynamic integral sliding mode control for power electronic converters,” <em>Science Progress</em>, 2021. The authors design a dynamic integral sliding manifold that eliminates the reaching phase and provides a continuous control signal. The combination of dynamic and integral SMC yields robust performance and reduces matched and unmatched uncertainties<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10450744/#:~:text=for%20power%20electronic%20converters%2C%20which,cost%2C%20conversion%20speed%20and%20implementation">[4]</a><a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10450744/#:~:text=In%20this%20section%2C%20the%20design,achieve%20the%20required%20performance%20and">[5]</a>.</p></li>
+<li><p>An improved nonsingular adaptive super‑twisting sliding mode controller for quadcopter control,” <em>PLOS One</em>, 2024. The paper utilises the super‑twisting algorithm with an adaptive gain law and tunes gains via PSO. Simulation results show reduced tracking errors and robust disturbance rejection<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11466434/#:~:text=This%20paper%20presents%20an%20improved,Simulation%20results%20demonstrate">[2]</a>.</p></li>
+<li><p>Zhaolin Huang <em>et al.</em>, “Full‑order adaptive sliding mode control with extended state observer for high‑speed PMSM speed regulation,” <em>Scientific Reports</em>, 2023. The controller adapts switching gains and uses an extended state observer to estimate disturbances, improving anti‑disturbance capability while reducing chattering<a class="reference external" href="https://www.nature.com/articles/s41598-023-33455-x#:~:text=In%20order%20to%20achieve%20speed,been%20validated%20in%20the%20test">[1]</a>.</p></li>
+</ol>
+<hr class="docutils" />
+<p><a class="reference external" href="https://www.nature.com/articles/s41598-023-33455-x#:~:text=In%20order%20to%20achieve%20speed,been%20validated%20in%20the%20test">[1]</a> Full-order adaptive sliding mode control with extended state observer for high-speed PMSM speed regulation | Scientific Reports</p>
+<p><a class="reference external" href="https://www.nature.com/articles/s41598-023-33455-x">https://www.nature.com/articles/s41598-023-33455-x</a></p>
+<p><a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11466434/#:~:text=This%20paper%20presents%20an%20improved,Simulation%20results%20demonstrate">[2]</a> An improved nonsingular adaptive super twisting sliding mode controller for quadcopter - PMC</p>
+<p><a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11466434/">https://pmc.ncbi.nlm.nih.gov/articles/PMC11466434/</a></p>
+<p><a class="reference external" href="https://jeas.springeropen.com/articles/10.1186/s44147-024-00553-0#:~:text=Considering%20the%20improvement%20of%20transient,performance%20and%20strong%20robust%20performance">[3]</a> Non-singular fast terminal sliding mode control of robotic manipulator with prescribed performance | Journal of Engineering and Applied Science | Full Text</p>
+<p><a class="reference external" href="https://jeas.springeropen.com/articles/10.1186/s44147-024-00553-0">https://jeas.springeropen.com/articles/10.1186/s44147-024-00553-0</a></p>
+<p><a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10450744/#:~:text=for%20power%20electronic%20converters%2C%20which,cost%2C%20conversion%20speed%20and%20implementation">[4]</a> <a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10450744/#:~:text=In%20this%20section%2C%20the%20design,achieve%20the%20required%20performance%20and">[5]</a> A novel dynamic integral sliding mode control for power electronic converters - PMC</p>
+<p><a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10450744/">https://pmc.ncbi.nlm.nih.gov/articles/PMC10450744/</a></p>
+<p><a class="reference external" href="https://www.researchgate.net/publication/382125063_Optimized_Hierarchical_Sliding_Mode_Control_for_the_Swing-up_and_Stabilization_of_a_Rotary_Inverted_Pendulum#:~:text=This%20paper%20presents%20a%20study,of%20combining%20optimization%20algorithms%20with">[6]</a> (PDF) Optimized Hierarchical Sliding Mode Control for the Swing-Up and Stabilization of a Rotary Inverted Pendulum</p>
+<p><a class="reference external" href="https://www.researchgate.net/publication/382125063_Optimized_Hierarchical_Sliding_Mode_Control_for_the_Swing-up_and_Stabilization_of_a_Rotary_Inverted_Pendulum">https://www.researchgate.net/publication/382125063_Optimized_Hierarchical_Sliding_Mode_Control_for_the_Swing-up_and_Stabilization_of_a_Rotary_Inverted_Pendulum</a></p>
+<p><a class="reference external" href="https://journals.plos.org/plosone/article#:~:text=caused%20by%20wheel,minimized%20by%20fuzzy%20tuning%20approach">[7]</a> Robust fuzzy sliding mode controller for a skid-steered vehicle subjected to friction variations | PLOS One</p>
+<p><a class="reference external" href="https://journals.plos.org/plosone/article">https://journals.plos.org/plosone/article</a></p>
+<p><a class="reference external" href="https://cjme.springeropen.com/articles/10.1186/s10033-024-01172-9#:~:text=Tracking%20control%20of%20tendon,3%7D%20rad">[8]</a> Neural Network Adaptive Hierarchical Sliding Mode Control for the Trajectory Tracking of a Tendon-Driven Manipulator | Chinese Journal of Mechanical Engineering | Full Text</p>
+<p><a class="reference external" href="https://cjme.springeropen.com/articles/10.1186/s10033-024-01172-9">https://cjme.springeropen.com/articles/10.1186/s10033-024-01172-9</a></p>
+<p><a class="reference external" href="https://arxiv.org/abs/2407.18309">[9]</a> [2407.18309] Adaptive Terminal Sliding Mode Control Using Deep Reinforcement Learning for Zero-Force Control of Exoskeleton Robot Systems</p>
+<p><a class="reference external" href="https://arxiv.org/abs/2407.18309">https://arxiv.org/abs/2407.18309</a></p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2024, Research Team
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Previous Work Before the Project</a><ul>
+<li><a class="reference internal" href="#architectural-overview">1 Architectural Overview</a><ul>
+<li><a class="reference internal" href="#controller-subsystem-src-controllers">1.1 Controller subsystem (<code class="docutils literal notranslate"><span class="pre">src/controllers</span></code>)</a></li>
+<li><a class="reference internal" href="#core-subsystem-src-core">1.2 Core subsystem (<code class="docutils literal notranslate"><span class="pre">src/core</span></code>)</a></li>
+<li><a class="reference internal" href="#optimizer-subsystem-src-optimizer">1.3 Optimizer subsystem (<code class="docutils literal notranslate"><span class="pre">src/optimizer</span></code>)</a></li>
+<li><a class="reference internal" href="#hardwareintheloop-and-tests">1.4 Hardware‑in‑the‑Loop and tests</a></li>
+<li><a class="reference internal" href="#configuration-config-yaml">1.5 Configuration (<code class="docutils literal notranslate"><span class="pre">config.yaml</span></code>)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#controller-implementation-analysis">2 Controller Implementation Analysis</a><ul>
+<li><a class="reference internal" href="#classical-smc">2.1 Classical SMC</a></li>
+<li><a class="reference internal" href="#supertwisting-sta-smc">2.2 Super‑twisting (STA) SMC</a></li>
+<li><a class="reference internal" href="#adaptive-smc">2.3 Adaptive SMC</a></li>
+<li><a class="reference internal" href="#hybrid-staadaptive-smc">2.4 Hybrid STA–adaptive SMC</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#optimization-engine-breakdown">3 Optimization Engine Breakdown</a></li>
+<li><a class="reference internal" href="#innovations-in-slidingmode-control-formulations">4 Innovations in Sliding‑Mode Control Formulations</a><ul>
+<li><a class="reference internal" href="#highorder-and-supertwisting-methods">4.1 High‑order and Super‑twisting Methods</a></li>
+<li><a class="reference internal" href="#terminal-and-prescribedperformance-smc">4.2 Terminal and Prescribed‑Performance SMC</a></li>
+<li><a class="reference internal" href="#integral-and-dynamic-integral-smc">4.3 Integral and Dynamic Integral SMC</a></li>
+<li><a class="reference internal" href="#hierarchical-slidingmode-control">4.4 Hierarchical Sliding‑Mode Control</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#advancements-in-metaheuristic-optimisation-for-smc-parameter-tuning">5 Advancements in Metaheuristic Optimisation for SMC Parameter Tuning</a><ul>
+<li><a class="reference internal" href="#hybrid-pso-and-enhanced-pso">5.1 Hybrid PSO and Enhanced PSO</a></li>
+<li><a class="reference internal" href="#psotuned-supertwisting-smc-a-concrete-example">5.2 PSO‑tuned Super‑twisting SMC – A Concrete Example</a></li>
+<li><a class="reference internal" href="#psotuned-hierarchical-smc">5.3 PSO‑tuned Hierarchical SMC</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#intelligent-and-adaptive-smc-for-dynamic-environments">6 Intelligent and Adaptive SMC for Dynamic Environments</a><ul>
+<li><a class="reference internal" href="#fuzzy-logic-in-smc">6.1 Fuzzy Logic in SMC</a></li>
+<li><a class="reference internal" href="#neuralnetworkbased-smc">6.2 Neural‑network‑based SMC</a></li>
+<li><a class="reference internal" href="#reinforcement-learning-with-smc">6.3 Reinforcement Learning with SMC</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#experimental-validation-and-practical-insights">7 Experimental Validation and Practical Insights</a></li>
+<li><a class="reference internal" href="#synthesis-and-recommendations">8 Synthesis and Recommendations</a><ul>
+<li><a class="reference internal" href="#key-trends">8.1 Key Trends</a></li>
+<li><a class="reference internal" href="#research-gaps-and-open-questions">8.2 Research Gaps and Open Questions</a></li>
+<li><a class="reference internal" href="#actionable-recommendations">8.3 Actionable Recommendations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    </body>
+</html>

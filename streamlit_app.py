@@ -45,6 +45,64 @@ from src.core.dynamics_full import FullDIPDynamics
 from src.core.simulation_runner import run_simulation
 from src.optimizer.pso_optimizer import PSOTuner
 
+# Performance caching decorators
+@st.cache_data
+def cached_load_config(config_path: str):
+    """Cache configuration loading to avoid repeated file I/O."""
+    return load_config(config_path)
+
+@st.cache_data
+def cached_simulation_run(controller_type: str, params: list, config_dict: dict,
+                         initial_state: list, duration: float, use_full_dynamics: bool):
+    """Cache simulation results to avoid repeated computation for same parameters."""
+    # Recreate objects from cached data
+    config = type('Config', (), config_dict)()  # Simple object from dict
+
+    # Create dynamics model
+    if use_full_dynamics:
+        dynamics = FullDIPDynamics(config.dip_params)
+    else:
+        dynamics = DIPDynamics(config.dip_params)
+
+    # Create controller
+    controller = create_controller(controller_type, config, gains=np.array(params))
+
+    # Run simulation
+    t, x, u = run_simulation(
+        dynamics, controller,
+        initial_state=np.array(initial_state),
+        duration=duration,
+        dt=config.simulation.dt
+    )
+
+    return t, x, u
+
+@st.cache_data
+def cached_pso_optimization(controller_type: str, config_dict: dict,
+                           initial_state: list, seed: int = None):
+    """Cache PSO optimization results to avoid repeated expensive computation."""
+    config = type('Config', (), config_dict)()
+
+    # Create dynamics and controller for PSO
+    if config.simulation.use_full_dynamics:
+        dynamics = FullDIPDynamics(config.dip_params)
+    else:
+        dynamics = DIPDynamics(config.dip_params)
+
+    controller = create_controller(controller_type, config)
+
+    # Run PSO optimization
+    tuner = PSOTuner(
+        controller=controller,
+        dynamics=dynamics,
+        initial_state=np.array(initial_state),
+        config=config,
+        seed=seed
+    )
+
+    best_params, cost_history = tuner.optimize()
+    return best_params, cost_history
+
 # Visualizer import (support both in‑repo path and local file during CI/examples)
 try:
     from src.utils.visualization import Visualizer  # project structure

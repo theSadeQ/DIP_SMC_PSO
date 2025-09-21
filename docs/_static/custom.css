@@ -1,0 +1,244 @@
+/*==========================================================================================\\
+==================================== docs/_static/custom.css ============================\\
+==========================================================================================\\*/
+
+/* World-class documentation styling for DIP_SMC_PSO */
+
+/* Enhanced typography and readability */
+.wy-nav-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Professional equation styling */
+.math {
+    font-size: 110%;
+    margin: 1em 0;
+}
+
+/* Enhanced code blocks with professional styling */
+div.highlight {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin: 1em 0;
+}
+
+div.highlight pre {
+    padding: 1em;
+    border-radius: 8px;
+    background: #f8f9fa;
+    overflow-x: auto;
+}
+
+/* Copy button styling */
+.copybtn {
+    background-color: #2980b9 !important;
+    border: none !important;
+    border-radius: 4px !important;
+    color: white !important;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.copybtn:hover {
+    opacity: 1 !important;
+}
+
+/* Professional table styling */
+table.docutils {
+    border-collapse: collapse;
+    margin: 1em 0;
+    min-width: 100%;
+}
+
+table.docutils th,
+table.docutils td {
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+    text-align: left;
+}
+
+table.docutils th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+table.docutils tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* Enhanced navigation */
+.wy-nav-side {
+    background: #2c3e50;
+}
+
+.wy-menu-vertical a {
+    color: #ecf0f1;
+}
+
+.wy-menu-vertical a:hover {
+    background-color: #34495e;
+}
+
+/* Figure and image enhancements */
+.figure {
+    text-align: center;
+    margin: 1.5em 0;
+}
+
+.figure img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.figure .caption {
+    font-style: italic;
+    margin-top: 0.5em;
+    color: #666;
+}
+
+/* Admonition styling */
+.admonition {
+    margin: 1em 0;
+    padding: 1em;
+    border-radius: 6px;
+    border-left: 4px solid #ccc;
+}
+
+.admonition.note {
+    background-color: #e7f3ff;
+    border-left-color: #2196f3;
+}
+
+.admonition.warning {
+    background-color: #fff8e1;
+    border-left-color: #ff9800;
+}
+
+.admonition.important {
+    background-color: #ffebee;
+    border-left-color: #f44336;
+}
+
+/* Math equation numbering */
+.math-container {
+    text-align: center;
+    margin: 1em 0;
+}
+
+/* Professional footer */
+.rst-footer-buttons {
+    display: none;
+}
+
+.footer, .wy-footer {
+    font-size: 90%;
+    opacity: 0.9;
+    margin-top: 2em;
+    padding-top: 1em;
+    border-top: 1px solid #e1e4e5;
+}
+
+/* Enhanced bibliography */
+dl.citation {
+    margin-bottom: 1em;
+}
+
+dl.citation dt {
+    font-weight: bold;
+    color: #2980b9;
+}
+
+/* Responsive design improvements */
+@media screen and (max-width: 768px) {
+    .wy-nav-content {
+        max-width: 100%;
+        padding: 1em;
+    }
+
+    div.highlight pre {
+        font-size: 14px;
+        padding: 0.5em;
+    }
+
+    table.docutils {
+        font-size: 14px;
+    }
+}
+
+/* Mermaid diagram styling */
+.mermaid {
+    text-align: center;
+    margin: 1.5em 0;
+}
+
+/* Toggle button improvements */
+.toggle-button {
+    margin: 0.5em 0;
+}
+
+/* Professional section headers */
+h1, h2, h3, h4, h5, h6 {
+    color: #2c3e50;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+h1 {
+    border-bottom: 2px solid #2980b9;
+    padding-bottom: 0.3em;
+}
+
+h2 {
+    border-bottom: 1px solid #bdc3c7;
+    padding-bottom: 0.2em;
+}
+
+/* API documentation enhancements */
+dl.py.function, dl.py.class, dl.py.method {
+    margin-bottom: 2em;
+    border: 1px solid #e1e4e5;
+    border-radius: 6px;
+    padding: 1em;
+    background-color: #fafafa;
+}
+
+dt.sig.sig-object {
+    background-color: #2c3e50;
+    color: white;
+    padding: 0.5em 1em;
+    border-radius: 4px;
+    margin-bottom: 0.5em;
+}
+
+/* Source code links */
+.viewcode-link {
+    float: right;
+    font-size: 0.8em;
+    color: #2980b9;
+    text-decoration: none;
+}
+
+.viewcode-link:hover {
+    color: #1f618d;
+}
+
+/* Professional search styling */
+.wy-menu-vertical .current > a {
+    background-color: #2980b9;
+    border-color: #2980b9;
+}
+
+/* Enhanced content width */
+.wy-nav-content-wrap {
+    margin-left: 300px;
+}
+
+@media screen and (max-width: 1100px) {
+    .wy-nav-content-wrap {
+        margin-left: 0;
+    }
+}

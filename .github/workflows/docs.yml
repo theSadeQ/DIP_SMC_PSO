@@ -1,0 +1,362 @@
+#==========================================================================================\\\
+#============================== .github/workflows/docs.yml ==============================\\\
+#==========================================================================================\\\
+
+name: 📚 Build and Deploy Documentation
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'docs/**'
+      - 'src/**'
+      - '.github/workflows/docs.yml'
+      - 'requirements.txt'
+      - 'docs/requirements.txt'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'docs/**'
+      - 'src/**'
+  workflow_dispatch:  # Allow manual triggers
+
+# Set permissions for GitHub Pages deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Build documentation
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+        sphinx-version: ["7.1", "latest"]
+
+    steps:
+    - name: 🛎️ Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Full history for proper versioning
+
+    - name: 🐍 Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: 📦 Install System Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          pandoc \
+          texlive-latex-base \
+          texlive-latex-recommended \
+          texlive-latex-extra \
+          texlive-fonts-recommended \
+          latexmk
+
+    - name: 🔧 Install Python Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r docs/requirements.txt
+
+        # Install optional dependencies for comprehensive build
+        pip install \
+          sphinx-proof \
+          sphinx-external-toc \
+          sphinxcontrib-mermaid \
+          jupyter-book \
+          jupytext
+
+    - name: 🏗️ Build Documentation
+      run: |
+        cd docs
+        make clean
+        sphinx-build -W -b html . _build/html
+
+        # Verify build quality
+        echo "📊 Documentation build statistics:"
+        find _build/html -name "*.html" | wc -l
+        du -sh _build/html
+
+    - name: 🧪 Test Documentation Links
+      run: |
+        cd docs
+        sphinx-build -b linkcheck . _build/linkcheck
+      continue-on-error: true  # Don't fail on external link issues
+
+    - name: 📖 Build PDF Documentation
+      run: |
+        cd docs
+        sphinx-build -b latex . _build/latex
+        cd _build/latex
+        latexmk -pdf -f -interaction=nonstopmode *.tex
+      continue-on-error: true  # PDF generation is optional
+
+    - name: 🔍 Validate Documentation Structure
+      run: |
+        python -c "
+        import os
+        import sys
+
+        # Check critical files exist
+        critical_files = [
+            'docs/_build/html/index.html',
+            'docs/_build/html/theory/index.html',
+            'docs/_build/html/implementation/index.html',
+            'docs/_build/html/visual/index.html',
+            'docs/_build/html/references/index.html'
+        ]
+
+        missing_files = []
+        for file in critical_files:
+            if not os.path.exists(file):
+                missing_files.append(file)
+
+        if missing_files:
+            print('❌ Missing critical documentation files:')
+            for file in missing_files:
+                print(f'  - {file}')
+            sys.exit(1)
+        else:
+            print('✅ All critical documentation files present')
+
+        # Check for broken internal links
+        html_dir = 'docs/_build/html'
+        html_files = []
+        for root, dirs, files in os.walk(html_dir):
+            for file in files:
+                if file.endswith('.html'):
+                    html_files.append(os.path.join(root, file))
+
+        print(f'📄 Generated {len(html_files)} HTML pages')
+
+        # Basic content validation
+        index_file = 'docs/_build/html/index.html'
+        with open(index_file, 'r') as f:
+            content = f.read()
+            if 'DIP_SMC_PSO' not in content:
+                print('❌ Index page missing project title')
+                sys.exit(1)
+            if 'Mathematical Foundation' not in content:
+                print('❌ Index page missing mathematical content')
+                sys.exit(1)
+            print('✅ Index page content validation passed')
+        "
+
+    - name: 📊 Generate Documentation Metrics
+      run: |
+        echo "## 📚 Documentation Build Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Build Information" >> $GITHUB_STEP_SUMMARY
+        echo "- **Python Version:** ${{ matrix.python-version }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Sphinx Version:** $(sphinx-build --version)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build Time:** $(date)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "### Documentation Statistics" >> $GITHUB_STEP_SUMMARY
+        echo "- **HTML Pages:** $(find docs/_build/html -name "*.html" | wc -l)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Total Size:** $(du -sh docs/_build/html | cut -f1)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Images:** $(find docs/_build/html -name "*.png" -o -name "*.jpg" -o -name "*.svg" | wc -l)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        # Check for warnings
+        if [ -f docs/_build/html/.buildinfo ]; then
+          echo "### Build Quality" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Build completed successfully" >> $GITHUB_STEP_SUMMARY
+        fi
+
+    - name: 🗜️ Optimize Build Output
+      run: |
+        # Compress large files and optimize images
+        find docs/_build/html -name "*.html" -exec gzip -k {} \;
+        find docs/_build/html -name "*.css" -exec gzip -k {} \;
+        find docs/_build/html -name "*.js" -exec gzip -k {} \;
+
+    - name: 📤 Upload Documentation Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: documentation-${{ matrix.python-version }}-${{ matrix.sphinx-version }}
+        path: docs/_build/html
+        retention-days: 30
+
+    - name: 📤 Upload PDF Documentation
+      uses: actions/upload-artifact@v4
+      if: matrix.python-version == '3.11' && matrix.sphinx-version == 'latest'
+      with:
+        name: documentation-pdf
+        path: docs/_build/latex/*.pdf
+        retention-days: 30
+      continue-on-error: true
+
+  # Deploy to GitHub Pages (only on main branch)
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+    - name: 🛎️ Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: 📥 Download Documentation Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: documentation-3.11-latest
+        path: docs/_build/html
+
+    - name: 🔧 Setup GitHub Pages
+      uses: actions/configure-pages@v4
+
+    - name: 📤 Upload to GitHub Pages
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: docs/_build/html
+
+    - name: 🚀 Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
+
+    - name: 📋 Create Deployment Summary
+      run: |
+        echo "## 🚀 Documentation Deployed Successfully!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📖 Documentation Links" >> $GITHUB_STEP_SUMMARY
+        echo "- **Main Documentation:** ${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Theory Section:** ${{ steps.deployment.outputs.page_url }}theory/" >> $GITHUB_STEP_SUMMARY
+        echo "- **API Reference:** ${{ steps.deployment.outputs.page_url }}implementation/api/" >> $GITHUB_STEP_SUMMARY
+        echo "- **Visual Documentation:** ${{ steps.deployment.outputs.page_url }}visual/" >> $GITHUB_STEP_SUMMARY
+        echo "- **References:** ${{ steps.deployment.outputs.page_url }}references/" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### ✨ Features Available" >> $GITHUB_STEP_SUMMARY
+        echo "- 🧮 Numbered equations with cross-references" >> $GITHUB_STEP_SUMMARY
+        echo "- 📚 Interactive bibliography" >> $GITHUB_STEP_SUMMARY
+        echo "- 📋 Copy-paste code blocks" >> $GITHUB_STEP_SUMMARY
+        echo "- 📊 Mermaid diagrams" >> $GITHUB_STEP_SUMMARY
+        echo "- 🔗 Bidirectional theory-code links" >> $GITHUB_STEP_SUMMARY
+        echo "- 📱 Mobile-responsive design" >> $GITHUB_STEP_SUMMARY
+
+  # Quality checks
+  quality-check:
+    needs: build
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+    - name: 🛎️ Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: 📥 Download Documentation Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: documentation-3.11-latest
+        path: docs/_build/html
+
+    - name: 🔍 Run Documentation Quality Checks
+      run: |
+        python -c "
+        import os
+        import re
+        from pathlib import Path
+
+        def check_documentation_quality():
+            html_dir = Path('docs/_build/html')
+            issues = []
+
+            # Check for proper equation numbering
+            for html_file in html_dir.rglob('*.html'):
+                with open(html_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+
+                    # Check for MathJax equations
+                    if 'math' in content.lower():
+                        if 'mathjax' not in content.lower():
+                            issues.append(f'Math content without MathJax: {html_file}')
+
+                    # Check for broken internal links
+                    internal_links = re.findall(r'href=\"([^\"]+\.html[^\"]*)', content)
+                    for link in internal_links:
+                        if not link.startswith('http'):
+                            link_path = html_file.parent / link.split('#')[0]
+                            if not link_path.exists():
+                                issues.append(f'Broken internal link: {link} in {html_file}')
+
+            # Check critical pages exist and have content
+            critical_pages = [
+                'index.html',
+                'theory/index.html',
+                'implementation/index.html',
+                'visual/index.html',
+                'references/index.html'
+            ]
+
+            for page in critical_pages:
+                page_path = html_dir / page
+                if not page_path.exists():
+                    issues.append(f'Missing critical page: {page}')
+                else:
+                    with open(page_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                        if len(content) < 1000:  # Minimum content check
+                            issues.append(f'Page too short: {page} ({len(content)} chars)')
+
+            return issues
+
+        issues = check_documentation_quality()
+
+        if issues:
+            print('❌ Documentation quality issues found:')
+            for issue in issues:
+                print(f'  - {issue}')
+            print(f'\\nTotal issues: {len(issues)}')
+            if len(issues) > 10:  # Fail if too many issues
+                exit(1)
+        else:
+            print('✅ Documentation quality check passed')
+        "
+
+    - name: 📊 Generate Quality Report
+      run: |
+        echo "## 🔍 Documentation Quality Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Coverage Statistics" >> $GITHUB_STEP_SUMMARY
+        echo "- **Total HTML files:** $(find docs/_build/html -name "*.html" | wc -l)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Pages with math:** $(grep -r "math" docs/_build/html --include="*.html" | wc -l)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Pages with figures:** $(grep -r "figure" docs/_build/html --include="*.html" | wc -l)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Code examples:** $(grep -r "highlight" docs/_build/html --include="*.html" | wc -l)" >> $GITHUB_STEP_SUMMARY
+
+# Workflow notification
+  notify:
+    needs: [build, deploy, quality-check]
+    runs-on: ubuntu-latest
+    if: always() && github.ref == 'refs/heads/main'
+
+    steps:
+    - name: 📧 Workflow Summary
+      run: |
+        echo "## 📚 Documentation Workflow Complete" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Status Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build:** ${{ needs.build.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Deploy:** ${{ needs.deploy.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Quality Check:** ${{ needs.quality-check.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+        if [ "${{ needs.deploy.result }}" == "success" ]; then
+          echo "✅ Documentation is live and ready for review" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ Deployment failed - check logs for details" >> $GITHUB_STEP_SUMMARY
+        fi

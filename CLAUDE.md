@@ -1,6 +1,6 @@
-# CLAUDE.md - Project Reference Guide
+# DIP_SMC_PSO Project Reference
 
-This document provides Claude with essential information about the DIP_SMC_PSO project structure, commands, and workflows.
+This document provides Claude with essential project-specific information for the DIP_SMC_PSO project.
 
 ## Project Overview
 
@@ -208,38 +208,3 @@ pytest --benchmark-only --benchmark-compare --benchmark-compare-fail=mean:5%
 5. **Scientific Rigor**: Verify control-theoretic properties
 
 This project emphasizes scientific reproducibility, performance, and robust engineering practices for control systems research and development.
-
-## Code Style Guidelines
-
-### ASCII Header Style
-All Python files should include a distinctive ASCII art header for visual identification and professionalism:
-
-```python
-#==========================================================================================\\\
-#========================================= filename.py ===================================\\\
-#==========================================================================================\\\
-```
-
-**Header Rules:**
-- Use exactly 90 characters wide (`=` characters)
-- Center the file path (relative to project root) with padding `=` characters
-- Include `.py` extension in the filename
-- For root-level files, use just the filename (e.g., `simulate.py`)
-- For files in subdirectories, use the full path (e.g., `src/controllers/factory.py`)
-- End each line with `\\\`
-- Place at the very top of each Python file
-- Use 3 lines total (top border, file path, bottom border)
-
-**Example Implementation:**
-```python
-#==========================================================================================\\\
-#======================================== simulate.py ===================================\\\
-#==========================================================================================\\\
-
-"""Main CLI application for double-inverted pendulum simulation."""
-
-import argparse
-# ... rest of file
-```
-
-This creates a banner-style header that makes files visually distinctive and easier to identify in editors and version control diffs.

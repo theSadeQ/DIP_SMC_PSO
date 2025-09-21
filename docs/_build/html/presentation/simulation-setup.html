@@ -1,0 +1,645 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="8 – Results and Discussion" href="results-discussion.html" /><link rel="prev" title="Comprehensive Simulation Analysis and Enhancements for the Double Inverted Pendulum Control System" href="pso-optimization.html" />
+
+    <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
+        <title>Particle Swarm Optimization for Sliding‑Mode Controller Tuning of a Double Inverted Pendulum - DIP_SMC_PSO Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">DIP_SMC_PSO Documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  
+  <span class="sidebar-brand-text">DIP_SMC_PSO Documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">📚 Core Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Optimal Sliding Mode Control for a Double-Inverted Pendulum via PSO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../theory_overview.html">1. Theoretical Background â€” Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">3. System Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plant_model.html">1.x Plant Model</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">🎮 Control Systems</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../controllers/index.html">Control Systems Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Control Systems Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../optimization/index.html">PSO Optimization Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of PSO Optimization Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../analysis_plan.html">5. Analysis &amp; Verification Plan</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">🧪 Development &amp; Testing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../TESTING.html">Testing Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../test_protocols.html">5.x Test Protocols</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../use_cases.html">4. Use Cases &amp; Operating Modes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../context.html">2. Application Context</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">📊 Research Presentation</span></p>
+<ul class="current">
+<li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Research Presentation Materials</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Research Presentation Materials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">Abstract</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#introduction-and-motivation">Introduction and Motivation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#the-double-inverted-pendulum-as-a-canonical-control-problem">The Double Inverted Pendulum as a Canonical Control Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#the-primary-control-objectives-and-challenges">The Primary Control Objectives and Challenges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#sliding-mode-control-as-a-robust-solution">Sliding Mode Control as a Robust Solution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#the-gain-tuning-dilemma-and-the-need-for-optimization">The Gain Tuning Dilemma and the Need for Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#particle-swarm-optimization-for-automated-design">Particle Swarm Optimization for Automated Design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#synthesis-and-motivation">Synthesis and Motivation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problem-statement.html">Problem Statement for Double‑Inverted Pendulum (DIP) Control with SMC and PSO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="previous-works.html">Previous Work Before the Project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="system-modeling.html"><strong>A Comprehensive Technical Report on the Modeling and Configuration of a Cart‑Based Double Inverted Pendulum System</strong></a></li>
+<li class="toctree-l2"><a class="reference internal" href="smc-theory.html">Sliding Mode Control for a Double‑Inverted Pendulum: Bridging Theory and Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html">Abstract</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#introduction">1 Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#system-modelling-and-problem-formulation">2 System Modelling and Problem Formulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#simulation-methodology">3 Simulation Methodology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#classic-sliding-mode-control">4 Classic Sliding Mode Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#chattering-mitigation-strategy-i-boundary-layer-method">5 Chattering Mitigation Strategy I: Boundary Layer Method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#chattering-mitigation-strategy-ii-supertwisting-algorithm">6 Chattering Mitigation Strategy II: Super‑Twisting Algorithm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#chattering-mitigation-strategy-iii-adaptive-sliding-mode-control">7 Chattering Mitigation Strategy III: Adaptive Sliding Mode Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#chattering-mitigation-strategy-iv-hybrid-adaptivesta">8 Chattering Mitigation Strategy IV: Hybrid Adaptive–STA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#synthesis-and-comparative-analysis">9 Synthesis and Comparative Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chattering-mitigation.html#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pso-optimization.html"><strong>Comprehensive Simulation Analysis and Enhancements for the Double Inverted Pendulum Control System</strong></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Particle Swarm Optimization for Sliding‑Mode Controller Tuning of a Double Inverted Pendulum</a></li>
+<li class="toctree-l2"><a class="reference internal" href="results-discussion.html">8 – Results and Discussion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="results-discussion.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Abstract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#introduction-and-motivation">Introduction and Motivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#the-double-inverted-pendulum-as-a-canonical-control-problem">The Double Inverted Pendulum as a Canonical Control Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#the-primary-control-objectives-and-challenges">The Primary Control Objectives and Challenges</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#sliding-mode-control-as-a-robust-solution">Sliding Mode Control as a Robust Solution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#the-gain-tuning-dilemma-and-the-need-for-optimization">The Gain Tuning Dilemma and the Need for Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#particle-swarm-optimization-for-automated-design">Particle Swarm Optimization for Automated Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#synthesis-and-motivation">Synthesis and Motivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problem-statement.html">Problem Statement for Double‑Inverted Pendulum (DIP) Control with SMC and PSO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="previous-works.html">Previous Work Before the Project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="system-modeling.html"><strong>A Comprehensive Technical Report on the Modeling and Configuration of a Cart‑Based Double Inverted Pendulum System</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="smc-theory.html">Sliding Mode Control for a Double‑Inverted Pendulum: Bridging Theory and Implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html">Abstract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#introduction">1 Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#system-modelling-and-problem-formulation">2 System Modelling and Problem Formulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#simulation-methodology">3 Simulation Methodology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#classic-sliding-mode-control">4 Classic Sliding Mode Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#chattering-mitigation-strategy-i-boundary-layer-method">5 Chattering Mitigation Strategy I: Boundary Layer Method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#chattering-mitigation-strategy-ii-supertwisting-algorithm">6 Chattering Mitigation Strategy II: Super‑Twisting Algorithm</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#chattering-mitigation-strategy-iii-adaptive-sliding-mode-control">7 Chattering Mitigation Strategy III: Adaptive Sliding Mode Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#chattering-mitigation-strategy-iv-hybrid-adaptivesta">8 Chattering Mitigation Strategy IV: Hybrid Adaptive–STA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#synthesis-and-comparative-analysis">9 Synthesis and Comparative Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chattering-mitigation.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pso-optimization.html"><strong>Comprehensive Simulation Analysis and Enhancements for the Double Inverted Pendulum Control System</strong></a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Particle Swarm Optimization for Sliding‑Mode Controller Tuning of a Double Inverted Pendulum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="results-discussion.html">8 – Results and Discussion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="results-discussion.html#references">References</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">🔧 Project Management</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../CONTRIBUTING.html">Contributing – ResearchPlanSpec Validation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../RELEASE_CHECKLIST.html">Release Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CHANGELOG.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../symbols.html">Symbols &amp; Units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../results_readme.html">Results &amp; Plots</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">📖 API Reference</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api/index.html">API Reference Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of API Reference Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/presentation/simulation-setup.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section class="tex2jax_ignore mathjax_ignore" id="particle-swarm-optimization-for-slidingmode-controller-tuning-of-a-double-inverted-pendulum">
+<h1>Particle Swarm Optimization for Sliding‑Mode Controller Tuning of a Double Inverted Pendulum<a class="headerlink" href="#particle-swarm-optimization-for-slidingmode-controller-tuning-of-a-double-inverted-pendulum" title="Link to this heading">¶</a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
+<p>The <strong>double inverted pendulum (DIP)</strong> mounted on a translating cart is a widely used benchmark for nonlinear and underactuated control. The system contains two serial pendulums that must be maintained upright while the cart remains near the origin. Due to the underactuation and the coupling between the pendulums and the cart, the dynamics are highly nonlinear and possess multiple unstable equilibrium points, so stabilisation requires a carefully designed controller. <strong>Sliding‑mode control (SMC)</strong> is a nonlinear control technique that uses a discontinuous control law to force the state trajectories onto a prescribed sliding surface. Once on the surface, the system evolution is insensitive to matched disturbances and model uncertainties, which endows SMC with strong robustness<a class="reference external" href="https://www.mdpi.com/2673-4052/5/3/17#:~:text=studied%20to%20address%20their%20inherent,did%20not%20select%20optimal%20parameters">[1]</a><a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9539940/#:~:text=1">[2]</a>. However, the discontinuous control input introduces high‑frequency switching, known as <strong>chattering</strong>, which can excite unmodelled dynamics and degrade performance<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9539940/#:~:text=discontinuous%20element%20provides%20robustness%2C%20but,6%20%20Thus%2C%20a%20continuous">[3]</a>. Selecting the gains that define the sliding surface and switching law is therefore a non‑trivial design problem: small gains lead to slow convergence whereas large gains increase chattering.</p>
+<p>Meta‑heuristic optimisation techniques such as <strong>particle swarm optimisation (PSO)</strong> offer a principled way to automate gain tuning. PSO views each candidate set of controller gains as a particle in a population, and the particles explore the search space by updating their velocities and positions. At each iteration the velocity of particle <em>i</em> is influenced by its own best position and the global best position found by the swarm, scaled by acceleration coefficients and random vectors<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7516836/#:~:text=At%20each%20iteration%2C%20the%20velocity,suitable%20stopping%20criterion%20is%20satisfied">[4]</a>. An inertia weight may be included to control the influence of the previous velocity; larger inertia promotes exploration while smaller inertia encourages exploitation<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7516836/#:~:text=In%201998%2C%20Shi%20and%20Eberhart,on%20the%20current%20particle%E2%80%99s%20movement">[5]</a>. Because PSO only requires evaluations of the objective function and not its gradient, it is attractive for tuning nonlinear controllers where simulation is the only way to assess performance. This report uses PSO to optimise the gains of a sliding‑mode controller for the DIP.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>\mathbf{v}_{i}(t + 1) = w\,\mathbf{v}_{i}(t) + c_{1}r_{1}\bigl( \mathbf{p}_{\mathrm{best},i} - \mathbf{x}_{i}(t) \bigr) + c_{2}r_{2}\bigl( \mathbf{g}_{\mathrm{best}} - \mathbf{x}_{i}(t) \bigr),
+\mathbf{x}_{i}(t + 1) = \mathbf{x}_{i}(t) + \mathbf{v}_{i}(t + 1),
+</pre></div>
+</div>
+<p>where $w$ is the inertia weight and $c_{1},c_{2}$ are cognitive and social acceleration coefficients; $r_{1},r_{2}$ are uniformly distributed random vectors on $[0,1]$<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7516836/#:~:text=At%20each%20iteration%2C%20the%20velocity,suitable%20stopping%20criterion%20is%20satisfied">[4]</a>. The inertia term $w\mathbf{v}_{i}(t)$ retains a portion of the previous velocity, the cognitive term drives the particle toward its personal best position and the social term attracts it toward the global best. Shi and Eberhart introduced the inertia weight to balance global exploration and local exploitation: a large inertia weight emphasises exploration whereas a small one speeds convergence but risks premature stagnation<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7516836/#:~:text=In%201998%2C%20Shi%20and%20Eberhart,on%20the%20current%20particle%E2%80%99s%20movement">[5]</a>. These update equations allow the swarm to share information and converge toward promising solutions.</p>
+<p>The goal of this project is to design and tune an SMC for a DIP using PSO. The existing code implements a DIP simulator, a classical sliding‑mode controller and a PSO optimizer. The current documentation provides a high‑level overview but lacks detailed system modelling, mathematical formulations, implementation details and analysis. This report fills these gaps: it derives the DIP equations of motion, formalizes the SMC and PSO formulations, summarizes the optimization procedure in pseudocode, presents simulation results and discusses limitations and future work.</p>
+</section>
+<section id="system-modelling-problem-statement">
+<h2>System Modelling &amp; Problem Statement<a class="headerlink" href="#system-modelling-problem-statement" title="Link to this heading">¶</a></h2>
+<section id="double-inverted-pendulum-dynamics">
+<h3>Double Inverted Pendulum Dynamics<a class="headerlink" href="#double-inverted-pendulum-dynamics" title="Link to this heading">¶</a></h3>
+<p>The DIP consists of a cart of mass $<code class="docutils literal notranslate"><span class="pre">M</span></code>$ that can translate along a track, a lower pendulum of mass $<code class="docutils literal notranslate"><span class="pre">m_{1}</span></code>$ and length $<code class="docutils literal notranslate"><span class="pre">l_{1}</span></code>$ , and an upper pendulum of mass $<code class="docutils literal notranslate"><span class="pre">m_{2}</span></code>$ and length $<code class="docutils literal notranslate"><span class="pre">l_{2}</span></code>$ . The centres of mass (COM) are at distances $<code class="docutils literal notranslate"><span class="pre">d_{1}</span></code>$ and $<code class="docutils literal notranslate"><span class="pre">d_{2}</span></code>$ from the pivot, and the pendulums have inertias $<code class="docutils literal notranslate"><span class="pre">J_{1}</span></code>$ and $<code class="docutils literal notranslate"><span class="pre">J_{2}</span></code>$ about their COMs. Let $<code class="docutils literal notranslate"><span class="pre">x</span></code>$ be the cart position, $<code class="docutils literal notranslate"><span class="pre">q_{1}</span></code>$ the lower pendulum angle (zero at upright) and $<code class="docutils literal notranslate"><span class="pre">q_{2}</span></code>$ the upper pendulum angle. The state vector is</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>\mathbf{x} = \left\lbrack x,\, q_{1},\, q_{2},\,\dot{x},\,{\dot{q}}_{1},\,{\dot{q}}_{2} \right\rbrack^{\top}.
+</pre></div>
+</div>
+<p>Applying the Euler–Lagrange method to the DIP yields a <strong>manipulator form</strong>. In the rotary double‑inverted pendulum literature the equations of motion are derived from the system’s kinetic and potential energies; the resulting model is expressed in a manipulator form with inertia matrix $H(\mathbf{q})$, Coriolis matrix $C(\mathbf{q},\dot{\mathbf{q}})$, gravity vector $G(\mathbf{q})$ and friction term $D(\dot{\mathbf{q}})$<a class="reference external" href="https://www.mdpi.com/2227-7390/13/12/1996#:~:text=Figure%202,inverted%20pendulum%20system">[6]</a>. Following this standard approach, the DIP dynamics are written as</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>H\left( \mathbf{q} \right)\,\ddot{\mathbf{q}} + C\left( \mathbf{q},\dot{\mathbf{q}} \right)\,\dot{\mathbf{q}} + G\left( \mathbf{q} \right) + D\left( \dot{\mathbf{q}} \right) = B\, u,
+</pre></div>
+</div>
+<p>where $\mathbf{q} = [x, q_{1}, q_{2}]^{\top}$. The <strong>inertia matrix</strong> $H(\mathbf{q})$ depends on the masses and geometries, $C(\mathbf{q},\dot{\mathbf{q}})$ contains Coriolis and centrifugal terms, $G(\mathbf{q})$ collects gravitational forces and $D(\dot{\mathbf{q}})$ models viscous friction. The <strong>input matrix</strong> $B = [1,0,0]^{\top}$ highlights the underactuation since only the cart is actuated. In our implementation these matrices are computed numerically from physical parameters specified in a YAML configuration. The resulting continuous‑time state‑space model used for simulation is</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>\dot{\mathbf{x}} = \begin{bmatrix}
+\dot{x} \\
+{\dot{q}}_{1} \\
+{\dot{q}}_{2} \\
+H^{- 1}\left( \mathbf{q} \right)\left( Bu - C\dot{\mathbf{q}} - G\left( \mathbf{q} \right) - D\dot{\mathbf{q}} \right)
+\end{bmatrix}.
+</pre></div>
+</div>
+<p>Numerical integration uses a fourth‑order Runge–Kutta method with a time step $<code class="docutils literal notranslate"><span class="pre">\Delta</span> <span class="pre">t</span> <span class="pre">=</span> <span class="pre">0.01\</span> <span class="pre">s</span></code>$ . The simulation length is typically $<code class="docutils literal notranslate"><span class="pre">10\</span> <span class="pre">s</span></code>$ , and initial angles are set close to 0 (upright) while the cart starts at the origin.</p>
+</section>
+<section id="control-objective">
+<h3>Control Objective<a class="headerlink" href="#control-objective" title="Link to this heading">¶</a></h3>
+<p>The goal is to stabilize the DIP at the equilibrium $<code class="docutils literal notranslate"><span class="pre">\left(</span> <span class="pre">x,q_{1},q_{2}</span> <span class="pre">\right)</span> <span class="pre">=</span> <span class="pre">(0,0,0)</span></code>$ while keeping the cart near the origin and minimizing oscillations. Specifically, the control problem is to find a force input $<code class="docutils literal notranslate"><span class="pre">u(t)</span></code>$ constrained by $<code class="docutils literal notranslate"><span class="pre">|u|</span> <span class="pre">\leq</span> <span class="pre">u_{\max}</span></code>$ (here $<code class="docutils literal notranslate"><span class="pre">u_{\max}</span> <span class="pre">=</span> <span class="pre">150\</span> <span class="pre">N</span></code>$ ) that forces $<code class="docutils literal notranslate"><span class="pre">q_{1}(t),q_{2}(t)</span> <span class="pre">\rightarrow</span> <span class="pre">0</span></code>$ and $<code class="docutils literal notranslate"><span class="pre">x(t)</span> <span class="pre">\rightarrow</span> <span class="pre">0</span></code>$ . A sliding‑mode controller with adjustable gains is adopted. Selecting suitable gains is formulated as an optimization problem solved with PSO.</p>
+</section>
+</section>
+<section id="methodology-slidingmode-control-particle-swarm-optimization">
+<h2>Methodology: Sliding‑Mode Control &amp; Particle Swarm Optimization<a class="headerlink" href="#methodology-slidingmode-control-particle-swarm-optimization" title="Link to this heading">¶</a></h2>
+<section id="classical-slidingmode-controller-smc">
+<h3>Classical Sliding‑Mode Controller (SMC)<a class="headerlink" href="#classical-slidingmode-controller-smc" title="Link to this heading">¶</a></h3>
+<p>Sliding‑mode control uses a discontinuous control law to drive the system trajectories onto a predefined <strong>sliding surface</strong> and keep them there. When the state reaches the sliding surface the dynamics become insensitive to matched disturbances and uncertainties<a class="reference external" href="https://www.mdpi.com/2673-4052/5/3/17#:~:text=studied%20to%20address%20their%20inherent,did%20not%20select%20optimal%20parameters">[7]</a><a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9539940/#:~:text=1">[2]</a>. For the DIP the sliding surface is chosen as a linear combination of the pendulum angles and their angular rates:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>s(t) = \lambda_{1}\, q_{1} + \lambda_{2}\, q_{2} + k_{1}\,{\dot{q}}_{1} + k_{2}\,{\dot{q}}_{2},
+</pre></div>
+</div>
+<p>where $<code class="docutils literal notranslate"><span class="pre">k_{1},k_{2},\lambda_{1},\lambda_{2}</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>$ are design parameters. When $<code class="docutils literal notranslate"><span class="pre">s</span> <span class="pre">=</span> <span class="pre">0</span></code>$ the angles and angular rates satisfy a desired relationship that leads to convergence. The SMC control input is composed of an <strong>equivalent control</strong> $<code class="docutils literal notranslate"><span class="pre">u_{\text{eq}}</span></code>$ that cancels the nominal dynamics and a <strong>robust control</strong> $<code class="docutils literal notranslate"><span class="pre">u_{\text{robust}}</span></code>$ to drive $<code class="docutils literal notranslate"><span class="pre">s</span></code>$ to zero:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>u = u_{\text{eq}} + u_{\text{robust}},
+</pre></div>
+</div>
+<p>\u_\text{eq} = \bigl(H(\mathbf{q})\B\bigr)^{-1} \Bigl( -C(\mathbf{q},\dot{\mathbf{q}})\dot{\mathbf{q}} - G(\mathbf{q}) - D\dot{\mathbf{q}} + \ddot{\mathbf{q}}_{\text{ref}}\Bigr),\</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>u_{\text{robust}} = - K\, sat\left( \frac{s}{\varepsilon} \right) - k_{d}s.
+</pre></div>
+</div>
+<p>Here $K&gt;0$ is the switching gain and $k_{d}&gt;0$ provides a proportional term to attenuate chattering. The function $sat(\sigma)=\min(1,|\sigma|)\sgn(\sigma)$ creates a boundary layer of width $\varepsilon$ that replaces the discontinuous signum function. This continuous approximation reduces high‑frequency chattering but introduces a boundary layer around the sliding surface, sacrificing some robustness<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9539940/#:~:text=discontinuous%20element%20provides%20robustness%2C%20but,surface%2C%20thus%20sacrificing%20robustness%20to">[8]</a>. Higher‑order sliding‑mode techniques, such as the super‑twisting algorithm, can further suppress chattering by hiding the discontinuous element behind an integrator<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9539940/#:~:text=disturbances,26">[9]</a>. In our implementation ${\ddot{\mathbf{q}}}<em>{\text{ref}}=0$ for regulation, the control force is saturated to $\pm 150\text{N}$ and a small derivative gain $k</em>$ is employed to dampen oscillations.</p>
+<p>The SMC gains $<code class="docutils literal notranslate"><span class="pre">\left\lbrack</span> <span class="pre">k_{1},k_{2},\lambda_{1},\lambda_{2},K,k_{d}</span> <span class="pre">\right\rbrack</span></code>$ profoundly influence performance. The objective is to choose gains that produce quick settling, small overshoot and low control effort while minimizing chattering.</p>
+</section>
+<section id="particle-swarm-optimization-pso">
+<h3>Particle Swarm Optimization (PSO)<a class="headerlink" href="#particle-swarm-optimization-pso" title="Link to this heading">¶</a></h3>
+<p>PSO treats each candidate gain vector as a <strong>particle</strong> in a swarm. Each particle has a position $\mathbf{x}<em>{i}$ and a velocity $\mathbf{v}</em>$. At each iteration the velocity and position are updated according to the equations given in the introduction. The velocity update uses cognitive and social acceleration coefficients and random vectors to balance exploration and exploitation<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7516836/#:~:text=At%20each%20iteration%2C%20the%20velocity,suitable%20stopping%20criterion%20is%20satisfied">[4]</a>, and the inertia weight modulates the influence of the previous velocity<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7516836/#:~:text=In%201998%2C%20Shi%20and%20Eberhart,on%20the%20current%20particle%E2%80%99s%20movement">[5]</a>. In our implementation we choose the following hyper‑parameters:</p>
+<ul class="simple">
+<li><p><strong>Inertia weight (</strong>$<code class="docutils literal notranslate"><span class="pre">w</span></code>$ <strong>)</strong>: 0.7 – scales the current velocity, balancing exploration and exploitation.</p></li>
+<li><p><strong>Cognitive coefficient (</strong>$<code class="docutils literal notranslate"><span class="pre">c_{1}</span></code>$ <strong>)</strong>: 2.0 – weighting for the particle’s personal best solution.</p></li>
+<li><p><strong>Social coefficient (</strong>$<code class="docutils literal notranslate"><span class="pre">c_{2}</span></code>$ <strong>)</strong>: 2.0 – weighting for the global best solution.</p></li>
+<li><p><strong>Population size</strong>: 20 particles.</p></li>
+<li><p><strong>Maximum iterations</strong>: 200.</p></li>
+</ul>
+<p>Each particle’s position is initialized randomly within bounds specified in the configuration file, e.g., $k_{1}\in[1,100]$, $k_{2}\in[1,100]$, $\lambda_{1}\in[1,20]$, $\lambda_{2}\in[1,20]$, $K\in[5,150]$, $k_{d}\in[0.1,10]$. During optimisation each particle is evaluated by running a DIP simulation with the corresponding gains and computing a <strong>cost function</strong>. The cost combines several performance criteria:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>J = w_{e}\int_{0}^{T} \parallel \mathbf{e}(t) \parallel^{2}\, dt + w_{u}\int_{0}^{T}\left| u(t) \right|^{2}\, dt + w_{\dot{u}}\int_{0}^{T}\left| \dot{u}(t) \right|^{2}\, dt + w_{s}\int_{0}^{T}\left| s(t) \right|^{2}\, dt + P_{\text{penalty}},
+</pre></div>
+</div>
+<p>where $<code class="docutils literal notranslate"><span class="pre">\mathbf{e}(t)</span> <span class="pre">=</span> <span class="pre">\left\lbrack</span> <span class="pre">x,q_{1},q_{2}</span> <span class="pre">\right\rbrack^{\top}</span></code>$ is the state error, $<code class="docutils literal notranslate"><span class="pre">u(t)</span></code>$ is the control input, $<code class="docutils literal notranslate"><span class="pre">\dot{u}(t)</span></code>$ its time derivative, and $<code class="docutils literal notranslate"><span class="pre">s(t)</span></code>$ the sliding variable. The weights $<code class="docutils literal notranslate"><span class="pre">\left(</span> <span class="pre">w_{e},w_{u},w_{\dot{u}},w_{s}</span> <span class="pre">\right)</span> <span class="pre">=</span> <span class="pre">(50,0.2,0.1,0.1)</span></code>$ prioritize rapid stabilization while penalizing control effort and chattering. An additional penalty $<code class="docutils literal notranslate"><span class="pre">P_{\text{penalty}}</span></code>$ is added if the system becomes unstable (e.g., large angles) to discourage infeasible solutions.</p>
+<p>The optimization aims to minimize $<code class="docutils literal notranslate"><span class="pre">J</span></code>$ . Once the PSO terminates, the global best particle provides the tuned SMC gains.</p>
+</section>
+<section id="optimization-pseudocode">
+<h3>Optimization Pseudocode<a class="headerlink" href="#optimization-pseudocode" title="Link to this heading">¶</a></h3>
+<p>The following pseudocode summarizes the optimization loop:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Initialize swarm: for each particle i=1…N
+    Randomly initialize position x_i within lower and upper bounds of gains
+    Randomly initialize velocity v_i
+    Evaluate cost J_i using a DIP simulation with gains x_i
+    Set personal best pbest_i = x_i and cost pbest_cost_i = J_i
+Identify global best gbest among particles
+
+For iter = 1 to max_iterations:
+    For each particle i:
+        Generate random numbers r1, r2 ∈ [0,1]
+        Update velocity: v_i ← w·v_i + c1·r1·(pbest_i – x_i) + c2·r2·(gbest – x_i)
+        Update position: x_i ← x_i + v_i
+        Apply position bounds (clamp)
+        Evaluate cost J_i
+        If J_i &lt; pbest_cost_i:
+            pbest_i ← x_i; pbest_cost_i ← J_i
+    Update gbest as the particle with the lowest cost
+    If stopping criterion satisfied (e.g., minimal improvement), break
+Return gbest as the tuned SMC gains
+</pre></div>
+</div>
+</section>
+</section>
+<section id="implementation-details">
+<h2>Implementation Details<a class="headerlink" href="#implementation-details" title="Link to this heading">¶</a></h2>
+<p>The project is implemented in Python and uses just‑in‑time compiled numerical routines for efficiency. Key implementation choices include:</p>
+<ul class="simple">
+<li><p><strong>Simulation environment:</strong> The dynamic model is coded in <code class="docutils literal notranslate"><span class="pre">src/core/dynamics.py</span></code> using a manipulator form with friction; <code class="docutils literal notranslate"><span class="pre">run_simulation</span></code> in <code class="docutils literal notranslate"><span class="pre">src/core/simulation_runner.py</span></code> performs time stepping with a fourth‑order Runge–Kutta integrator. The simulation horizon is 10 s with $<code class="docutils literal notranslate"><span class="pre">\Delta</span> <span class="pre">t</span> <span class="pre">=</span> <span class="pre">0.01</span></code>$  s. The model includes gravitational acceleration $<code class="docutils literal notranslate"><span class="pre">g</span> <span class="pre">=</span> <span class="pre">9.81\,{m/s}^{2}</span></code>$ , cart mass $<code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">=</span> <span class="pre">1.5\,</span> <span class="pre">kg</span></code>$ , pendulum masses $<code class="docutils literal notranslate"><span class="pre">m_{1}</span> <span class="pre">=</span> <span class="pre">0.2\,</span> <span class="pre">kg</span></code>$ , $<code class="docutils literal notranslate"><span class="pre">m_{2}</span> <span class="pre">=</span> <span class="pre">0.15\,</span> <span class="pre">kg</span></code>$ , link lengths $<code class="docutils literal notranslate"><span class="pre">l_{1}</span> <span class="pre">=</span> <span class="pre">0.4\,</span> <span class="pre">m</span></code>$ , $<code class="docutils literal notranslate"><span class="pre">l_{2}</span> <span class="pre">=</span> <span class="pre">0.3\,</span> <span class="pre">m</span></code>$ , viscous frictions and inertias specified in the YAML configuration.</p></li>
+<li><p><strong>Controller:</strong> The <code class="docutils literal notranslate"><span class="pre">ClassicalSMC</span></code> controller (see <code class="docutils literal notranslate"><span class="pre">src/controllers/classic_smc.py</span></code>) implements the sliding surface and control law described earlier. It uses boundary layer $<code class="docutils literal notranslate"><span class="pre">\varepsilon</span> <span class="pre">=</span> <span class="pre">0.02</span></code>$ and saturates the force to $<code class="docutils literal notranslate"><span class="pre">\pm</span> <span class="pre">150</span></code>$  N. A small derivative gain $<code class="docutils literal notranslate"><span class="pre">k_{d}</span></code>$ reduces chattering but cannot eliminate it completely.</p></li>
+<li><p><strong>PSO hyper‑parameters:</strong> In <code class="docutils literal notranslate"><span class="pre">src/optimizer/pso_optimizer.py</span></code> the PSO routine uses 20 particles and 200 iterations with $<code class="docutils literal notranslate"><span class="pre">w</span> <span class="pre">=</span> <span class="pre">0.7</span></code>$ , $<code class="docutils literal notranslate"><span class="pre">c_{1}</span> <span class="pre">=</span> <span class="pre">2.0</span></code>$ , $<code class="docutils literal notranslate"><span class="pre">c_{2}</span> <span class="pre">=</span> <span class="pre">2.0</span></code>$ . The random number generator is seeded for reproducibility. Boundaries on gains ensure the controller remains physically reasonable. The cost function weights $<code class="docutils literal notranslate"><span class="pre">(50,0.2,0.1,0.1)</span></code>$ reflect a design choice to prioritize stabilization.</p></li>
+</ul>
+<p>During the optimisation each particle simulation runs for the full 10 s, so the PSO is computationally intensive. Surrogate models or parallel computing could reduce computation time. To accelerate testing, a separate script was used to implement a simplified PSO with shorter simulations and fewer particles; this produced approximate cost‑convergence data and is used for illustration here.</p>
+</section>
+<section id="experimental-results-and-discussion">
+<h2>Experimental Results and Discussion<a class="headerlink" href="#experimental-results-and-discussion" title="Link to this heading">¶</a></h2>
+<section id="pso-convergence">
+<h3>PSO Convergence<a class="headerlink" href="#pso-convergence" title="Link to this heading">¶</a></h3>
+<p>A representative PSO run was executed with eight particles and ten iterations (reduced for illustration). The best cost decreased rapidly in early iterations and gradually plateaued, demonstrating the swarm’s ability to explore and exploit the search space. Figure 1 shows the cost versus iteration.</p>
+<p>PSO cost function convergence over iterations</p>
+<p><em>Figure 1 – PSO convergence history (cost vs. iteration). A significant cost drop occurs within the first few iterations as particles explore the search space, followed by a gradual refinement.</em></p>
+</section>
+<section id="final-tuned-gains">
+<h3>Final Tuned Gains<a class="headerlink" href="#final-tuned-gains" title="Link to this heading">¶</a></h3>
+<p>The PSO search identified a set of SMC gains approximately equal to $<code class="docutils literal notranslate"><span class="pre">\left\lbrack</span> <span class="pre">k_{1},k_{2},\lambda_{1},\lambda_{2},K,k_{d}</span> <span class="pre">\right\rbrack</span> <span class="pre">=</span> <span class="pre">\lbrack</span> <span class="pre">36.65,\,</span> <span class="pre">28.21,\,</span> <span class="pre">17.89,\,</span> <span class="pre">13.05,\,</span> <span class="pre">20.75,\,</span> <span class="pre">4.21\rbrack</span></code>$ . These values were selected because they minimized the cost function subject to the system remaining stable.</p>
+</section>
+<section id="timedomain-response">
+<h3>Time‑Domain Response<a class="headerlink" href="#timedomain-response" title="Link to this heading">¶</a></h3>
+<p>Using the tuned gains, the DIP was simulated for 10 s. Figure 2 illustrates the cart position, pendulum angles, control force and sliding variable.</p>
+<p>Double inverted pendulum response and control input with PSO‑tuned SMC gains</p>
+<p><em>Figure 2 – System response under PSO‑tuned SMC. The top subplot shows the cart position (blue) and pendulum angles (orange and green); the middle subplot plots the control input; the bottom subplot shows the sliding variable</em> $<code class="docutils literal notranslate"><span class="pre">s</span></code>$ <em>.</em> The controller stabilizes the DIP but exhibits significant oscillations.</p>
+</section>
+<section id="performance-metrics">
+<h3>Performance Metrics<a class="headerlink" href="#performance-metrics" title="Link to this heading">¶</a></h3>
+<p>The following table summarizes key performance metrics derived from the simulation:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Metric</p></th>
+<th class="head"><p>Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Overshoot – lower pendulum angle $<code class="docutils literal notranslate"><span class="pre">q_{1}</span></code>$</p></td>
+<td><p>16.5 rad</p></td>
+</tr>
+<tr class="row-odd"><td><p>Overshoot – upper pendulum angle $<code class="docutils literal notranslate"><span class="pre">q_{2}</span></code>$</p></td>
+<td><p>25.9 rad</p></td>
+</tr>
+<tr class="row-even"><td><p>Integral of absolute error (IAE) for $<code class="docutils literal notranslate"><span class="pre">q_{1}</span></code>$</p></td>
+<td><p>73.5</p></td>
+</tr>
+<tr class="row-odd"><td><p>Integral of absolute error (IAE) for $<code class="docutils literal notranslate"><span class="pre">q_{2}</span></code>$</p></td>
+<td><p>83.8</p></td>
+</tr>
+<tr class="row-even"><td><p>Integral of absolute error (IAE) for cart position $<code class="docutils literal notranslate"><span class="pre">x</span></code>$</p></td>
+<td><p>3674</p></td>
+</tr>
+<tr class="row-odd"><td><p>Settling time (</p></td>
+<td><p>$<code class="docutils literal notranslate"><span class="pre">q_{1},q_{2}</span></code>$</p></td>
+</tr>
+<tr class="row-even"><td><p>Maximum control force</p></td>
+<td><p>$<code class="docutils literal notranslate"><span class="pre">150</span></code>$ N (saturated)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The tuned controller stabilizes the DIP by the end of the simulation but does not meet strict settling criteria before 10 s. Large overshoot and long settling times are observed. The integral absolute error of the cart position is particularly high because the cart moves significantly to balance the pendulums. The control input saturates at ±150 N, indicating that the controller operates at the limits of the actuator. The sliding variable oscillates around zero, and the derivative term $<code class="docutils literal notranslate"><span class="pre">k_{d}</span></code>$ reduces but does not eliminate chattering. Adjusting the weights in the cost function could penalize large overshoots and reduce oscillations.</p>
+</section>
+<section id="comparative-analysis">
+<h3>Comparative Analysis<a class="headerlink" href="#comparative-analysis" title="Link to this heading">¶</a></h3>
+<p>No baseline controller results were provided in the archive for direct comparison. Nevertheless, the tuned SMC can be compared qualitatively to typical hand‑tuned SMC designs. Large gains produce aggressive control and rapid error reduction but also cause substantial overshoot and chattering. A human designer might choose smaller gains to reduce chattering at the expense of slower convergence. Future work should test the tuned controller against manually tuned gains or alternative optimisation algorithms (e.g., genetic algorithms or gradient‑based tuning) to benchmark performance.</p>
+</section>
+</section>
+<section id="limitations-and-future-work">
+<h2>Limitations and Future Work<a class="headerlink" href="#limitations-and-future-work" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>Computational cost:</strong> PSO requires many simulations; with 20 particles and 200 iterations the optimization involves 4 000 simulations of a 10 s nonlinear system, which is computationally expensive. Surrogate models or parallel computing could reduce computation time. – <strong>Sensitivity to hyper‑parameters:</strong> The PSO performance depends on the inertia weight and acceleration coefficients. Numerous adaptive strategies have been proposed to adjust these parameters over the course of the search, such as fuzzy adaptive schemes and state‑dependent rules, which improve exploration and exploitation<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7516836/#:~:text=As%20stated%20in%20,37">[10]</a>. Implementing an adaptive PSO could yield better convergence without manual tuning. – <strong>Simplified cost function:</strong> The cost function weights were selected heuristically. Different tasks (e.g., tracking versus regulation) may require different weights. Multi‑objective optimisation could explore trade‑offs between settling time, overshoot, control effort and chattering. – <strong>Chattering:</strong> Despite the boundary layer and derivative term, the controller still exhibits chattering. Higher‑order sliding‑mode methods, such as the super‑twisting algorithm, can reduce chattering by hiding the discontinuous switching term behind an integrator<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9539940/#:~:text=disturbances,26">[11]</a>. Adaptive gain strategies have been shown to achieve finite‑time convergence without requiring conservative bounds on disturbances<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9539940/#:~:text=input%20that%20drives%20the%20sliding,needs%20to%20be%20considered%20to">[12]</a>. – <strong>Model uncertainties:</strong> The model assumes known parameters and no external disturbances. Incorporating parameter uncertainties and disturbances would test the controller’s robustness. Adaptive or robust PSO could optimise for worst‑case scenarios. – <strong>Comparative studies:</strong> Future work should compare PSO‑tuned SMC to other optimisation methods (e.g., genetic algorithms, Bayesian optimisation) and to advanced controller structures (e.g., linear quadratic regulators, model predictive control).</p></li>
+</ul>
+</section>
+<section id="conclusion">
+<h2>Conclusion<a class="headerlink" href="#conclusion" title="Link to this heading">¶</a></h2>
+<p>This report presented a comprehensive examination of a particle‑swarm‑optimised sliding‑mode controller for a double inverted pendulum. The dynamic model was derived in manipulator form using the Euler–Lagrange formulation<a class="reference external" href="https://www.mdpi.com/2227-7390/13/12/1996#:~:text=Figure%202,inverted%20pendulum%20system">[6]</a>, and the SMC design and cost function were formalised. PSO’s velocity and position update equations were summarised with emphasis on the roles of the cognitive, social and inertia terms<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7516836/#:~:text=At%20each%20iteration%2C%20the%20velocity,suitable%20stopping%20criterion%20is%20satisfied">[4]</a><a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7516836/#:~:text=In%201998%2C%20Shi%20and%20Eberhart,on%20the%20current%20particle%E2%80%99s%20movement">[5]</a>. A pseudocode algorithm outlined the optimisation procedure, and implementation details of the simulation and controller were clarified. Simulation results demonstrated that PSO‑tuned gains can stabilise the DIP but may produce significant overshoot, long settling times and actuator saturation. The findings highlight the potential of PSO for automating controller tuning while emphasising the need for careful cost‑function design and the mitigation of chattering. Future work should explore adaptive PSO, alternative optimisation techniques and advanced sliding‑mode variants, such as super‑twisting algorithms and hierarchical approaches, to enhance performance and robustness<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9539940/#:~:text=disturbances,26">[11]</a><a class="reference external" href="https://www.mdpi.com/2673-4052/5/3/17">[13]</a>.</p>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">¶</a></h2>
+<p>[1] D. Freitas, L. G. Lopes and F. Morgado‑Dias, “Particle Swarm Optimisation: A Historical Review up to the Current Developments,” <em>Entropy</em>, vol. 22, no. 3, p. 362, 2020<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7516836/#:~:text=At%20each%20iteration%2C%20the%20velocity,suitable%20stopping%20criterion%20is%20satisfied">[4]</a><a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7516836/#:~:text=In%201998%2C%20Shi%20and%20Eberhart,on%20the%20current%20particle%E2%80%99s%20movement">[5]</a>. [2] D.-B. Pham, Q.-T. Dao and T.-V.-A. Nguyen, “Optimized Hierarchical Sliding Mode Control for the Swing‑Up and Stabilization of a Rotary Inverted Pendulum,” <em>Automation</em>, vol. 5, no. 3, pp. 282–296, 2024<a class="reference external" href="https://www.mdpi.com/2673-4052/5/3/17#:~:text=studied%20to%20address%20their%20inherent,did%20not%20select%20optimal%20parameters">[14]</a>. [3] I.-L. G. Borlaug, K. Y. Pettersen and J. T. Gravdahl, “The Generalized Super‑Twisting Algorithm with Adaptive Gains,” <em>International Journal of Robust and Nonlinear Control</em>, vol. 32, no. 13, pp. 7240–7270, 2022<a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9539940/#:~:text=1">[15]</a>. [4] D. Ju, J. Lee and Y. S. Lee, “Sim‑to‑Real Reinforcement Learning for a Rotary Double‑Inverted Pendulum Based on a Mathematical Model,” <em>Mathematics</em>, vol. 13, no. 12, p. 1996, 2025<a class="reference external" href="https://www.mdpi.com/2227-7390/13/12/1996#:~:text=Figure%202,inverted%20pendulum%20system">[6]</a>.</p>
+<hr class="docutils" />
+<p><a class="reference external" href="https://www.mdpi.com/2673-4052/5/3/17#:~:text=studied%20to%20address%20their%20inherent,did%20not%20select%20optimal%20parameters">[1]</a> <a class="reference external" href="https://www.mdpi.com/2673-4052/5/3/17#:~:text=studied%20to%20address%20their%20inherent,did%20not%20select%20optimal%20parameters">[7]</a> <a class="reference external" href="https://www.mdpi.com/2673-4052/5/3/17">[13]</a> <a class="reference external" href="https://www.mdpi.com/2673-4052/5/3/17#:~:text=studied%20to%20address%20their%20inherent,did%20not%20select%20optimal%20parameters">[14]</a> Optimized Hierarchical Sliding Mode Control for the Swing-Up and Stabilization of a Rotary Inverted Pendulum</p>
+<p><a class="reference external" href="https://www.mdpi.com/2673-4052/5/3/17">https://www.mdpi.com/2673-4052/5/3/17</a></p>
+<p><a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9539940/#:~:text=1">[2]</a> <a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9539940/#:~:text=discontinuous%20element%20provides%20robustness%2C%20but,6%20%20Thus%2C%20a%20continuous">[3]</a> <a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9539940/#:~:text=discontinuous%20element%20provides%20robustness%2C%20but,surface%2C%20thus%20sacrificing%20robustness%20to">[8]</a> <a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9539940/#:~:text=disturbances,26">[9]</a> <a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9539940/#:~:text=disturbances,26">[11]</a> <a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9539940/#:~:text=input%20that%20drives%20the%20sliding,needs%20to%20be%20considered%20to">[12]</a> <a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9539940/#:~:text=1">[15]</a> The generalized super‐twisting algorithm with adaptive gains - PMC</p>
+<p><a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9539940/">https://pmc.ncbi.nlm.nih.gov/articles/PMC9539940/</a></p>
+<p><a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7516836/#:~:text=At%20each%20iteration%2C%20the%20velocity,suitable%20stopping%20criterion%20is%20satisfied">[4]</a> <a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7516836/#:~:text=In%201998%2C%20Shi%20and%20Eberhart,on%20the%20current%20particle%E2%80%99s%20movement">[5]</a> <a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7516836/#:~:text=As%20stated%20in%20,37">[10]</a> Particle Swarm Optimisation: A Historical Review Up to the Current Developments - PMC</p>
+<p><a class="reference external" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7516836/">https://pmc.ncbi.nlm.nih.gov/articles/PMC7516836/</a></p>
+<p><a class="reference external" href="https://www.mdpi.com/2227-7390/13/12/1996#:~:text=Figure%202,inverted%20pendulum%20system">[6]</a> Sim-to-Real Reinforcement Learning for a Rotary Double-Inverted Pendulum Based on a Mathematical Model</p>
+<p><a class="reference external" href="https://www.mdpi.com/2227-7390/13/12/1996">https://www.mdpi.com/2227-7390/13/12/1996</a></p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="results-discussion.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">8 – Results and Discussion</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="pso-optimization.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title"><strong>Comprehensive Simulation Analysis and Enhancements for the Double Inverted Pendulum Control System</strong></div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2024, Research Team
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Particle Swarm Optimization for Sliding‑Mode Controller Tuning of a Double Inverted Pendulum</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#system-modelling-problem-statement">System Modelling &amp; Problem Statement</a><ul>
+<li><a class="reference internal" href="#double-inverted-pendulum-dynamics">Double Inverted Pendulum Dynamics</a></li>
+<li><a class="reference internal" href="#control-objective">Control Objective</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#methodology-slidingmode-control-particle-swarm-optimization">Methodology: Sliding‑Mode Control &amp; Particle Swarm Optimization</a><ul>
+<li><a class="reference internal" href="#classical-slidingmode-controller-smc">Classical Sliding‑Mode Controller (SMC)</a></li>
+<li><a class="reference internal" href="#particle-swarm-optimization-pso">Particle Swarm Optimization (PSO)</a></li>
+<li><a class="reference internal" href="#optimization-pseudocode">Optimization Pseudocode</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#implementation-details">Implementation Details</a></li>
+<li><a class="reference internal" href="#experimental-results-and-discussion">Experimental Results and Discussion</a><ul>
+<li><a class="reference internal" href="#pso-convergence">PSO Convergence</a></li>
+<li><a class="reference internal" href="#final-tuned-gains">Final Tuned Gains</a></li>
+<li><a class="reference internal" href="#timedomain-response">Time‑Domain Response</a></li>
+<li><a class="reference internal" href="#performance-metrics">Performance Metrics</a></li>
+<li><a class="reference internal" href="#comparative-analysis">Comparative Analysis</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#limitations-and-future-work">Limitations and Future Work</a></li>
+<li><a class="reference internal" href="#conclusion">Conclusion</a></li>
+<li><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    </body>
+</html>

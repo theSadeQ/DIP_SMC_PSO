@@ -15,7 +15,8 @@ sphinxext-opengraph>=0.9.1    # Social media previews
 sphinx-sitemap>=2.5.1        # SEO sitemap generation
 
 # Theme
-furo>=2024.5.13               # Modern responsive theme
+sphinx-rtd-theme>=2.0.0       # Professional Read the Docs theme
+furo>=2024.5.13               # Modern responsive theme (alternative)
 
 # Math and advanced features
 sphinx-proof>=0.1.3          # Theorem/proof environments

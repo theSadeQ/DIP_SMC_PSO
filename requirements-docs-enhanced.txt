@@ -1,0 +1,29 @@
+# Enhanced Documentation Dependencies for DIP_SMC_PSO
+# Phase 1: Professional Documentation Infrastructure
+
+# Core Sphinx
+sphinx>=7.0.0
+sphinx-rtd-theme>=2.0.0
+
+# Advanced Extensions
+sphinxcontrib-bibtex>=2.6.0      # Citation management
+sphinx-copybutton>=0.5.2         # Copyable code blocks
+sphinx-math-dollar>=1.2.1        # LaTeX math with $ delimiters
+sphinx-design>=0.5.0             # Grid layouts and cards
+sphinx-togglebutton>=0.3.2       # Collapsible content
+sphinxcontrib-mermaid>=0.9.2     # Diagram support
+sphinxcontrib-plantuml>=0.26     # UML diagrams
+myst-parser>=2.0.0               # Markdown support
+
+# Scientific and Mathematical
+matplotlib>=3.7.0                # Plot generation
+numpy>=1.24.0                    # Mathematical operations
+sympy>=1.12                      # Symbolic mathematics
+
+# Code quality and formatting
+pygments>=2.15.0                 # Syntax highlighting
+black>=23.0.0                    # Code formatting
+
+# Development and testing
+pytest>=7.4.0                    # Documentation testing
+linkchecker>=10.2.1              # Link validation

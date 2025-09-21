@@ -1,0 +1,38 @@
+[global]
+# Development settings
+developmentMode = false
+
+[server]
+# Server settings for deployment
+port = 8501
+baseUrlPath = ""
+enableCORS = false
+enableXsrfProtection = true
+maxUploadSize = 100
+
+[browser]
+# Browser settings
+gatherUsageStats = false
+showErrorDetails = false
+
+[theme]
+# App theme
+primaryColor = "#FF6B6B"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F0F2F6"
+textColor = "#262730"
+
+[runner]
+# Performance settings
+magicEnabled = true
+installTracer = false
+fixMatplotlib = true
+
+[logger]
+# Logging configuration
+level = "error"
+
+[client]
+# Client settings
+showErrorDetails = false
+toolbarMode = "minimal"
