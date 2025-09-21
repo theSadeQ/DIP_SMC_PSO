@@ -17,6 +17,10 @@ Sliding Mode Control (SMC) is a robust control methodology that provides finite-
 
 where $s(\vec{x}, t): \mathbb{R}^n \times \mathbb{R}^+ \rightarrow \mathbb{R}$ is the sliding function.
 
+```{note}
+**Implementation Note**: The sliding surface calculation is implemented in {py:obj}`src.controllers.classic_smc.ClassicalSMC.compute_sliding_surface` using the equations defined above.
+```
+
 **Definition 2 (Sliding Mode)**: The system is said to be in sliding mode when:
 1. The trajectory reaches the sliding surface: $s(\vec{x}, t) = 0$
 2. The trajectory remains on the surface: $\dot{s}(\vec{x}, t) = 0$
@@ -46,7 +50,7 @@ where:
 - $\dot{\vec{e}}_p = [\dot{e}_x, \dot{e}_{\theta_1}, \dot{e}_{\theta_2}]^T$ - velocity errors
 - $\vec{c} = [c_x, c_{\theta_1}, c_{\theta_2}]^T$ - sliding surface parameters
 
-The sliding surface matrix is:
+The sliding surface matrix is defined in equation {eq}`eq:linear_sliding_surface` and implemented in {py:obj}`src.controllers.classic_smc.ClassicalSMC.sliding_surface_matrix`:
 
 ```{math}
 :label: eq:sliding_surface_matrix

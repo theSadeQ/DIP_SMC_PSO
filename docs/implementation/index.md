@@ -190,9 +190,9 @@ controllers:
 
 pso:
   # Swarm size (computational vs. exploration tradeoff)
-  n_particles: 30
+  n_particles: 20
   # Maximum iterations (convergence vs. time tradeoff)
-  max_iter: 100
+  iters: 200
   # Objective weights (see eq:pso_objective)
   weights:
     error: 1.0      # Tracking performance

@@ -1,0 +1,107 @@
+--- a/.github/workflows/docs-deploy.yml
++++ b/.github/workflows/docs-deploy.yml
+@@ -1,84 +1,56 @@
+ name: Documentation Deploy
+ 
+-# Deploy documentation to GitHub Pages
+ on:
+   push:
+     branches: [ main ]
+     paths:
+       - 'docs/**'
+       - 'src/**'
++      - '.github/workflows/docs-deploy.yml'
+   workflow_dispatch:
+ 
+-# Prevent concurrent deployments
++permissions: {}  # default: none
++
+ concurrency:
+   group: "pages"
+   cancel-in-progress: true
+ 
+-# Default no permissions at workflow level
+-permissions: {}
+-
+ jobs:
+   build:
+-    name: Build Documentation
++    name: Build HTML
+     runs-on: ubuntu-latest
+     permissions:
+-      contents: read      # Read repository contents
+-
++      contents: read
+     steps:
+-      - name: Checkout repository
+-        uses: actions/checkout@v4
+-        with:
+-          fetch-depth: 0  # Full history for commit permalinks
+-
+-      - name: Set up Python
+-        uses: actions/setup-python@v5
+-        with:
+-          python-version: "3.12"
+-
+-      - name: Cache pip dependencies
+-        uses: actions/cache@v4
++      - uses: actions/checkout@v4
++        with: { fetch-depth: 0 }
++      - uses: actions/setup-python@v5
++        with: { python-version: "3.12" }
++      - uses: actions/cache@v4
+         with:
+           path: ~/.cache/pip
+           key: pip-${{ runner.os }}-${{ hashFiles('docs/requirements*.txt') }}
+-
+-      - name: Install dependencies
+-        run: |
+-          pip install --upgrade pip
++          restore-keys: |
++            pip-${{ runner.os }}-
++      - run: |
++          python -m pip install --upgrade pip
+           pip install -r docs/requirements.txt
+-
+-      - name: Configure GitHub repository info
+-        run: |
+-          cd docs
+-          # Update conf.py with actual repository information
+-          sed -i 's/yourusername/${{ github.repository_owner }}/g' conf.py
+-          sed -i 's/"DIP_SMC_PSO"/"${{ github.event.repository.name }}"/g' conf.py
+-
+-      - name: Build documentation for deployment
+-        run: |
+-          cd docs
+-          sphinx-build -n -b html . _site
+-
+-      - name: Upload Pages artifact
+-        uses: actions/upload-pages-artifact@v3
++      - run: sphinx-build -n -b html docs docs/_site
++      - uses: actions/upload-pages-artifact@v3
+         with:
+           path: docs/_site
+ 
+   deploy:
+-    name: Deploy to GitHub Pages
++    name: Deploy to Pages
+     needs: build
+     runs-on: ubuntu-latest
+     permissions:
+-      pages: write          # Deploy to Pages
+-      id-token: write       # Verify deployment origin
++      pages: write
++      id-token: write
+     environment:
+       name: github-pages
+       url: ${{ steps.deployment.outputs.page_url }}
+-
+     steps:
+-      - name: Deploy to GitHub Pages
+-        id: deployment
++      - id: deployment
+         uses: actions/deploy-pages@v4
+-
+-      - name: Update deployment status
+-        run: |
+-          echo "::notice::Documentation deployed to ${{ steps.deployment.outputs.page_url }}"+      - run: echo "::notice::Documentation deployed to ${{ steps.deployment.outputs.page_url }}"

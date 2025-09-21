@@ -106,9 +106,11 @@ flowchart LR
 
 | Component | Module | Method | Theory Reference |
 |-----------|--------|--------|------------------|
-| Particle Updates | `pso_optimizer.py` | `update_particles()` | {eq}`eq:pso_velocity_update` |
-| Multi-objective | `pso_optimizer.py` | `evaluate_fitness()` | {eq}`eq:multiobjective_problem` |
-| Constraint Handling | `pso_optimizer.py` | `apply_constraints()` | {eq}`eq:parameter_constraints` |
+| Particle Updates | `pso_optimizer.py` | `pyswarms.single.GlobalBestPSO` (wrapped in `optimise()`) | {eq}`eq:pso_velocity_update` |
+| Fitness Evaluation | `pso_optimizer.py` | `_fitness()` | {eq}`eq:multiobjective_problem` |
+| Cost Computation | `pso_optimizer.py` | `_compute_cost_from_traj()` | {eq}`eq:parameter_constraints` |
+
+**Implementation Note:** This project uses **PySwarms (GlobalBestPSO)** as the underlying PSO engine. Inertia scheduling and velocity clamping are applied via `w_schedule` and `velocity_clamp` configuration parameters.
 
 ## Module Architecture
 
@@ -200,13 +202,13 @@ Every significant mathematical equation has a corresponding implementation:
 * - PSO Theory
   - {eq}`eq:pso_velocity_update`
   - `pso_optimizer.py`
-  - `update_particles()`
-  - ~180
+  - `optimise()` (via PySwarms)
+  - ~596
 * - PSO Theory
   - {eq}`eq:multiobjective_problem`
   - `pso_optimizer.py`
-  - `evaluate_fitness()`
-  - ~250
+  - `_fitness()`
+  - ~500
 ```
 
 ### API Documentation Links

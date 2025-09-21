@@ -70,6 +70,15 @@ context
 
 ```{toctree}
 :maxdepth: 2
+:caption: 📋 Quick Guides
+
+hil_quickstart
+benchmarks_methodology
+fault_detection_guide
+```
+
+```{toctree}
+:maxdepth: 2
 :caption: 📊 Research Presentation
 
 presentation/index
@@ -118,7 +127,7 @@ where $\vec{q} = [x, \theta_1, \theta_2]^T$ represents the cart position and pen
 s(\vec{x}) = \vec{S}\vec{x} = \vec{0}
 ```
 
-For detailed mathematical derivations, see [System Dynamics](theory/system_dynamics_complete.md).
+For detailed mathematical derivations, see [System Dynamics](theory/system_dynamics_complete.md). The control implementation can be found in the {py:obj}`src.controllers` module.
 
 ## Controller Performance Comparison
 
@@ -153,6 +162,33 @@ For detailed mathematical derivations, see [System Dynamics](theory/system_dynam
   - Excellent
 ```
 
+## PSO Optimization Workflow
+
+The Particle Swarm Optimization process for controller tuning follows this systematic approach:
+
+```{mermaid}
+flowchart LR
+    Init[Initialize Swarm] --> Eval[Evaluate Fitness J(θ)]
+    Eval --> Update[Update p_best & g_best]
+    Update --> Velocity[Update Velocity v_i]
+    Velocity --> Position[Update Position x_i]
+    Position --> Converged{Converged?}
+    Converged -- No --> Eval
+    Converged -- Yes --> Output[Output θ*]
+
+    subgraph "Fitness Evaluation"
+        Eval --> Sim[Run Simulation]
+        Sim --> Cost[Calculate Cost Function]
+        Cost --> Stability[Check Stability Margins]
+    end
+
+    style Init fill:#e1f5fe
+    style Output fill:#c8e6c9
+    style Converged fill:#fff3e0
+```
+
+This optimization process is implemented in {py:obj}`src.optimizer.pso_optimizer.PSOOptimizer` and integrates with all controller types described in {numref}`table:controller_comparison`.
+
 ## Bibliography
 
 ## References
@@ -161,7 +197,13 @@ Bibliography coming soon - citations system is being configured.
 
 ## Project Links
 
+### Core Documentation
 - 📚 [Theory Overview](theory_overview.md)
 - 🎮 [Controller Documentation](controllers/index.md)
 - 📖 [API Reference](api/index.md)
 - 🔬 [Examples](examples/index.md)
+
+### Quick Guides
+- 🔗 [Hardware-in-the-Loop (HIL) Quickstart](hil_quickstart.md)
+- 📊 [Benchmarks & Methodology](benchmarks_methodology.md)
+- 🛡️ [Fault Detection & Isolation Guide](fault_detection_guide.md)

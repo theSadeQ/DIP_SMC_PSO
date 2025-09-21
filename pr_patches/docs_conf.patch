@@ -1,0 +1,30 @@
+--- a/docs/conf.py
++++ b/docs/conf.py
+@@ -163,7 +163,7 @@
+ html_static_path = ['_static']
+ 
+ # SEO and social media configuration
+-html_baseurl = 'https://yourusername.github.io/DIP_SMC_PSO/'  # TODO: Update with actual URL
++html_baseurl = 'https://theSadeQ.github.io/DIP_SMC_PSO/'  # TODO: Update with actual URL
+ ogp_site_url = html_baseurl
+ ogp_site_name = project
+ ogp_description = 'Advanced sliding mode control for double-inverted pendulum with PSO optimization'
+@@ -172,8 +172,17 @@
+ # Sitemap configuration
+ sitemap_url_scheme = "{link}"
+ 
++
++# Linkcheck configuration (used by nightly linkcheck builder)
++linkcheck_timeout = 10
++linkcheck_anchors = True
++linkcheck_ignore = [
++    r"https://doi\.org/.*",
++    r"https://.*github\.com/.*#.*",
++]
++
+ # Linkcode extension for durable source links
+-GITHUB_USER = "yourusername"  # TODO: Update with actual GitHub username
++GITHUB_USER = "theSadeQ"  # TODO: Update with actual GitHub username
+ GITHUB_REPO = "DIP_SMC_PSO"
+ 
+ def _get_commit_sha():

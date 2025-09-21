@@ -11,7 +11,7 @@ SOURCEDIR     = .
 BUILDDIR      = _build
 
 # Build targets
-.PHONY: help clean html pdf linkcheck livehtml install-deps quality validate
+.PHONY: help clean html pdf linkcheck livehtml live install-deps quality validate
 
 # Default target
 help:
@@ -19,10 +19,11 @@ help:
 	@echo "======================================"
 	@echo ""
 	@echo "Available targets:"
-	@echo "  html        Build HTML documentation"
+	@echo "  html        Build HTML documentation (strict mode)"
+	@echo "  live        Build and auto-reload on changes with browser"
+	@echo "  livehtml    Build and auto-reload on changes"
 	@echo "  pdf         Build PDF documentation (requires LaTeX)"
 	@echo "  linkcheck   Check all external links"
-	@echo "  livehtml    Build and auto-reload on changes"
 	@echo "  clean       Clean build directory"
 	@echo "  install-deps Install documentation dependencies"
 	@echo "  quality     Run documentation quality checks"
@@ -45,13 +46,18 @@ clean:
 	rm -rf $(BUILDDIR)/*
 	@echo "Build directory cleaned!"
 
-# Build HTML documentation
+# Build HTML documentation (strict mode)
 html: clean
-	@echo "Building HTML documentation..."
-	$(SPHINXBUILD) -b html $(SPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/html
+	@echo "Building HTML documentation (strict mode)..."
+	$(SPHINXBUILD) -nW -b html $(SPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/html
 	@echo ""
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 	@echo "Open $(BUILDDIR)/html/index.html in your browser."
+
+# Live build with auto-reload (template version)
+live:
+	@echo "Starting live documentation server..."
+	sphinx-autobuild $(SOURCEDIR) $(BUILDDIR)/html --open-browser
 
 # Build PDF documentation
 pdf: clean

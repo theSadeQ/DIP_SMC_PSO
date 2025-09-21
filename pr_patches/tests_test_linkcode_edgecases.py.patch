@@ -1,0 +1,38 @@
+--- /dev/null
++++ b/tests/test_linkcode_edgecases.py
+@@ -0,0 +1,35 @@
+import re
+import sys
+from pathlib import Path
+import pytest
+
+# import linkcode_resolve from docs/conf.py
+sys.path.insert(0, str(Path(__file__).parent.parent / "docs"))
+from conf import linkcode_resolve  # type: ignore
+
+import tests.sample_module as sample
+
+
+@pytest.mark.parametrize("obj", [
+    sample.decorated_no_wraps_func,
+    sample.decorated_with_wraps_func,
+])
+def test_decorated_functions_have_line_anchors(obj):
+    url = linkcode_resolve("py", {"module": obj.__module__, "fullname": obj.__qualname__})
+    assert url and "blob/" in url and re.search(r"#L\d+-L\d+$", url), url
+
+
+@pytest.mark.parametrize("obj", [
+    sample.Klass.prop,
+    sample.Klass.class_m,
+    sample.Klass.static_m,
+])
+def test_methods_and_properties_have_stable_urls(obj):
+    url = linkcode_resolve("py", {"module": obj.__module__, "fullname": obj.__qualname__})
+    assert url and "blob/" in url
+    assert "\" not in url  # POSIX normalization
+
+
+def test_module_fallback_when_no_lines():
+    url = linkcode_resolve("py", {"module": sample.__name__, "fullname": "NonExistent"})
+    assert url and "#L" not in url

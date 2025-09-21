@@ -1,0 +1,11 @@
+--- a/.github/workflows/docs-nightly.yml
++++ b/.github/workflows/docs-nightly.yml
+@@ -62,7 +62,7 @@
+             if python3 -c "exit(0 if float('$PASS_RATE') >= 99.0 else 1)"; then
+               echo "✓ Link health meets 99% threshold"
+             else
+-              echo "::warning::Link health below 99% threshold (${PASS_RATE}%)"
++              echo "::error::Link health below 99% threshold (${PASS_RATE}%)" && exit 1
+               if [ "$BROKEN" -gt "0" ]; then
+                 echo "Broken links:"
+                 grep "broken" output.txt || true

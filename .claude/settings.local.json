@@ -12,7 +12,13 @@
       "Bash(make:*)",
       "Bash(test:*)",
       "Bash(curl:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git rm:*)",
+      "Bash(git push:*)",
+      "Read(//d/Projects/main/**)",
+      "Bash(PYTHONPATH=.. python -m sphinx -nW -b html . _build/html)",
+      "Bash(PYTHONPATH=.. python -m sphinx -b html . _build/html)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []

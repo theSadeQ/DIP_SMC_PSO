@@ -1,0 +1,38 @@
+--- /dev/null
++++ b/tests/sample_module.py
+@@ -0,0 +1,35 @@
+"""Sample module for linkcode edge-case tests."""
+
+import functools
+
+def decorated_no_wraps(f):
+    def inner(*a, **k):
+        return f(*a, **k)
+    return inner
+
+def decorated_with_wraps(f):
+    @functools.wraps(f)
+    def inner(*a, **k):
+        return f(*a, **k)
+    return inner
+
+@decorated_no_wraps
+def decorated_no_wraps_func():
+    return 42
+
+@decorated_with_wraps
+def decorated_with_wraps_func():
+    return 43
+
+class Klass:
+    @property
+    def prop(self):
+        return 1
+
+    @classmethod
+    def class_m(cls):
+        return 2
+
+    @staticmethod
+    def static_m():
+        return 3

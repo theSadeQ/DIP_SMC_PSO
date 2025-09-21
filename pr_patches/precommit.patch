@@ -1,0 +1,28 @@
+--- a/.pre-commit-config.yaml
++++ b/.pre-commit-config.yaml
+@@ -117,4 +117,25 @@
+ 
+             print('✓ Documentation consistency check completed')
+         files: '^docs/.*\.md$'
+-        pass_filenames: false+        pass_filenames: false
++
++- repo: https://github.com/executablebooks/mdformat
++  rev: 0.7.17
++  hooks:
++    - id: mdformat
++      additional_dependencies: [mdformat-myst]
++
++- repo: https://github.com/timhussey/bibtex-tidy
++  rev: v1.13.0
++  hooks:
++    - id: bibtex-tidy
++      files: ^docs/refs\.bib$
++      args: ["--curly","--space=2","--wrap=100","--sort=key"]
++
++- repo: local
++  hooks:
++    - id: citation-check
++      name: Validate Sphinx citations
++      entry: python scripts/check_citations.py
++      language: system
++      pass_filenames: false

@@ -1,0 +1,14 @@
+--- a/.readthedocs.yaml
++++ b/.readthedocs.yaml
+@@ -33,10 +33,7 @@
+         - docs
+ 
+ # Format and output
+-formats:
+-  - htmlzip
+-  - pdf
+-
++formats: []
+ # Search configuration
+ search:
+   ranking:

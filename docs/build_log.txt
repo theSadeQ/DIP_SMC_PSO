@@ -1,0 +1,705 @@
+[01mRunning Sphinx v8.2.3[39;49;00m
+[01mloading translations [en]... [39;49;00mdone
+C:\Users\sadeg\AppData\Roaming\Python\Python312\site-packages\sphinxcontrib\autoclassdiag.py:3: RemovedInSphinx90Warning: The alias 'sphinx.util.ExtensionError' is deprecated, use 'sphinx.errors.ExtensionError' instead. Check CHANGES for Sphinx API modifications.
+  from sphinx.util import ExtensionError, import_object
+loading intersphinx inventory 'python' from https://docs.python.org/3/objects.inv ...
+loading intersphinx inventory 'numpy' from https://numpy.org/doc/stable/objects.inv ...
+loading intersphinx inventory 'scipy' from https://docs.scipy.org/doc/scipy/objects.inv ...
+loading intersphinx inventory 'matplotlib' from https://matplotlib.org/stable/objects.inv ...
+[01mmyst v4.0.1:[39;49;00m MdParserConfig(commonmark_only=False, gfm_only=False, enable_extensions={'dollarmath', 'linkify', 'fieldlist', 'deflist', 'tasklist', 'colon_fence', 'amsmath'}, disable_syntax=[], all_links_external=False, links_external_new_tab=False, url_schemes=('http', 'https', 'mailto', 'ftp'), ref_domains=None, fence_as_directive=set(), number_code_blocks=[], title_to_header=False, heading_anchors=3, heading_slug_func=None, html_meta={}, footnote_sort=True, footnote_transition=True, words_per_minute=200, substitutions={}, linkify_fuzzy_links=True, dmath_allow_labels=True, dmath_allow_space=True, dmath_allow_digits=True, dmath_double_inline=False, update_mathjax=True, mathjax_classes='tex2jax_process|mathjax_process|math|output_area', enable_checkboxes=False, suppress_warnings=[], highlight_code_blocks=True)
+[01mbuilding [mo]: [39;49;00mtargets for 0 po files that are out of date
+[01mwriting output... [39;49;00m
+[01mbuilding [html]: [39;49;00mtargets for 67 source files that are out of date
+[01mupdating environment: [39;49;00m[new config] 67 added, 0 changed, 0 removed
+[2K[01mreading sources... [39;49;00m[  1%] [35m.github/ISSUE_TEMPLATE/bug_report[39;49;00m[2K[01mreading sources... [39;49;00m[  3%] [35m.github/ISSUE_TEMPLATE/feature_request[39;49;00m[2K[01mreading sources... [39;49;00m[  4%] [35m.github/PULL_REQUEST_TEMPLATE[39;49;00m[2K[01mreading sources... [39;49;00m[  6%] [35mCHANGELOG[39;49;00m[2K[01mreading sources... [39;49;00m[  7%] [35mCLAUDE[39;49;00m[2K[01mreading sources... [39;49;00m[  9%] [35mCONTRIBUTING[39;49;00m[2K[01mreading sources... [39;49;00m[ 10%] [35mREADME[39;49;00m[2K[01mreading sources... [39;49;00m[ 12%] [35mRELEASE_CHECKLIST[39;49;00m[2K[01mreading sources... [39;49;00m[ 13%] [35mTESTING[39;49;00m[2K[01mreading sources... [39;49;00m[ 15%] [35manalysis_plan[39;49;00m[2K[01mreading sources... [39;49;00m[ 16%] [35mapi/index[39;49;00m[2K[01mreading sources... [39;49;00m[ 18%] [35marchitecture[39;49;00m[2K[01mreading sources... [39;49;00m[ 19%] [35mcontext[39;49;00m[2K[01mreading sources... [39;49;00m[ 21%] [35mcontrollers/index[39;49;00m[2K[01mreading sources... [39;49;00m[ 22%] [35mimplementation/api/src.controllers.adaptive_smc[39;49;00m[2K[01mreading sources... [39;49;00m[ 24%] [35mimplementation/api/src.controllers.classic_smc[39;49;00m[2K[01mreading sources... [39;49;00m[ 25%] [35mimplementation/api/src.controllers.factory[39;49;00m[2K[01mreading sources... [39;49;00m[ 27%] [35mimplementation/api/src.controllers.hybrid_adaptive_sta_smc[39;49;00m[2K[01mreading sources... [39;49;00m[ 28%] [35mimplementation/api/src.controllers.sta_smc[39;49;00m[2K[01mreading sources... [39;49;00m[ 30%] [35mimplementation/api/src.core.dynamics[39;49;00m[2K[01mreading sources... [39;49;00m[ 31%] [35mimplementation/api/src.core.simulation_context[39;49;00m[2K[01mreading sources... [39;49;00m[ 33%] [35mimplementation/api/src.core.simulation_runner[39;49;00m[2K[01mreading sources... [39;49;00m[ 34%] [35mimplementation/api/src.core.vector_sim[39;49;00m[2K[01mreading sources... [39;49;00m[ 36%] [35mimplementation/api/src.optimizer.pso_optimizer[39;49;00m[2K[01mreading sources... [39;49;00m[ 37%] [35mimplementation/api/src.utils.control_analysis[39;49;00m[2K[01mreading sources... [39;49;00m[ 39%] [35mimplementation/api/src.utils.statistics[39;49;00m[2K[01mreading sources... [39;49;00m[ 40%] [35mimplementation/api/src.utils.visualization[39;49;00m[2K[01mreading sources... [39;49;00m[ 42%] [35mimplementation/code_documentation_index[39;49;00m[2K[01mreading sources... [39;49;00m[ 43%] [35mimplementation/index[39;49;00m[2K[01mreading sources... [39;49;00m[ 45%] [35mindex[39;49;00m[2K[01mreading sources... [39;49;00m[ 46%] [35moptimization/index[39;49;00m[2K[01mreading sources... [39;49;00m[ 48%] [35mplant_model[39;49;00m[2K[01mreading sources... [39;49;00m[ 49%] [35mpresentation/0-Introduction & Motivation[39;49;00m[2K[01mreading sources... [39;49;00m[ 51%] [35mpresentation/1-Problem Statement & Objectives[39;49;00m[2K[01mreading sources... [39;49;00m[ 52%] [35mpresentation/2-Previous Works[39;49;00m[2K[01mreading sources... [39;49;00m[ 54%] [35mpresentation/3-System Modling[39;49;00m[2K[01mreading sources... [39;49;00m[ 55%] [35mpresentation/4-0-SMC[39;49;00m[2K[01mreading sources... [39;49;00m[ 57%] [35mpresentation/5-Chattering & Mitigation[39;49;00m[2K[01mreading sources... [39;49;00m[ 58%] [35mpresentation/6-PSO[39;49;00m[2K[01mreading sources... [39;49;00m[ 60%] [35mpresentation/7-Simulation Setup[39;49;00m[2K[01mreading sources... [39;49;00m[ 61%] [35mpresentation/8-Results and Discussion[39;49;00m[2K[01mreading sources... [39;49;00m[ 63%] [35mpresentation/chattering-mitigation[39;49;00m[2K[01mreading sources... [39;49;00m[ 64%] [35mpresentation/index[39;49;00m[2K[01mreading sources... [39;49;00m[ 66%] [35mpresentation/introduction[39;49;00m[2K[01mreading sources... [39;49;00m[ 67%] [35mpresentation/previous-works[39;49;00m[2K[01mreading sources... [39;49;00m[ 69%] [35mpresentation/problem-statement[39;49;00m[2K[01mreading sources... [39;49;00m[ 70%] [35mpresentation/pso-optimization[39;49;00m[2K[01mreading sources... [39;49;00m[ 72%] [35mpresentation/results-discussion[39;49;00m[2K[01mreading sources... [39;49;00m[ 73%] [35mpresentation/simulation-setup[39;49;00m[2K[01mreading sources... [39;49;00m[ 75%] [35mpresentation/smc-theory[39;49;00m[2K[01mreading sources... [39;49;00m[ 76%] [35mpresentation/system-modeling[39;49;00m[2K[01mreading sources... [39;49;00m[ 78%] [35mreferences/bibliography[39;49;00m[2K[01mreading sources... [39;49;00m[ 79%] [35mreferences/index[39;49;00m[2K[01mreading sources... [39;49;00m[ 81%] [35mresults/index[39;49;00m[2K[01mreading sources... [39;49;00m[ 82%] [35mresults_readme[39;49;00m[2K[01mreading sources... [39;49;00m[ 84%] [35msymbols[39;49;00m[2K[01mreading sources... [39;49;00m[ 85%] [35mtest_protocols[39;49;00m[2K[01mreading sources... [39;49;00m[ 87%] [35mtheory/index[39;49;00m[2K[01mreading sources... [39;49;00m[ 88%] [35mtheory/mathematical_references[39;49;00m[2K[01mreading sources... [39;49;00m[ 90%] [35mtheory/notation_and_conventions[39;49;00m[2K[01mreading sources... [39;49;00m[ 91%] [35mtheory/pso_optimization_complete[39;49;00m[2K[01mreading sources... [39;49;00m[ 93%] [35mtheory/smc_theory_complete[39;49;00m[2K[01mreading sources... [39;49;00m[ 94%] [35mtheory/system_dynamics_complete[39;49;00m[2K[01mreading sources... [39;49;00m[ 96%] [35mtheory_overview[39;49;00m[2K[01mreading sources... [39;49;00m[ 97%] [35muse_cases[39;49;00m[2K[01mreading sources... [39;49;00m[ 99%] [35mvisual/index[39;49;00m[2K[01mreading sources... [39;49;00m[100%] [35mvisual/system_diagrams[39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\.github\ISSUE_TEMPLATE\bug_report.md.rst:7: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\.github\ISSUE_TEMPLATE\bug_report.md.rst:10: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\.github\ISSUE_TEMPLATE\bug_report.md.rst:17: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\.github\ISSUE_TEMPLATE\bug_report.md.rst:20: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\.github\ISSUE_TEMPLATE\feature_request.md.rst:7: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\.github\ISSUE_TEMPLATE\feature_request.md.rst:10: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\.github\ISSUE_TEMPLATE\feature_request.md.rst:13: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\.github\PULL_REQUEST_TEMPLATE.md.rst:1: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\.github\PULL_REQUEST_TEMPLATE.md.rst:4: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\.github\PULL_REQUEST_TEMPLATE.md.rst:10: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\CHANGELOG.md:31: WARNING: duplicate label changelog:added, other instance in D:\Projects\main\DIP_SMC_PSO\docs\CHANGELOG.md [autosectionlabel.CHANGELOG][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\api\index.md:7: WARNING: toctree contains reference to nonexisting document 'api/core' [toc.not_readable][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\api\index.md:7: WARNING: toctree contains reference to nonexisting document 'api/controllers' [toc.not_readable][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\api\index.md:7: WARNING: toctree contains reference to nonexisting document 'api/optimizer' [toc.not_readable][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\api\index.md:7: WARNING: toctree contains reference to nonexisting document 'api/hil' [toc.not_readable][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\api\index.md:7: WARNING: toctree contains reference to nonexisting document 'api/config' [toc.not_readable][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\api\index.md:20: ERROR: Unknown directive type "automodule".
+
+.. automodule:: src.core.dynamics
+   :members:
+   :undoc-members:
+   :show-inheritance: [docutils][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\api\index.md:25: ERROR: Unknown directive type "automodule".
+
+.. automodule:: src.controllers.factory
+   :members:
+   :undoc-members:
+   :show-inheritance: [docutils][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\api\index.md:30: ERROR: Unknown directive type "automodule".
+
+.. automodule:: src.optimizer.pso_optimizer
+   :members:
+   :undoc-members:
+   :show-inheritance: [docutils][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\controllers\index.md:7: WARNING: toctree contains reference to nonexisting document 'controllers/classical-smc' [toc.not_readable][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\controllers\index.md:7: WARNING: toctree contains reference to nonexisting document 'controllers/super-twisting-smc' [toc.not_readable][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\controllers\index.md:7: WARNING: toctree contains reference to nonexisting document 'controllers/adaptive-smc' [toc.not_readable][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\controllers\index.md:7: WARNING: toctree contains reference to nonexisting document 'controllers/hybrid-adaptive-smc' [toc.not_readable][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.controllers.adaptive_smc.rst:4: ERROR: Unknown directive type "automodule".
+
+.. automodule:: src.controllers.adaptive_smc
+
+
+   .. rubric:: Classes
+
+   .. autosummary::
+
+      AdaptiveSMC
+      AdaptiveSMCOutput [docutils][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.controllers.classic_smc.rst:6: ERROR: Unknown directive type "autoclass".
+
+.. autoclass:: classic_smc
+
+
+   .. automethod:: __init__
+
+
+   .. rubric:: Methods
+
+   .. autosummary::
+
+      ~classic_smc.__init__
+      ~classic_smc.compute_control
+      ~classic_smc.initialize_history
+      ~classic_smc.initialize_state
+      ~classic_smc.validate_gains
+
+
+
+
+
+   .. rubric:: Attributes
+
+   .. autosummary::
+
+      ~classic_smc.gains [docutils][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.controllers.factory.rst:4: ERROR: Unknown directive type "automodule".
+
+.. automodule:: src.controllers.factory
+
+
+   .. rubric:: Functions
+
+   .. autosummary::
+
+      apply_deprecation_mapping
+      build_all
+      build_controller
+      create_controller
+      load_config
+      normalize_controller_name
+      normalize_param_key
+      redact_value
+      register_controller
+      set_global_seed
+
+   .. rubric:: Classes
+
+   .. autosummary::
+
+      AdaptiveSMC
+      Any
+      ClassicalSMC
+      ConfigSchema
+      DoubleInvertedPendulum
+      FullDIPDynamics
+      HybridAdaptiveSTASMC
+      MPCController
+      MPCWeights
+      MutableMapping
+      PhysicsConfig
+      SuperTwistingSMC
+      SwingUpSMC
+
+   .. rubric:: Exceptions
+
+   .. autosummary::
+
+      ConfigValueError
+      FactoryConfigurationError
+      UnknownConfigKeyError [docutils][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.controllers.hybrid_adaptive_sta_smc.rst:4: ERROR: Unknown directive type "automodule".
+
+.. automodule:: src.controllers.hybrid_adaptive_sta_smc
+
+
+   .. rubric:: Classes
+
+   .. autosummary::
+
+      Any
+      HybridAdaptiveSTASMC
+      HybridSTAOutput [docutils][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.controllers.sta_smc.rst:4: ERROR: Unknown directive type "automodule".
+
+.. automodule:: src.controllers.sta_smc
+
+
+   .. rubric:: Functions
+
+   .. autosummary::
+
+      saturate
+
+   .. rubric:: Classes
+
+   .. autosummary::
+
+      STAOutput
+      SuperTwistingSMC [docutils][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.core.dynamics.rst:4: ERROR: Unknown directive type "automodule".
+
+.. automodule:: src.core.dynamics
+
+
+   .. rubric:: Functions
+
+   .. autosummary::
+
+      NamedTuple
+      compute_matrices_numba
+      kinetic_energy_numba
+      njit
+      potential_energy_numba
+      rhs_numba
+      rk45_step
+      step_euler_numba
+      step_rk4_numba
+      total_energy_numba
+
+   .. rubric:: Classes
+
+   .. autosummary::
+
+      Any
+      DIPDynamics
+      DIPParams
+      DoubleInvertedPendulum
+      PhysicsConfig
+
+   .. rubric:: Exceptions
+
+   .. autosummary::
+
+      NumericalInstabilityError [docutils][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.core.simulation_context.rst:4: ERROR: Unknown directive type "automodule".
+
+.. automodule:: src.core.simulation_context
+
+
+   .. rubric:: Functions
+
+   .. autosummary::
+
+      load_config
+
+   .. rubric:: Classes
+
+   .. autosummary::
+
+      Any
+      ConfigSchema
+      DIPDynamics
+      FDIsystem
+      FullDIPDynamics
+      SimulationContext [docutils][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.core.simulation_runner.rst:4: ERROR: Unknown directive type "automodule".
+
+.. automodule:: src.core.simulation_runner
+
+
+   .. rubric:: Functions
+
+   .. autosummary::
+
+      get_step_fn
+      import_module
+      run_simulation
+      step
+
+   .. rubric:: Classes
+
+   .. autosummary::
+
+      Any [docutils][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.core.vector_sim.rst:4: ERROR: Unknown directive type "automodule".
+
+.. automodule:: src.core.vector_sim
+
+
+   .. rubric:: Functions
+
+   .. autosummary::
+
+      simulate
+      simulate_system_batch
+
+   .. rubric:: Classes
+
+   .. autosummary::
+
+      Any [docutils][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.optimizer.pso_optimizer.rst:4: ERROR: Unknown directive type "automodule".
+
+.. automodule:: src.optimizer.pso_optimizer
+
+
+   .. rubric:: Functions
+
+   .. autosummary::
+
+      contextmanager
+      create_rng
+      load_config
+      simulate_system_batch
+
+   .. rubric:: Classes
+
+   .. autosummary::
+
+      Any
+      ConfigSchema
+      DIPParams
+      PSOTuner
+      Path [docutils][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.utils.control_analysis.rst:4: ERROR: Unknown directive type "automodule".
+
+.. automodule:: src.utils.control_analysis
+
+
+   .. rubric:: Functions
+
+   .. autosummary::
+
+      check_controllability_observability
+      controllability_matrix
+      linearize_dip
+      observability_matrix [docutils][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.utils.statistics.rst:4: ERROR: Unknown directive type "automodule".
+
+.. automodule:: src.utils.statistics
+
+
+   .. rubric:: Functions
+
+   .. autosummary::
+
+      confidence_interval [docutils][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.utils.visualization.rst:4: ERROR: Unknown directive type "automodule".
+
+.. automodule:: src.utils.visualization
+
+
+   .. rubric:: Classes
+
+   .. autosummary::
+
+      Visualizer [docutils][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\implementation\index.md:3: WARNING: toctree contains reference to nonexisting document 'implementation/api/index' [toc.not_readable][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\implementation\index.md:3: WARNING: toctree contains reference to nonexisting document 'implementation/examples/index' [toc.not_readable][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\implementation\index.md:233: ERROR: Unknown directive type "autosummary".
+
+.. autosummary::
+   :toctree: api
+   :recursive:
+
+   src.core.dynamics
+   src.core.simulation_runner
+   src.core.simulation_context
+   src.core.vector_sim [docutils][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\implementation\index.md:246: ERROR: Unknown directive type "autosummary".
+
+.. autosummary::
+   :toctree: api
+   :recursive:
+
+   src.controllers.classic_smc
+   src.controllers.sta_smc
+   src.controllers.adaptive_smc
+   src.controllers.hybrid_adaptive_sta_smc
+   src.controllers.factory [docutils][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\implementation\index.md:260: ERROR: Unknown directive type "autosummary".
+
+.. autosummary::
+   :toctree: api
+   :recursive:
+
+   src.optimizer.pso_optimizer [docutils][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\implementation\index.md:270: ERROR: Unknown directive type "autosummary".
+
+.. autosummary::
+   :toctree: api
+   :recursive:
+
+   src.utils.control_analysis
+   src.utils.visualization
+   src.utils.statistics [docutils][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\optimization\index.md:7: WARNING: toctree contains reference to nonexisting document 'optimization/pso-theory' [toc.not_readable][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\optimization\index.md:7: WARNING: toctree contains reference to nonexisting document 'optimization/implementation' [toc.not_readable][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\optimization\index.md:7: WARNING: toctree contains reference to nonexisting document 'optimization/tuning-strategies' [toc.not_readable][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\optimization\index.md:7: WARNING: toctree contains reference to nonexisting document 'optimization/performance-analysis' [toc.not_readable][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\0-Introduction & Motivation.md.rst:1: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\0-Introduction & Motivation.md.rst:5: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\0-Introduction & Motivation.md.rst:17: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\0-Introduction & Motivation.md.rst:27: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\0-Introduction & Motivation.md.rst:40: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\0-Introduction & Motivation.md.rst:61: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\0-Introduction & Motivation.md.rst:67: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\0-Introduction & Motivation.md.rst:82: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\0-Introduction & Motivation.md.rst:96: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\presentation\0-Introduction & Motivation.md:117: ERROR: At least one body element must separate transitions; adjacent transitions are not allowed. [docutils][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\presentation\0-Introduction & Motivation.md:117: ERROR: Document may not end with a transition. [docutils][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\1-Problem Statement & Objectives.md.rst:1: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\presentation\1-Problem Statement & Objectives.md:260: ERROR: At least one body element must separate transitions; adjacent transitions are not allowed. [docutils][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\presentation\1-Problem Statement & Objectives.md:260: ERROR: Document may not end with a transition. [docutils][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:3: WARNING: Non-consecutive header level increase; H1 to H3 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:7: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:7: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:11: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:11: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:13: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:17: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:17: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:27: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:33: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:34: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:35: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:36: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:37: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:38: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:67: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:67: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:71: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:75: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:75: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:79: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:83: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:87: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:89: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:89: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:93: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:93: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:97: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:103: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:107: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:119: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:123: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:127: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:135: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:139: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:143: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:149: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:153: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:157: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:163: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:178: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:178: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:182: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:184: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:184: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:186: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:190: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:198: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:198: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:202: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:202: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:206: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:206: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:208: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:208: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:209: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:209: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:210: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:210: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md.rst:272: WARNING: Unknown directive type: 'bibliography' [myst.directive_unknown][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\presentation\4-0-SMC.md:240: ERROR: Document may not end with a transition. [docutils][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\5-Chattering & Mitigation.md.rst:3: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\5-Chattering & Mitigation.md.rst:7: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\5-Chattering & Mitigation.md.rst:11: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\5-Chattering & Mitigation.md.rst:48: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\5-Chattering & Mitigation.md.rst:58: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\5-Chattering & Mitigation.md.rst:95: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\5-Chattering & Mitigation.md.rst:101: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\5-Chattering & Mitigation.md.rst:124: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\5-Chattering & Mitigation.md.rst:150: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\5-Chattering & Mitigation.md.rst:158: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\5-Chattering & Mitigation.md.rst:185: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\presentation\5-Chattering & Mitigation.md:205: ERROR: Document may not end with a transition. [docutils][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\8-Results and Discussion.md.rst:1: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\8-Results and Discussion.md.rst:107: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\chattering-mitigation.md.rst:3: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\chattering-mitigation.md.rst:7: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\chattering-mitigation.md.rst:11: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\chattering-mitigation.md.rst:48: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\chattering-mitigation.md.rst:58: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\chattering-mitigation.md.rst:95: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\chattering-mitigation.md.rst:101: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\chattering-mitigation.md.rst:124: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\chattering-mitigation.md.rst:150: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\chattering-mitigation.md.rst:158: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\chattering-mitigation.md.rst:185: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\presentation\chattering-mitigation.md:205: ERROR: Document may not end with a transition. [docutils][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\introduction.md.rst:1: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\introduction.md.rst:5: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\introduction.md.rst:17: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\introduction.md.rst:27: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\introduction.md.rst:40: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\introduction.md.rst:61: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\introduction.md.rst:67: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\introduction.md.rst:82: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\introduction.md.rst:96: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\presentation\introduction.md:117: ERROR: At least one body element must separate transitions; adjacent transitions are not allowed. [docutils][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\presentation\introduction.md:117: ERROR: Document may not end with a transition. [docutils][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\problem-statement.md.rst:1: WARNING: Document headings start at H2, not H1 [myst.header][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\presentation\problem-statement.md:260: ERROR: At least one body element must separate transitions; adjacent transitions are not allowed. [docutils][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\presentation\problem-statement.md:260: ERROR: Document may not end with a transition. [docutils][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\results-discussion.md.rst:1: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\results-discussion.md.rst:107: WARNING: Document headings start at H3, not H1 [myst.header][39;49;00m
+[31mD:\Projects\main\DIP_SMC_PSO\docs\presentation\smc-theory.md:240: ERROR: Document may not end with a transition. [docutils][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\system-modeling.md.rst:3: WARNING: Non-consecutive header level increase; H1 to H3 [myst.header][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:7: WARNING: Unknown directive type: 'bibliography' [myst.directive_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:18: WARNING: Unknown directive type: 'bibliography' [myst.directive_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:32: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:33: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:34: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:40: WARNING: Unknown directive type: 'bibliography' [myst.directive_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:52: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:53: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:54: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:60: WARNING: Unknown directive type: 'bibliography' [myst.directive_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:75: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:76: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:77: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:78: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:84: WARNING: Unknown directive type: 'bibliography' [myst.directive_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:96: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:97: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:98: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:104: WARNING: Unknown directive type: 'bibliography' [myst.directive_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:116: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:117: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:118: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:124: WARNING: Unknown directive type: 'bibliography' [myst.directive_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:133: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:134: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:142: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:145: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:148: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:163: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:189: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:196: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:197: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:254: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:255: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:256: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md.rst:257: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md:3: WARNING: toctree contains reference to nonexisting document 'references/citation_index' [toc.not_readable][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md.rst:38: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md.rst:39: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md.rst:40: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md.rst:43: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md.rst:44: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md.rst:45: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md.rst:48: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md.rst:49: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md.rst:50: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md.rst:55: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md.rst:56: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md.rst:57: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md.rst:60: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md.rst:61: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md.rst:66: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md.rst:67: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md.rst:68: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md.rst:71: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md.rst:72: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md.rst:80: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md.rst:82: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md.rst:84: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md.rst:90: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md.rst:96: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md:200: WARNING: duplicate label table:bibliography_stats, other instance in D:\Projects\main\DIP_SMC_PSO\docs\references\bibliography.md[39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\results\index.md:3: WARNING: toctree contains reference to nonexisting document 'results/performance_analysis' [toc.not_readable][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\results\index.md:3: WARNING: toctree contains reference to nonexisting document 'results/optimization_results' [toc.not_readable][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\results\index.md:3: WARNING: toctree contains reference to nonexisting document 'results/comparative_study' [toc.not_readable][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\results\index.md:3: WARNING: toctree contains reference to nonexisting document 'results/experimental_validation' [toc.not_readable][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\notation_and_conventions.md:51: WARNING: image file not readable: visual/coordinate_system.png [image.not_readable][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\pso_optimization_complete.md.rst:7: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\pso_optimization_complete.md:48: WARNING: duplicate label of equation eq:pso_velocity_update, other instance in theory/mathematical_references[39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\pso_optimization_complete.md:53: WARNING: duplicate label of equation eq:pso_position_update, other instance in theory/mathematical_references[39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\pso_optimization_complete.md.rst:119: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\pso_optimization_complete.md.rst:204: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\pso_optimization_complete.md.rst:494: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\pso_optimization_complete.md.rst:494: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\pso_optimization_complete.md.rst:494: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\pso_optimization_complete.md.rst:494: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\pso_optimization_complete.md.rst:494: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\pso_optimization_complete.md.rst:494: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\pso_optimization_complete.md.rst:494: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\smc_theory_complete.md.rst:7: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\smc_theory_complete.md:125: WARNING: duplicate label of equation eq:reaching_condition, other instance in theory/mathematical_references[39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\smc_theory_complete.md:153: WARNING: duplicate label of equation eq:lyapunov_candidate, other instance in theory/mathematical_references[39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\smc_theory_complete.md.rst:187: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\smc_theory_complete.md.rst:215: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\smc_theory_complete.md.rst:454: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\smc_theory_complete.md.rst:454: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\smc_theory_complete.md.rst:454: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\smc_theory_complete.md.rst:454: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\smc_theory_complete.md.rst:454: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\smc_theory_complete.md.rst:454: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\smc_theory_complete.md.rst:454: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\system_dynamics_complete.md:211: WARNING: duplicate label of equation eq:coriolis_matrix, other instance in theory/mathematical_references[39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\system_dynamics_complete.md.rst:432: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\system_dynamics_complete.md.rst:432: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\system_dynamics_complete.md.rst:432: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\system_dynamics_complete.md.rst:432: WARNING: Unknown interpreted text role "cite". [myst.role_unknown][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\system_dynamics_complete.md:13: WARNING: image file not readable: visual/dip_system_diagram.png [image.not_readable][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\visual\index.md:3: WARNING: toctree contains reference to nonexisting document 'visual/block_diagrams' [toc.not_readable][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\visual\index.md:3: WARNING: toctree contains reference to nonexisting document 'visual/algorithm_flowcharts' [toc.not_readable][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\visual\index.md:3: WARNING: toctree contains reference to nonexisting document 'visual/results_visualization' [toc.not_readable][39;49;00m
+[01mlooking for now-outdated files... [39;49;00mnone found
+[01mpickling environment... [39;49;00mdone
+[01mchecking consistency... [39;49;00m[91mD:\Projects\main\DIP_SMC_PSO\docs\.github\ISSUE_TEMPLATE\bug_report.md: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\.github\ISSUE_TEMPLATE\feature_request.md: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\.github\PULL_REQUEST_TEMPLATE.md: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\CLAUDE.md: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.controllers.adaptive_smc.rst: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.controllers.classic_smc.rst: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.controllers.factory.rst: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.controllers.hybrid_adaptive_sta_smc.rst: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.controllers.sta_smc.rst: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.core.dynamics.rst: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.core.simulation_context.rst: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.core.simulation_runner.rst: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.core.vector_sim.rst: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.optimizer.pso_optimizer.rst: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.utils.control_analysis.rst: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.utils.statistics.rst: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\implementation\api\src.utils.visualization.rst: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\implementation\index.md: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\0-Introduction & Motivation.md: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\1-Problem Statement & Objectives.md: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\2-Previous Works.md: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\3-System Modling.md: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\4-0-SMC.md: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\5-Chattering & Mitigation.md: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\6-PSO.md: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\7-Simulation Setup.md: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\presentation\8-Results and Discussion.md: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\references\index.md: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\results\index.md: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\theory\index.md: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\visual\index.md: WARNING: document isn't included in any toctree [toc.not_included][39;49;00m
+D:\Projects\main\DIP_SMC_PSO\docs\presentation\chattering-mitigation.md: document is referenced in multiple toctrees: ['index', 'presentation/index'], selecting: presentation/index <- presentation/chattering-mitigation
+D:\Projects\main\DIP_SMC_PSO\docs\presentation\introduction.md: document is referenced in multiple toctrees: ['index', 'presentation/index'], selecting: presentation/index <- presentation/introduction
+D:\Projects\main\DIP_SMC_PSO\docs\presentation\previous-works.md: document is referenced in multiple toctrees: ['index', 'presentation/index'], selecting: presentation/index <- presentation/previous-works
+D:\Projects\main\DIP_SMC_PSO\docs\presentation\problem-statement.md: document is referenced in multiple toctrees: ['index', 'presentation/index'], selecting: presentation/index <- presentation/problem-statement
+D:\Projects\main\DIP_SMC_PSO\docs\presentation\pso-optimization.md: document is referenced in multiple toctrees: ['index', 'presentation/index'], selecting: presentation/index <- presentation/pso-optimization
+D:\Projects\main\DIP_SMC_PSO\docs\presentation\results-discussion.md: document is referenced in multiple toctrees: ['index', 'presentation/index'], selecting: presentation/index <- presentation/results-discussion
+D:\Projects\main\DIP_SMC_PSO\docs\presentation\simulation-setup.md: document is referenced in multiple toctrees: ['index', 'presentation/index'], selecting: presentation/index <- presentation/simulation-setup
+D:\Projects\main\DIP_SMC_PSO\docs\presentation\smc-theory.md: document is referenced in multiple toctrees: ['index', 'presentation/index'], selecting: presentation/index <- presentation/smc-theory
+D:\Projects\main\DIP_SMC_PSO\docs\presentation\system-modeling.md: document is referenced in multiple toctrees: ['index', 'presentation/index'], selecting: presentation/index <- presentation/system-modeling
+done
+[01mpreparing documents... [39;49;00mdone
+[01mcopying assets... [39;49;00m
+[2K[01mcopying downloadable files... [39;49;00m[100%] [33mreferences/refs.bib[39;49;00m
+[01mcopying static files... [39;49;00m
+Writing evaluated template result to D:\Projects\main\DIP_SMC_PSO\docs\_build\html\_static\basic.css
+Writing evaluated template result to D:\Projects\main\DIP_SMC_PSO\docs\_build\html\_static\documentation_options.js
+Writing evaluated template result to D:\Projects\main\DIP_SMC_PSO\docs\_build\html\_static\language_data.js
+Writing evaluated template result to D:\Projects\main\DIP_SMC_PSO\docs\_build\html\_static\copybutton.js
+[01mcopying static files: [39;49;00mdone
+[01mcopying extra files... [39;49;00m
+[01mcopying extra files: [39;49;00mdone
+[01mcopying assets: [39;49;00mdone
+[2K[01mwriting output... [39;49;00m[  1%] [32m.github/ISSUE_TEMPLATE/bug_report[39;49;00m[2K[01mwriting output... [39;49;00m[  3%] [32m.github/ISSUE_TEMPLATE/feature_request[39;49;00m[2K[01mwriting output... [39;49;00m[  4%] [32m.github/PULL_REQUEST_TEMPLATE[39;49;00m[2K[01mwriting output... [39;49;00m[  6%] [32mCHANGELOG[39;49;00m[2K[01mwriting output... [39;49;00m[  7%] [32mCLAUDE[39;49;00m[2K[01mwriting output... [39;49;00m[  9%] [32mCONTRIBUTING[39;49;00m[2K[01mwriting output... [39;49;00m[ 10%] [32mREADME[39;49;00m[2K[01mwriting output... [39;49;00m[ 12%] [32mRELEASE_CHECKLIST[39;49;00m[2K[01mwriting output... [39;49;00m[ 13%] [32mTESTING[39;49;00m[2K[01mwriting output... [39;49;00m[ 15%] [32manalysis_plan[39;49;00m[2K[01mwriting output... [39;49;00m[ 16%] [32mapi/index[39;49;00m[2K[01mwriting output... [39;49;00m[ 18%] [32marchitecture[39;49;00m[2K[01mwriting output... [39;49;00m[ 19%] [32mcontext[39;49;00m[2K[01mwriting output... [39;49;00m[ 21%] [32mcontrollers/index[39;49;00m[2K[01mwriting output... [39;49;00m[ 22%] [32mimplementation/api/src.controllers.adaptive_smc[39;49;00m[2K[01mwriting output... [39;49;00m[ 24%] [32mimplementation/api/src.controllers.classic_smc[39;49;00m[2K[01mwriting output... [39;49;00m[ 25%] [32mimplementation/api/src.controllers.factory[39;49;00m[2K[01mwriting output... [39;49;00m[ 27%] [32mimplementation/api/src.controllers.hybrid_adaptive_sta_smc[39;49;00m[2K[01mwriting output... [39;49;00m[ 28%] [32mimplementation/api/src.controllers.sta_smc[39;49;00m[2K[01mwriting output... [39;49;00m[ 30%] [32mimplementation/api/src.core.dynamics[39;49;00m[2K[01mwriting output... [39;49;00m[ 31%] [32mimplementation/api/src.core.simulation_context[39;49;00m[2K[01mwriting output... [39;49;00m[ 33%] [32mimplementation/api/src.core.simulation_runner[39;49;00m[2K[01mwriting output... [39;49;00m[ 34%] [32mimplementation/api/src.core.vector_sim[39;49;00m[2K[01mwriting output... [39;49;00m[ 36%] [32mimplementation/api/src.optimizer.pso_optimizer[39;49;00m[2K[01mwriting output... [39;49;00m[ 37%] [32mimplementation/api/src.utils.control_analysis[39;49;00m[2K[01mwriting output... [39;49;00m[ 39%] [32mimplementation/api/src.utils.statistics[39;49;00m[2K[01mwriting output... [39;49;00m[ 40%] [32mimplementation/api/src.utils.visualization[39;49;00m[2K[01mwriting output... [39;49;00m[ 42%] [32mimplementation/code_documentation_index[39;49;00m[2K[01mwriting output... [39;49;00m[ 43%] [32mimplementation/index[39;49;00m[2K[01mwriting output... [39;49;00m[ 45%] [32mindex[39;49;00m[91mD:\Projects\main\DIP_SMC_PSO\docs\README.md:21: WARNING: Lexing literal_block '{ "metadata": { "schema_version": "1.0", "...": "..." }, ... }\n' as "json" resulted in an error at token: '.'. Retrying in relaxed mode. [misc.highlighting_failure][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\TESTING.md:126: WARNING: Pygments lexer name 'env' is not known [misc.highlighting_failure][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\architecture.md:41: WARNING: Pygments lexer name 'mermaid' is not known [misc.highlighting_failure][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\implementation\code_documentation_index.md:461: WARNING: unknown document: 'api/index' [ref.doc][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\implementation\code_documentation_index.md:462: WARNING: unknown document: 'examples/index' [ref.doc][39;49;00m
+[91mWARNING: command 'mmdc' cannot be run (needed for mermaid output), check the mermaid_cmd setting[39;49;00m
+[91mWARNING: command 'mmdc' cannot be run (needed for mermaid output), check the mermaid_cmd setting[39;49;00m
+[91mWARNING: command 'mmdc' cannot be run (needed for mermaid output), check the mermaid_cmd setting[39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\implementation\index.md:25: WARNING: unknown document: 'api/index' [ref.doc][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\implementation\index.md:32: WARNING: unknown document: 'examples/index' [ref.doc][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\implementation\index.md:39: WARNING: unknown document: '../configuration' [ref.doc][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\implementation\index.md:281: WARNING: unknown document: '../guides/installation' [ref.doc][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\implementation\index.md:282: WARNING: unknown document: 'examples/quickstart_tutorial' [ref.doc][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\implementation\index.md:283: WARNING: unknown document: '../configuration' [ref.doc][39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\implementation\index.md:284: WARNING: unknown document: 'api/index' [ref.doc][39;49;00m
+[91mWARNING: command 'mmdc' cannot be run (needed for mermaid output), check the mermaid_cmd setting[39;49;00m
+[91mD:\Projects\main\DIP_SMC_PSO\docs\index.md:194: WARNING: 'myst' cross-reference target not found: 'examples/index.md' [myst.xref_missing][39;49;00m
+
+[91mEncoding error![39;49;00m
+
+Versions
+========
+
+* Platform:         win32; (Windows-11-10.0.26100-SP0)
+* Python version:   3.12.6 (CPython)
+* Sphinx version:   8.2.3
+* Docutils version: 0.20.1
+* Jinja2 version:   3.1.6
+* Pygments version: 2.19.2
+
+Last Messages
+=============
+
+    implementation/code_documentation_index
+
+
+    writing output... [ 43%]
+    implementation/index
+
+
+    writing output... [ 45%]
+    index
+
+Loaded Extensions
+=================
+
+* sphinx.ext.mathjax (8.2.3)
+* alabaster (0.7.16)
+* sphinxcontrib.applehelp (2.0.0)
+* sphinxcontrib.devhelp (2.0.0)
+* sphinxcontrib.htmlhelp (2.1.0)
+* sphinxcontrib.serializinghtml (2.0.0)
+* sphinxcontrib.qthelp (2.0.0)
+* sphinx.ext.intersphinx (8.2.3)
+* sphinx.ext.autosectionlabel (8.2.3)
+* myst_parser (4.0.1)
+* sphinx_copybutton (0.5.2)
+* sphinx_design (0.6.1)
+* sphinxcontrib.mermaid (8.2.3)
+* furo (2024.08.06)
+* sphinx_basic_ng (1.0.0.beta2)
+
+Traceback
+=========
+
+      File "C:\Program Files\Python312\Lib\encodings\cp1252.py", line 19, in encode
+        return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    UnicodeEncodeError: 'charmap' codec can't encode character '\u03b8' in position 69: character maps to <undefined>
+
+
+The full traceback has been saved in:
+C:\Users\sadeg\AppData\Local\Temp\sphinx-err-8ndl199r.log
+
+To report this error to the developers, please open an issue at <https://github.com/sphinx-doc/sphinx/issues/>. Thanks!
+Please also report this if it was a user error, so that a better error message can be provided next time.

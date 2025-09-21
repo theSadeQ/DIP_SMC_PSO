@@ -69,15 +69,28 @@ def check_template_compliance(rst_file: Path) -> List[str]:
         if ".. automodule::" not in content:
             issues.append("Missing .. automodule:: directive")
 
-        # Check title formatting
-        if len(lines) > 0:
-            title_line = lines[0]
-            if len(lines) > 1:
+        # Check title formatting - support both simple and full RST title formats
+        if len(lines) >= 2:
+            # Check for full format: overline + title + underline
+            if (len(lines) >= 3 and
+                lines[0].strip() and all(c == '=' for c in lines[0].strip()) and
+                lines[2].strip() and all(c == '=' for c in lines[2].strip())):
+                # Full format: check overline and underline match title length
+                title_line = lines[1]
+                overline = lines[0]
+                underline = lines[2]
+                if len(overline) != len(title_line) or len(underline) != len(title_line):
+                    issues.append("Title overline/underline length doesn't match title")
+            # Check for simple format: title + underline
+            elif lines[1].strip() and all(c == '=' for c in lines[1].strip()):
+                # Simple format: title on line 0, underline on line 1
+                title_line = lines[0]
                 underline = lines[1]
-                if not underline.startswith("=="):
-                    issues.append("Title underline should use '=' characters")
-                elif len(underline) != len(title_line):
+                if len(underline) != len(title_line):
                     issues.append("Title underline length doesn't match title")
+            else:
+                # Neither format detected
+                issues.append("Invalid title formatting - should use RST title format with '=' characters")
 
     except Exception as e:
         issues.append(f"Error reading file: {e}")

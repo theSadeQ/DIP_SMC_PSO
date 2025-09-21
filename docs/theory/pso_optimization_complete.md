@@ -439,6 +439,59 @@ PSO is inherently parallelizable:
 
 where $P$ is the number of processors.
 
+### Library Implementation: PySwarms
+
+This repository uses **PySwarms (GlobalBestPSO)** as the underlying PSO implementation engine. The theoretical algorithms described above are realized through the following practical considerations:
+
+**Core Engine**:
+```python
+from pyswarms.single import GlobalBestPSO
+```
+
+**Implementation Features**:
+- **Inertia Weight Scheduling**: Applied via `w_schedule` configuration parameter using linear decrease from $w_{start}$ to $w_{end}$ over the iteration horizon:
+  ```{math}
+  :label: eq:pyswarms_inertia_schedule
+  w^{(k)} = w_{start} - \frac{k}{k_{max}}(w_{start} - w_{end})
+  ```
+
+- **Velocity Clamping**: Implemented through `velocity_clamp` parameter to prevent particle divergence:
+  ```{math}
+  :label: eq:velocity_clamping
+  \vec{v}_{min} \leq \vec{v}_i^{(k)} \leq \vec{v}_{max}
+  ```
+  where clamp limits are expressed as fractions of the search range: $\vec{v}_{min/max} = \delta_{min/max} \cdot (\vec{\theta}_{max} - \vec{\theta}_{min})$
+
+- **Boundary Handling**: Automatic constraint enforcement for parameter bounds defined in {eq}`eq:search_space`
+
+- **Deterministic Seeding**: Ensures reproducible optimization runs through controlled random number generation
+
+**Configuration Interface**:
+The PSO parameters are configured through the project's YAML configuration system, mapping theoretical parameters to implementation:
+
+```yaml
+pso:
+  n_particles: 20              # Swarm size N
+  iters: 200                   # Maximum iterations k_max
+  w: 0.7                       # Base inertia weight
+  c1: 2.0                      # Cognitive coefficient
+  c2: 2.0                      # Social coefficient
+  seed: 42                     # Reproducible optimization runs
+  # Optional advanced features (supported but not configured by default):
+  # w_schedule: [0.9, 0.4]     # Linear inertia decrease
+  # velocity_clamp: [0.1, 0.3] # Velocity limits as fractions
+  bounds:
+    min: [1.0, 1.0, 1.0, 1.0, 5.0, 0.1]    # Lower bounds
+    max: [100.0, 100.0, 20.0, 20.0, 150.0, 10.0]  # Upper bounds
+```
+
+**Cost Function Integration**:
+The multi-objective cost function {eq}`eq:multiobjective_problem` is evaluated through vectorized simulation, with PSO managing the parameter search while the cost computation handles:
+- Batch trajectory simulation
+- Performance metric calculation
+- Constraint violation penalties
+- Statistical aggregation across uncertainty scenarios
+
 ## Case Study: DIP-SMC Optimization
 
 ### Problem Formulation
