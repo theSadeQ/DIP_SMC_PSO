@@ -1,0 +1,245 @@
+config:
+  controller_defaults:
+    adaptive_smc:
+      gains:
+      - 10.0
+      - 8.0
+      - 5.0
+      - 4.0
+      - 1.0
+    classical_smc:
+      gains:
+      - 5.0
+      - 5.0
+      - 5.0
+      - 0.5
+      - 0.5
+      - 0.5
+    hybrid_adaptive_sta_smc:
+      gains:
+      - 5.0
+      - 5.0
+      - 5.0
+      - 0.5
+    sta_smc:
+      gains:
+      - 4.0
+      - 4.0
+      - 4.0
+      - 0.4
+      - 0.4
+      - 0.4
+  controllers:
+    adaptive_smc:
+      K_max: 100.0
+      K_min: 0.1
+      adapt_rate_limit: 10.0
+      boundary_layer: 0.1
+      dead_zone: 0.05
+      dt: 0.001
+      leak_rate: 0.01
+      max_force: 150.0
+      smooth_switch: true
+    classical_smc:
+      boundary_layer: 0.02
+      max_force: 150.0
+    hybrid_adaptive_sta_smc:
+      adapt_rate_limit: 5.0
+      cart_gain: 0.5
+      cart_lambda: 1.0
+      cart_p_gain: 80.0
+      cart_p_lambda: 2.0
+      damping_gain: 3.0
+      dead_zone: 0.05
+      dt: 0.001
+      enable_equivalent: false
+      gamma1: 2.0
+      gamma2: 0.5
+      k1_init: 4.0
+      k2_init: 0.4
+      max_force: 150.0
+      sat_soft_width: 0.05
+    sta_smc:
+      damping_gain: 0.0
+      dt: 0.001
+      max_force: 150.0
+    swing_up_smc:
+      energy_gain: 50.0
+      exit_energy_factor: 0.9
+      max_force: 150.0
+      reentry_angle_tolerance: 0.4
+      stabilizing_controller: classical_smc
+      switch_angle_tolerance: 0.35
+      switch_energy_factor: 0.95
+  cost_function:
+    baseline:
+      gains:
+      - 50
+      - 100
+      - 10
+      - 8
+      - 5
+      - 4
+    combine_weights:
+      max: 0.3
+      mean: 0.7
+    instability_penalty: 1000.0
+    normalization_threshold: 1.0e-12
+    weights:
+      control_effort: 0.2
+      control_rate: 0.1
+      stability: 0.1
+      state_error: 50.0
+  global_seed: 42
+  hil:
+    controller_ip: 127.0.0.1
+    controller_port: 9001
+    extra_latency_ms: 0.0
+    plant_ip: 127.0.0.1
+    plant_port: 9000
+    sensor_noise_std: 0.0
+  physics:
+    cart_friction: 0.2
+    cart_mass: 1.5
+    gravity: 9.81
+    joint1_friction: 0.005
+    joint2_friction: 0.004
+    pendulum1_com: 0.2
+    pendulum1_inertia: 0.00265
+    pendulum1_length: 0.4
+    pendulum1_mass: 0.2
+    pendulum2_com: 0.15
+    pendulum2_inertia: 0.00115
+    pendulum2_length: 0.3
+    pendulum2_mass: 0.15
+    singularity_cond_threshold: 100000000.0
+  physics_uncertainty:
+    cart_friction: 0.1
+    cart_mass: 0.05
+    gravity: 0.0
+    joint1_friction: 0.1
+    joint2_friction: 0.1
+    n_evals: 10
+    pendulum1_com: 0.05
+    pendulum1_inertia: 0.05
+    pendulum1_length: 0.05
+    pendulum1_mass: 0.05
+    pendulum2_com: 0.05
+    pendulum2_inertia: 0.05
+    pendulum2_length: 0.05
+    pendulum2_mass: 0.05
+  pso:
+    bounds:
+      max:
+      - 100.0
+      - 100.0
+      - 20.0
+      - 20.0
+      - 150.0
+      - 10.0
+      min:
+      - 1.0
+      - 1.0
+      - 1.0
+      - 1.0
+      - 5.0
+      - 0.1
+    c1: 2.0
+    c2: 2.0
+    iters: 200
+    n_particles: 20
+    seed: 42
+    tune:
+      boundary_layer:
+        max: 0.05
+        min: 0.01
+      cart_friction:
+        max: 0.5
+        min: 0.1
+      cart_mass:
+        max: 2.0
+        min: 1.0
+      joint1_friction:
+        max: 0.01
+        min: 0.001
+      joint2_friction:
+        max: 0.01
+        min: 0.001
+      pendulum1_com:
+        max: 0.25
+        min: 0.15
+      pendulum1_inertia:
+        max: 0.004
+        min: 0.0015
+      pendulum1_length:
+        max: 0.5
+        min: 0.3
+      pendulum1_mass:
+        max: 0.3
+        min: 0.1
+      pendulum2_com:
+        max: 0.2
+        min: 0.1
+      pendulum2_inertia:
+        max: 0.002
+        min: 0.0005
+      pendulum2_length:
+        max: 0.4
+        min: 0.2
+      pendulum2_mass:
+        max: 0.2
+        min: 0.1
+    w: 0.7
+  sensors:
+    angle_noise_std: 0.005
+    position_noise_std: 0.001
+    quantization_angle: 0.01
+    quantization_position: 0.0005
+  simulation:
+    dt: 0.01
+    duration: 10.0
+    initial_state:
+    - 0.0
+    - 0.05
+    - -0.03
+    - 0.0
+    - 0.0
+    - 0.0
+    use_full_dynamics: true
+  verification:
+    criteria:
+      max_angle: 0.5
+      settling_time: 5.0
+      steady_error: 0.01
+    integrators:
+    - euler
+    - rk4
+    - rk45
+    test_conditions:
+    - disturbance: false
+      initial_state:
+      - 0.0
+      - 0.1
+      - 0.05
+      - 0.0
+      - 0.0
+      - 0.0
+      name: nominal
+    - disturbance: false
+      initial_state:
+      - 0.0
+      - 0.1
+      - 0.1
+      - 0.2
+      - 0.5
+      - 0.3
+      name: with_velocity
+    - disturbance: true
+      initial_state:
+      - 0.0
+      - 0.1
+      - 0.05
+      - 0.0
+      - 0.0
+      - 0.0
+      name: disturbance

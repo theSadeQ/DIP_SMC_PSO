@@ -115,13 +115,61 @@ python run_tests.py
 
 This script will execute the full `pytest` suite located in the `tests/` directory. This includes the model comparison test, which checks for behavioral consistency between the simplified and full dynamics models.
 
+### Test Coverage Requirements
+
+**MANDATORY TESTING POLICY**: All new code MUST include comprehensive testing before implementation:
+
+#### **Coverage Targets**
+- **Overall Project**: Minimum 85% test coverage
+- **Critical Components**: Minimum 95% test coverage
+  - Controllers (base classes, SMC algorithms, MPC)
+  - Plant models (full, simplified, low-rank)
+  - Simulation engines (integrators, orchestrators, safety)
+- **Safety-Critical**: 100% test coverage REQUIRED
+  - Control system safety mechanisms
+  - Simulation numerical stability
+  - Plant physical constraint validation
+
+#### **Test Development Workflow**
+1. **BEFORE coding**: Write test specifications
+2. **DURING coding**: Implement tests alongside code
+3. **AFTER coding**: Validate 100% of new functionality is tested
+4. **CONTINUOUS**: Maintain and update tests for changes
+
+#### **Test Quality Standards**
+- Every new `.py` file MUST have corresponding `test_*.py` file
+- Every public function/method MUST have dedicated test cases
+- Critical algorithms MUST have mathematical property validation
+- Performance-critical code MUST have benchmark tests
+- Error conditions MUST have dedicated failure mode tests
+
 ### Test Suite Architecture
 
-The test suite is built for speed and robustness. Key features include:
+The test suite is built for speed, robustness, and comprehensive coverage. Key features include:
 
+-   **Modular Test Organization**: Tests are organized by component with single-responsibility test files
+-   **Mock-Based Testing**: Tests work with both implemented and unimplemented modules using mock classes
+-   **Mathematical Validation**: Theoretical properties are tested (linearity, stability, convergence)
 -   **Numba Acceleration:** Core simulations are executed using a custom, Numba-accelerated batch simulation engine (`src/core/vector_sim.py`) for maximum performance.
 -   **Batch Testing:** Many tests run simulations in large batches with randomized initial conditions to ensure controllers are robust.
 -   **Coverage:** The suite includes unit tests for individual components, integration tests for system-wide behavior, and scientific validation tests for principles like Lyapunov stability and chattering reduction.
+-   **Error Handling**: Comprehensive edge case testing including NaN, infinite, and boundary conditions
+
+### Test Structure
+
+```
+tests/
+├── test_controllers/
+│   ├── base/                    # Controller interface tests
+│   └── smc/
+│       ├── core/               # SMC mathematical components
+│       └── classical/          # Classical SMC implementation
+├── test_plant/
+│   └── models/                 # Plant dynamics testing
+├── test_simulation/
+│   └── engines/                # Simulation execution testing
+└── test_*.py                   # Component-specific test suites
+```
 
 ### CI lanes & selectors
 
@@ -150,6 +198,12 @@ To run a PSO optimization for the Super-Twisting controller:
 ```bash
 python simulate.py --ctrl sta --save tuned_sta_gains.json
 ```
+
+## Documentation
+
+- Browse docs locally: open `docs/_build/html/index.html` after building.
+- Build docs: `sphinx-build -b html docs docs/_build/html`
+- Key sections: `docs/reference/index.md`, `docs/guides/getting-started.md`
 
 To run a simulation using pre-tuned gains and the full dynamics model:
 
@@ -181,7 +235,7 @@ The project is organized into several key directories:
 
 -   `src/`: Contains all the main source code, including controllers and the core dynamics engine.
 -   `tests/`: The Pytest test suite.
--   `scripts/`: Standalone scripts for tasks like re-optimization.
+-   `.scripts/`: Standalone scripts for tasks like re-optimization.
 -   `docs/`: Detailed project documentation.
 
 For a complete overview of the project's layout, please see the Project Structure Documentation.

@@ -105,11 +105,13 @@ def cached_pso_optimization(controller_type: str, config_dict: dict,
 
 # Visualizer import (support both in‑repo path and local file during CI/examples)
 try:
-    from src.utils.visualization import Visualizer  # project structure
-except ModuleNotFoundError:
+    from src.utils import Visualizer  # project structure
+    if Visualizer is None:  # Gracefully handle stubbed exports
+        raise ImportError('Visualizer export is unavailable')
+except (ModuleNotFoundError, ImportError):
     try:
         from visualization import Visualizer  # fallback for isolated runs
-    except ModuleNotFoundError as e:
+    except (ModuleNotFoundError, ImportError) as e:
         raise RuntimeError(
             "Critical: Visualizer module not found in either src/utils/ or local path. "
             "Cannot proceed without visualization capability."

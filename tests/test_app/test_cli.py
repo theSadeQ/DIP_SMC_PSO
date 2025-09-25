@@ -57,20 +57,20 @@ def test_app_fails_on_backend_error_in_hil(monkeypatch):
     visible rather than producing invalid results.
     """
     # Arrange: Prepare a tiny script that injects a TypeError during the baseline
-    # simulation of the HIL run.  Patching ``app._get_run_simulation`` inside
+    # simulation of the HIL run.  Patching ``simulate._get_run_simulation`` inside
     # this script ensures that the baseline simulation uses the injected
     # function even though the CLI is executed in a separate subprocess.
     test_script = """
 import sys
 from unittest.mock import patch
-import app
+import simulate
 
 def boom(*args, **kwargs):
     raise TypeError("A critical backend error occurred")
 
-with patch('app._get_run_simulation', return_value=boom):
+with patch('simulate._get_run_simulation', return_value=boom):
     try:
-        exit_code = app.main(['--run-hil'])
+        exit_code = simulate.main(['--run-hil'])
         sys.exit(exit_code)
     except Exception:
         # Re-raise to cause a non-zero exit code and print the traceback
@@ -78,7 +78,7 @@ with patch('app._get_run_simulation', return_value=boom):
 """
 
     # Act: run the script in a new Python interpreter.  Running via -c ensures
-    # that the patch is applied inside the same process that calls app.main.
+    # that the patch is applied inside the same process that calls simulate.main.
     cmd = [sys.executable, '-c', test_script]
     result = subprocess.run(
         cmd,
@@ -120,7 +120,7 @@ import sys
 import logging
 import os
 sys.path.insert(0, os.getcwd())
-from app import _build_dynamics
+from simulate import _build_dynamics
 
 # Mock the import to fail
 class MockImportError:
@@ -157,10 +157,10 @@ except Exception as e:
         """Verify that syntax errors in dynamics module cause immediate failure."""
         # Corrected: Patch the import function specifically within the 'app' module's scope.
         # This prevents the patch from affecting imports of simulate.py's dependencies.
-        with patch('app.importlib.import_module', side_effect=SyntaxError("Invalid syntax in module")):
+        with patch('simulate.importlib.import_module', side_effect=SyntaxError("Invalid syntax in module")):
             # Now, importing from app will succeed, but calling the function that
             # USES the patched import will fail as intended.
-            from app import _build_dynamics
+            from simulate import _build_dynamics
 
             with pytest.raises(SyntaxError):
                 _build_dynamics({})
@@ -185,9 +185,9 @@ import sys
 import os
 sys.path.insert(0, os.getcwd())
 from unittest.mock import patch
-from app import _build_controller
+from simulate import _build_controller
 
-with patch('app._import_optional', return_value=None):
+with patch('simulate._import_optional', return_value=None):
     try:
         _build_controller({}, "test")
         print("ERROR: Should have failed!")
@@ -305,9 +305,9 @@ sys.modules['numpy'] = None
 sys.path.insert(0, os.getcwd())
 
 try:
-    import app
+    import simulate
     # Try to run something that would use numpy
-    app.main(['--duration', '0.1'])
+    simulate.main(['--duration', '0.1'])
     sys.exit(0)  # Should not be reached
 except (ImportError, ModuleNotFoundError, RuntimeError, AttributeError):
     sys.exit(123)  # Expected failure code

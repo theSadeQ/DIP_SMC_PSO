@@ -51,7 +51,7 @@ from src.core.simulation_context import SimulationContext
 # configure logging once per entry point; repeated calls clear any
 # existing handlers and set a fresh configuration to avoid duplicate
 # messages [985132039892507 L364-L377].
-from src.logging_config import configure_provenance_logging  # type: ignore
+from src.config.logging import configure_provenance_logging  # type: ignore
 
 # --------------------------------------------------------------------------------------
 # Lightweight config IO (kept here to avoid tight coupling to project schemas)
@@ -568,7 +568,6 @@ def _run_hil(cfg_path: Path, do_plot: bool) -> int:
         # 1) Load HIL‑specific modules and a validated config. Let import
         # errors propagate to the caller; they will be caught by ``main`` if
         # appropriate.
-        from src.hil.plant_server import PlantServer  # type: ignore
         from src.config import load_config  # type: ignore
         from pydantic import ValidationError  # type: ignore
 
@@ -622,6 +621,8 @@ def _run_hil(cfg_path: Path, do_plot: bool) -> int:
                     exc_info=True,
                 )
                 raise
+
+        from src.interfaces.hil.plant_server import PlantServer  # type: ignore
 
         # 3) Acquire Resources + Robust sync (Event handshake)
         server_ready_event = threading.Event()

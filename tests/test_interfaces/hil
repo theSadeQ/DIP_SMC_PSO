@@ -1,0 +1,126 @@
+"""
+HIL flow — server readiness timeout.
+
+Simulate a PlantServer that never signals readiness and assert _run_hil raises.
+"""
+
+from __future__ import annotations
+
+import threading
+import time
+from pathlib import Path
+
+import pytest
+import yaml
+
+
+CONFIG_TEMPLATE = """
+global_seed: 42
+controller_defaults: {}
+controllers: {}
+pso:
+  n_particles: 1
+  bounds: { min: [0.0], max: [1.0] }
+  w: 0.5
+  c1: 1.0
+  c2: 1.0
+  iters: 1
+  n_processes: 1
+  hyper_trials: 1
+  hyper_search: {}
+  study_timeout: 1
+  seed: 42
+  tune: {}
+physics:
+  cart_mass: 1.0
+  pendulum1_mass: 1.0
+  pendulum2_mass: 1.0
+  pendulum1_length: 1.0
+  pendulum2_length: 1.0
+  pendulum1_com: 0.5
+  pendulum2_com: 0.5
+  pendulum1_inertia: 0.1
+  pendulum2_inertia: 0.1
+  gravity: 9.81
+  cart_friction: 0.0
+  joint1_friction: 0.0
+  joint2_friction: 0.0
+physics_uncertainty:
+  n_evals: 1
+  cart_mass: 0.0
+  pendulum1_mass: 0.0
+  pendulum2_mass: 0.0
+  pendulum1_length: 0.0
+  pendulum2_length: 0.0
+  pendulum1_com: 0.0
+  pendulum2_com: 0.0
+  pendulum1_inertia: 0.0
+  pendulum2_inertia: 0.0
+  gravity: 0.0
+  cart_friction: 0.0
+  joint1_friction: 0.0
+  joint2_friction: 0.0
+simulation:
+  duration: 0.2
+  dt: 0.02
+  initial_state: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  use_full_dynamics: false
+verification:
+  test_conditions: []
+  integrators: ["euler"]
+  criteria: {}
+cost_function:
+  weights: { state_error: 1.0, control_effort: 0.1, control_rate: 0.1, stability: 0.1 }
+  baseline: {}
+  instability_penalty: 1.0
+sensors:
+  angle_noise_std: 0.0
+  position_noise_std: 0.0
+  quantization_angle: 0.0
+  quantization_position: 0.0
+hil:
+  plant_ip: "127.0.0.1"
+  plant_port: 0
+  controller_ip: "127.0.0.1"
+  controller_port: 0
+  extra_latency_ms: 0.0
+  sensor_noise_std: 0.0
+fdi: null
+""".strip()
+
+
+def _write_cfg(p: Path) -> Path:
+    p.write_text(CONFIG_TEMPLATE, encoding="utf-8")
+    return p
+
+
+def test_hil_raises_when_server_never_ready(tmp_path, monkeypatch):
+    from app import _run_hil
+
+    cfg_path = _write_cfg(tmp_path / "hil_timeout.yaml")
+
+    # Patch PlantServer.start to never set the ready event and just sleep a bit
+    import src.interfaces.hil.plant_server as plant_mod
+
+    original_start = plant_mod.PlantServer.start
+
+    def fake_start(self):  # noqa: ANN001
+        # Do not set self._ready_evt; just sleep shorter than the wait timeout
+        time.sleep(0.5)
+        # Return without touching sockets
+        return None
+
+    monkeypatch.setattr(plant_mod.PlantServer, "start", fake_start)
+    # Also bypass baseline simulation so the test focuses on readiness
+    import app as app_mod
+
+    def _noop_baseline(_args):  # noqa: ANN001
+        return 0
+
+    monkeypatch.setattr(app_mod, "_run_simulation_and_plot", _noop_baseline)
+
+    with pytest.raises(RuntimeError, match="failed to signal readiness"):
+        _run_hil(cfg_path, do_plot=False)
+
+    # Restore original to avoid side effects across tests
+    monkeypatch.setattr(plant_mod.PlantServer, "start", original_start)

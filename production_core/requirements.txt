@@ -1,0 +1,1 @@
+# Minimal production requirements\nnumpy>=1.21.0,<2.0.0\nscipy>=1.7.0,<2.0.0\n

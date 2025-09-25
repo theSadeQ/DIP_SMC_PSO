@@ -202,6 +202,10 @@ physics:
   joint1_friction: 0.005
   joint2_friction: 0.004
   singularity_cond_threshold: 100000000.0
+  # Physics effects for full dynamics model
+  include_coriolis_effects: true
+  include_centrifugal_effects: true
+  include_gyroscopic_effects: true
 physics_uncertainty:
   n_evals: 10
   cart_mass: 0.05

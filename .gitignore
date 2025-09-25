@@ -13,3 +13,38 @@ build/
 docs/_build/
 **/_build/
 **/_site/
+
+
+# Python cache directories
+__pycache__/
+*.py[cod]
+*.class
+.pytest_cache/
+.ruff_cache/
+.numba_cache/
+.benchmarks/
+
+# Hypothesis testing
+.hypothesis/
+
+
+# Enhanced Python cache prevention
+**/__pycache__/
+**/*.py[cod]
+**/*.class
+
+# Documentation build artifacts  
+docs/_build/
+docs/_static/
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Development caches
+.benchmarks/
+.numba_cache/
+.pytest_cache/
+.ruff_cache/
+.hypothesis/

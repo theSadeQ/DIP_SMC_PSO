@@ -157,7 +157,7 @@ Random perturbations around equilibrium:
 ### Basic Benchmark Run
 
 ```python
-from src.benchmarks.statistical_benchmarks import run_trials
+from src.benchmarks.statistical_benchmarks_v2 import run_trials
 from src.controllers.factory import create_controller_factory
 from src.config import load_config
 

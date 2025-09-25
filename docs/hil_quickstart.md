@@ -54,17 +54,51 @@ python simulate.py --config custom_config.yaml --run-hil
 
 ### Data Packet Format
 
+The HIL system uses robust UDP packet formats with sequence numbers and CRC-32 checksums for reliable communication:
+
 **State Data (Plant → Controller):**
 ```
-[timestamp] [x] [theta1] [theta2] [x_dot] [theta1_dot] [theta2_dot]
+[sequence_num] [x] [theta1] [theta2] [x_dot] [theta1_dot] [theta2_dot] [crc32]
 ```
 
 **Control Data (Controller → Plant):**
 ```
-[timestamp] [control_force]
+[sequence_num] [control_force] [crc32]
 ```
 
-All values are transmitted as 32-bit floats in network byte order.
+**Format Details:**
+- `sequence_num`: 32-bit unsigned integer (network byte order)
+- State values: 6 × 64-bit floats (network byte order)
+- Control force: 64-bit float (network byte order)
+- `crc32`: 32-bit CRC-32 checksum (network byte order)
+
+### Packet Integrity Features
+
+**Sequence Numbers:**
+- Detect out-of-order, duplicate, or lost packets
+- Plant server echoes last received sequence number
+- Stale packets (sequence < last_received) are discarded
+
+**CRC-32 Checksums:**
+- Computed over sequence number + data payload
+- Provides UDP integrity checking beyond basic checksum
+- Corrupted packets automatically rejected
+
+**Example CRC Computation (Python):**
+```python
+import struct
+import zlib
+
+# For control packet: sequence + command
+payload = struct.pack("!I d", sequence_num, control_force)
+crc = zlib.crc32(payload) & 0xFFFFFFFF
+packet = payload + struct.pack("!I", crc)
+
+# For state packet: sequence + 6 measurements
+payload = struct.pack("!I 6d", sequence_num, x, theta1, theta2, x_dot, theta1_dot, theta2_dot)
+crc = zlib.crc32(payload) & 0xFFFFFFFF
+packet = payload + struct.pack("!I", crc)
+```
 
 ### Sample Rate
 
@@ -110,6 +144,11 @@ telnet 127.0.0.1 9000
 - Verify timestamp synchronization between systems
 - Check for packet loss or reordering
 - Reduce controller gains for initial testing
+
+**Packet Integrity Issues:**
+- Monitor CRC checksum failures in debug logs
+- Check for sequence number gaps indicating lost packets
+- Verify network byte order on different architectures
 
 ### Debug Mode
 
@@ -192,6 +231,62 @@ HIL simulation integrates seamlessly with the main DIP_SMC_PSO workflow:
 - PSO optimization can run over HIL for real-world parameter tuning
 - Plotting and analysis tools work with HIL data
 - Configuration system provides unified HIL/simulation interface
+
+## Fault Detection Integration
+
+The HIL system integrates with the project's Fault Detection and Isolation (FDI) module for enhanced safety:
+
+### Network Fault Detection
+
+Built-in HIL fault detection includes:
+
+```yaml
+hil:
+  max_packet_loss_rate: 0.05     # Maximum acceptable packet loss (5%)
+  max_latency_ms: 10.0           # Maximum acceptable round-trip latency
+  crc_failure_threshold: 3       # Consecutive CRC failures before fault
+  sequence_gap_threshold: 10     # Missing sequence numbers before fault
+```
+
+### FDI Integration Example
+
+```python
+from src.fault_detection.fdi import FaultDetector
+from src.interfaces.hil.plant_server import PlantServer
+
+# Create FDI system with HIL-specific fault types
+fdi = FaultDetector(
+    fault_types=['sensor_failure', 'actuator_saturation', 'network_timeout']
+)
+
+# Initialize HIL with FDI monitoring
+plant_server = PlantServer(config, fault_detector=fdi)
+
+# FDI automatically monitors:
+# - Sensor value bounds and rate limits
+# - Network packet integrity and timing
+# - Control signal saturation and discontinuities
+```
+
+### Automated Safety Responses
+
+When faults are detected, the HIL system can:
+
+1. **Graceful Degradation**: Switch to backup controller
+2. **Safe Mode**: Apply minimal control to maintain stability
+3. **Emergency Stop**: Disconnect from hardware and log incident
+
+```yaml
+fdi:
+  safety_actions:
+    network_timeout:
+      action: "safe_mode"
+      backup_controller: "classical_smc"
+      reduced_gains: true
+    sensor_failure:
+      action: "emergency_stop"
+      notify_hardware: true
+```
 
 ## Related Documentation
 

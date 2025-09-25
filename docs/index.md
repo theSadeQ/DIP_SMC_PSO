@@ -53,8 +53,8 @@ plant_model
 :maxdepth: 2
 :caption: 🎮 Control Systems
 
-controllers/index
-optimization/index
+reference/controllers/index
+reference/optimizer/index
 analysis_plan
 ```
 
@@ -73,6 +73,7 @@ context
 :caption: 📋 Quick Guides
 
 hil_quickstart
+streamlit_dashboard_guide
 benchmarks_methodology
 fault_detection_guide
 ```
@@ -197,6 +198,15 @@ Bibliography coming soon - citations system is being configured.
 
 ## Project Links
 
+
+```{toctree}
+:maxdepth: 2
+:caption: Reference
+
+guides/getting-started
+how-to/testing-and-benchmarks
+reference/index
+```
 ### Core Documentation
 - 📚 [Theory Overview](theory_overview.md)
 - 🎮 [Controller Documentation](controllers/index.md)

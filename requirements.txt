@@ -1,18 +1,58 @@
-# requirements.txt
+# DIP_SMC_PSO - Unified Requirements
+# Double-Inverted Pendulum Sliding Mode Control with PSO Optimization
 
-numpy>=2.0
-scipy>=1.12
-matplotlib>=3.9
-pyswarms>=1.3
-optuna>=3.6   
-numba>=0.60   
-pyyaml>=6.0
-pandas>=2.2
-pytest>=8.0
-pytest-benchmark>=4.0
-jsonschema>=4.23
-hypothesis>=6.100
-pydantic>=2.11,<3.0   
-streamlit>=1.35
-cvxpy>=1.4
-pydantic-settings>=2.5
+# Core Scientific Computing - PRODUCTION SAFETY FIXES
+# CRITICAL: numpy 2.0 breaks numba compatibility - fixed to 1.x
+numpy>=1.21.0,<2.0.0
+scipy>=1.10.0,<1.14.0
+matplotlib>=3.6.0,<4.0.0
+pandas>=1.5.0,<3.0.0
+
+# Optimization and Control - VERSION BOUNDS ADDED
+pyswarms>=1.3.0,<2.0.0
+optuna>=3.0.0,<4.0.0
+cvxpy>=1.3.0,<2.0.0
+
+# Performance and Compilation - CRITICAL NUMBA FIX
+# FIXED: numba 0.60+ incompatible with numpy < 2.0
+numba>=0.56.0,<0.60.0
+
+# Configuration and Data Handling - VERSION BOUNDS ADDED
+pyyaml>=6.0,<7.0
+pydantic>=2.5.0,<3.0.0
+pydantic-settings>=2.0.0,<3.0.0
+jsonschema>=4.17.0,<5.0.0
+
+# Testing Framework - VERSION BOUNDS ADDED
+pytest>=7.4.0,<9.0.0
+pytest-benchmark>=4.0.0,<5.0.0
+hypothesis>=6.70.0,<7.0.0
+
+# Web Interface (Streamlit) - VERSION BOUNDS ADDED
+streamlit>=1.28.0,<2.0.0
+plotly>=5.15.0,<6.0.0
+altair>=4.2.0,<6.0.0
+watchdog>=3.0.0,<4.0.0
+
+# ===== DOCUMENTATION DEPENDENCIES - VERSION BOUNDS ADDED =====
+# Core Sphinx
+sphinx>=5.0.0,<8.0.0
+sphinx-rtd-theme>=1.3.0,<3.0.0
+
+# Advanced Documentation Extensions
+sphinxcontrib-bibtex>=2.5.0,<3.0.0
+sphinx-copybutton>=0.5.0,<1.0.0
+sphinx-math-dollar>=1.2.0,<2.0.0
+sphinx-design>=0.4.0,<1.0.0
+sphinx-togglebutton>=0.3.0,<1.0.0
+sphinxcontrib-mermaid>=0.8.0,<1.0.0
+sphinxcontrib-plantuml>=0.24,<1.0.0
+myst-parser>=1.0.0,<3.0.0
+
+# Scientific Documentation
+sympy>=1.11.0,<2.0.0
+
+# Code Quality - VERSION BOUNDS ADDED
+pygments>=2.14.0,<3.0.0
+black>=23.0.0,<25.0.0
+linkchecker>=10.0.0,<11.0.0

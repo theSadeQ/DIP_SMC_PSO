@@ -4,15 +4,7 @@ This section provides comprehensive API documentation for all modules in the DIP
 
 ## Modules
 
-```{toctree}
-:maxdepth: 2
-
-core
-controllers
-optimizer
-hil
-config
-```
+**Note**: Detailed API documentation for individual modules is currently in development. The following auto-generated documentation provides core module information:
 
 ## Auto-Generated Documentation
 

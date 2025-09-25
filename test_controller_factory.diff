@@ -1,0 +1,312 @@
+diff --git a/tests/test_controllers/factory/test_controller_factory.py b/tests/test_controllers/factory/test_controller_factory.py
+new file mode 100644
+index 0000000..1a80822
+--- /dev/null
++++ b/tests/test_controllers/factory/test_controller_factory.py
+@@ -0,0 +1,305 @@
++#==========================================================================================\\\
++#================ tests/test_controllers/factory/test_controller_factory.py ==============\\\
++#==========================================================================================\\\
++
++"""
++Comprehensive test suite for controller factory functionality.
++
++Tests the SMC factory system including type-safe creation, PSO integration,
++and gain validation for all supported controller types.
++"""
++
++import pytest
++import numpy as np
++from typing import Dict, Any
++
++# Import controller factory components
++from src.controllers.factory import (
++    SMCFactory, SMCType, SMCConfig, create_smc_for_pso,
++    get_gain_bounds_for_pso, validate_smc_gains, SMC_GAIN_SPECS
++)
++
++# Import plant configuration for controller testing
++from src.plant.configurations.factory import ConfigurationFactory
++
++
++class TestSMCFactory:
++    """Test the SMC factory system."""
++
++    def setup_method(self):
++        """Set up test fixtures."""
++        self.plant_config = ConfigurationFactory.create_default_config("simplified")
++        self.factory = SMCFactory()
++
++    def test_factory_creation(self):
++        """Test basic factory creation."""
++        assert isinstance(self.factory, SMCFactory)
++
++    def test_smc_types_available(self):
++        """Test that all SMC types are available."""
++        expected_types = [
++            SMCType.CLASSICAL_SMC,
++            SMCType.ADAPTIVE_SMC,
++            SMCType.SUPER_TWISTING,
++            SMCType.INTEGRAL_SMC
++        ]
++
++        for smc_type in expected_types:
++            assert isinstance(smc_type, SMCType)
++
++    def test_gain_specifications(self):
++        """Test that gain specifications are properly defined."""
++        assert len(SMC_GAIN_SPECS) >= 4
++
++        for smc_type, spec in SMC_GAIN_SPECS.items():
++            assert hasattr(spec, 'names')
++            assert hasattr(spec, 'bounds')
++            assert hasattr(spec, 'defaults')
++            assert len(spec.names) == len(spec.bounds) == len(spec.defaults)
++
++
++class TestControllerCreation:
++    """Test controller creation through factory."""
++
++    def setup_method(self):
++        """Set up test fixtures."""
++        self.plant_config = ConfigurationFactory.create_default_config("simplified")
++        self.valid_gains = {
++            SMCType.CLASSICAL_SMC: [10.0, 5.0, 8.0, 3.0],
++            SMCType.ADAPTIVE_SMC: [10.0, 5.0, 8.0, 3.0, 2.0, 1.5],
++        }
++
++    def test_create_classical_smc(self):
++        """Test creating classical SMC controller."""
++        gains = self.valid_gains[SMCType.CLASSICAL_SMC]
++
++        config = SMCConfig(
++            smc_type=SMCType.CLASSICAL_SMC,
++            gains=gains,
++            plant_config=self.plant_config
++        )
++
++        controller = SMCFactory.create(config)
++        assert controller is not None
++
++        # Test control computation
++        state = np.array([0.1, 0.2, 0.3, 0.0, 0.0, 0.0])
++        control = controller.compute_control(state)
++        assert isinstance(control, np.ndarray)
++        assert control.shape == (1,)
++
++    def test_create_adaptive_smc(self):
++        """Test creating adaptive SMC controller."""
++        gains = self.valid_gains[SMCType.ADAPTIVE_SMC]
++
++        config = SMCConfig(
++            smc_type=SMCType.ADAPTIVE_SMC,
++            gains=gains,
++            plant_config=self.plant_config
++        )
++
++        controller = SMCFactory.create(config)
++        assert controller is not None
++
++        # Test control computation
++        state = np.array([0.1, 0.2, 0.3, 0.0, 0.0, 0.0])
++        control = controller.compute_control(state)
++        assert isinstance(control, np.ndarray)
++        assert control.shape == (1,)
++
++    def test_invalid_smc_type_raises_error(self):
++        """Test that invalid SMC type raises appropriate error."""
++        with pytest.raises((ValueError, KeyError)):
++            config = SMCConfig(
++                smc_type="invalid_type",  # Invalid type
++                gains=[1.0, 2.0, 3.0, 4.0],
++                plant_config=self.plant_config
++            )
++            SMCFactory.create(config)
++
++
++class TestPSOIntegration:
++    """Test PSO integration functions."""
++
++    def setup_method(self):
++        """Set up test fixtures."""
++        self.plant_config = ConfigurationFactory.create_default_config("simplified")
++
++    def test_create_smc_for_pso(self):
++        """Test PSO-specific controller creation."""
++        gains = [10.0, 5.0, 8.0, 3.0]
++
++        controller = create_smc_for_pso(
++            SMCType.CLASSICAL_SMC,
++            gains,
++            self.plant_config
++        )
++
++        assert controller is not None
++
++        # Test control computation
++        state = np.array([0.1, 0.2, 0.3, 0.0, 0.0, 0.0])
++        control = controller.compute_control(state)
++        assert isinstance(control, np.ndarray)
++
++    def test_get_gain_bounds_for_pso(self):
++        """Test getting gain bounds for PSO optimization."""
++        bounds = get_gain_bounds_for_pso(SMCType.CLASSICAL_SMC)
++
++        assert isinstance(bounds, tuple)
++        assert len(bounds) == 2  # (lower_bounds, upper_bounds)
++
++        lower_bounds, upper_bounds = bounds
++        assert len(lower_bounds) == len(upper_bounds)
++        assert all(l < u for l, u in zip(lower_bounds, upper_bounds))
++
++    def test_validate_smc_gains(self):
++        """Test gain validation."""
++        # Valid gains should pass
++        valid_gains = [10.0, 5.0, 8.0, 3.0]
++        assert validate_smc_gains(SMCType.CLASSICAL_SMC, valid_gains)
++
++        # Invalid gains should fail
++        invalid_gains = [-1.0, 5.0, 8.0, 3.0]  # Negative gain
++        assert not validate_smc_gains(SMCType.CLASSICAL_SMC, invalid_gains)
++
++
++class TestFactoryRobustness:
++    """Test factory robustness and edge cases."""
++
++    def setup_method(self):
++        """Set up test fixtures."""
++        self.plant_config = ConfigurationFactory.create_default_config("simplified")
++
++    def test_factory_handles_extreme_gains(self):
++        """Test factory with extreme gain values."""
++        # Very small gains
++        small_gains = [0.01, 0.01, 0.01, 0.01]
++        controller = create_smc_for_pso(
++            SMCType.CLASSICAL_SMC,
++            small_gains,
++            self.plant_config
++        )
++        assert controller is not None
++
++        # Large gains
++        large_gains = [100.0, 100.0, 100.0, 100.0]
++        controller = create_smc_for_pso(
++            SMCType.CLASSICAL_SMC,
++            large_gains,
++            self.plant_config
++        )
++        assert controller is not None
++
++    def test_factory_thread_safety(self):
++        """Test that factory operations are thread-safe."""
++        import threading
++        results = []
++
++        def create_controller_threaded():
++            try:
++                gains = [10.0, 5.0, 8.0, 3.0]
++                controller = create_smc_for_pso(
++                    SMCType.CLASSICAL_SMC,
++                    gains,
++                    self.plant_config
++                )
++                results.append(controller is not None)
++            except Exception:
++                results.append(False)
++
++        # Create multiple threads
++        threads = []
++        for _ in range(5):
++            thread = threading.Thread(target=create_controller_threaded)
++            threads.append(thread)
++            thread.start()
++
++        # Wait for all threads
++        for thread in threads:
++            thread.join()
++
++        # All should succeed
++        assert all(results)
++
++    def test_memory_efficiency(self):
++        """Test that factory doesn't leak memory."""
++        import gc
++
++        initial_objects = len(gc.get_objects())
++
++        # Create many controllers
++        gains = [10.0, 5.0, 8.0, 3.0]
++        controllers = []
++
++        for _ in range(50):
++            controller = create_smc_for_pso(
++                SMCType.CLASSICAL_SMC,
++                gains,
++                self.plant_config
++            )
++            controllers.append(controller)
++
++        # Clear references
++        del controllers
++        gc.collect()
++
++        final_objects = len(gc.get_objects())
++
++        # Should not have significant memory growth
++        object_growth = final_objects - initial_objects
++        assert object_growth < 100  # Allow some growth but not excessive
++
++
++@pytest.mark.integration
++class TestFactoryIntegration:
++    """Integration tests for factory with real plant dynamics."""
++
++    def setup_method(self):
++        """Set up test fixtures."""
++        self.plant_config = ConfigurationFactory.create_default_config("simplified")
++
++    def test_controller_plant_integration(self):
++        """Test controller works with plant dynamics."""
++        from src.plant.models.simplified.dynamics import SimplifiedDIPDynamics
++
++        # Create dynamics and controller
++        dynamics = SimplifiedDIPDynamics(self.plant_config)
++        controller = create_smc_for_pso(
++            SMCType.CLASSICAL_SMC,
++            [10.0, 5.0, 8.0, 3.0],
++            self.plant_config
++        )
++
++        # Test closed-loop simulation step
++        state = np.array([0.1, 0.2, 0.3, 0.0, 0.0, 0.0])
++
++        # Compute control
++        control = controller.compute_control(state)
++        assert isinstance(control, np.ndarray)
++        assert control.shape == (1,)
++
++        # Compute dynamics
++        result = dynamics.compute_dynamics(state, control)
++        assert hasattr(result, 'state_dot')
++        assert result.state_dot.shape == (6,)
++
++    def test_multiple_controller_types(self):
++        """Test creating multiple controller types."""
++        controller_configs = [
++            (SMCType.CLASSICAL_SMC, [10.0, 5.0, 8.0, 3.0]),
++            (SMCType.ADAPTIVE_SMC, [10.0, 5.0, 8.0, 3.0, 2.0, 1.5]),
++        ]
++
++        controllers = []
++        for smc_type, gains in controller_configs:
++            controller = create_smc_for_pso(smc_type, gains, self.plant_config)
++            controllers.append(controller)
++            assert controller is not None
++
++        # Test all controllers can compute control
++        state = np.array([0.1, 0.2, 0.3, 0.0, 0.0, 0.0])
++        for controller in controllers:
++            control = controller.compute_control(state)
++            assert isinstance(control, np.ndarray)
++            assert control.shape == (1,)
+\ No newline at end of file

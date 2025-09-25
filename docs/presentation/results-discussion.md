@@ -54,19 +54,34 @@ Because the only PSO‑tuned results recorded correspond to the classical SMC, c
 
 The classical SMC stabilises the pendulums but requires the largest control effort and exhibits moderate chattering.  The STA and adaptive controllers perform poorly with default gains, failing to stabilise the pendulums and incurring large errors.  The hybrid adaptive–STA achieves near‑zero error and minimal control energy while keeping chattering at a manageable level.  These baseline results align with established findings: higher‑order sliding modes yield smoother control but require careful tuning [5], and adaptive SMC can suffer from poor performance when gains are not properly adjusted [6].  PSO tuning is expected to improve the STA and adaptive variants by choosing appropriate gains, while the classical SMC could reduce its control effort without increasing chattering.
 
-##### 8.3.1 Time‑domain response
+##### 8.3.1 Critical Limitation: Incomplete PSO Optimization
+
+**⚠️ Important**: The results in the above table have a significant limitation that affects the validity of controller comparisons. Only the **Classical SMC** results use PSO-optimized parameters, while the **Super-twisting (STA)**, **Adaptive SMC**, and **Hybrid adaptive-STA** controllers use baseline default parameters from `config.yaml`.
+
+This creates an unfair comparison because:
+- Classical SMC has been tuned for optimal performance using PSO
+- Other controllers use potentially suboptimal default parameters
+- The poor performance of STA and Adaptive SMC may be due to poor parameter selection, not inherent algorithm limitations
+- The surprisingly good performance of Hybrid adaptive-STA with defaults suggests it may perform even better when properly optimized
+
+**Future Work**: Complete PSO optimization should be performed for all controller variants to enable fair comparison. Expected outcomes:
+- STA and Adaptive SMC performance should improve significantly with proper tuning
+- Hybrid adaptive-STA may achieve even better performance
+- True relative performance ranking can only be established after equal optimization effort
+
+##### 8.3.2 Time‑domain response
 
 Simulated trajectories show that the **classical SMC** quickly drives θ1\theta_{1} and θ2\theta_{2} to zero, but the cart position and control input oscillate due to chattering [3, 4].  The **STA** produces a smooth control signal because it integrates the discontinuous switching term; however, with default gains it reacts slowly, leading to large pendulum excursions [5].  The **adaptive SMC** increases its switching gain when ∣σ∣|\sigma| is large and decreases it near the sliding surface, reducing chattering and yielding continuous control [6].  The **hybrid adaptive–STA** combines the continuous super‑twisting law with adaptive gain tuning, producing smooth trajectories and rapid convergence [7].
 
-##### 8.3.2 Chattering analysis
+##### 8.3.3 Chattering analysis
 
 Chattering originates from the discontinuous switching term in classical SMC [4].  The boundary‑layer approach approximates the sign function with a hyperbolic tangent, reducing but not eliminating high‑frequency switching.  The **STA** eliminates direct discontinuities by integrating the switching term and thus produces a continuous control input [5].  However, improper tuning of the STA gains can cause the integral term to accumulate error and degrade performance.  **Adaptive SMC** reduces chattering by lowering its switching gain when ∣σ∣|\sigma| is small [6], while the **hybrid adaptive–STA** retains the continuous control of the STA and adapts its gains online, achieving the best compromise between chattering reduction and convergence [7].
 
-##### 8.3.3 Control effort and actuator saturation
+##### 8.3.4 Control effort and actuator saturation
 
 The control effort ∫u2dt\int u^{2}\mathrm{d}t is highest for the classical and adaptive controllers because they rely on large switching gains to ensure robustness.  The STA reduces the switching amplitude and thus the energy consumption, but poor tracking with default gains still yields significant energy [5].  The hybrid controller requires only a few joules because it quickly stabilises the pendulums and then maintains them upright with small continuous inputs [7].  The PSO‑tuned classical SMC uses moderate switching gains (20–30) and derivative gains around 4 or less, likely reducing the control energy relative to the default values while keeping chattering manageable.  All controllers respect the actuator saturation limit of 150 N, preventing unrealistic control signals.
 
-##### 8.3.4 Stability and constraint violations
+##### 8.3.5 Stability and constraint violations
 
 Baseline simulations reveal that the classical SMC has a very small **region of attraction**: only initial angles within approximately ±0.02 rad converge to the upright equilibrium.  When initial angles exceed this range, the pendulums fall or the solver diverges.  The STA and adaptive controllers perform worse with default gains, failing even for small perturbations.  The hybrid controller, however, stabilises a much larger set of initial conditions.  PSO tuning aims to enlarge the region of attraction by selecting gains that balance robustness and chattering.  By averaging each candidate’s performance across perturbed models, the optimiser penalises gain sets that lead to early failures, indirectly increasing the domain of attraction.  Nonetheless, the optimised classical SMC still incurs costs above 490, indicating that some trajectories remain challenging.
 

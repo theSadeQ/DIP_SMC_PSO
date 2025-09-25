@@ -1,210 +1,338 @@
-# DIP_SMC_PSO Project Reference
+# CLAUDE.md — Team Memory & Project Conventions (Combined)
 
-This document provides Claude with essential project-specific information for the DIP_SMC_PSO project.
+> This file unifies the content previously split across **CLAUDE.md** and **.CLAUDE.md**. Keep exactly one copy in the repo. If you prefer a clean root, store it as **.CLAUDE.md**.
 
-## Project Overview
+------
 
-**Double-Inverted Pendulum Sliding Mode Control with PSO Optimization**
+## 1) Project Overview
 
-A comprehensive Python simulation environment for designing, tuning, and analyzing advanced sliding mode controllers for a double-inverted pendulum system. Features automated gain tuning via Particle Swarm Optimization and both CLI and web interfaces.
+**Double‑Inverted Pendulum Sliding Mode Control with PSO Optimization**
 
-## Key Technologies
-- **Python 3.9+** with NumPy, SciPy, Matplotlib
-- **Control Systems**: Classical SMC, Super-Twisting SMC, Adaptive SMC, Hybrid Adaptive STA-SMC
-- **Optimization**: PSO via PySwarms, Optuna
-- **Performance**: Numba acceleration for batch simulations
-- **Testing**: pytest with comprehensive test suite
-- **Configuration**: YAML-based with Pydantic validation
-- **UI**: Streamlit web interface
+A comprehensive Python framework for simulating, controlling, and analyzing a double‑inverted pendulum (DIP) system. It provides multiple SMC variants, optimization (PSO), a CLI and a Streamlit UI, plus rigorous testing and documentation.
 
-## Project Structure
+------
+
+## 2) Architecture
+
+### 2.1 High‑Level Modules
+
+- **Controllers**: classical SMC, super‑twisting, adaptive, hybrid adaptive STA‑SMC, swing‑up; experimental MPC.
+- **Dynamics/Plant**: simplified and full nonlinear dynamics (plus low‑rank); shared base interfaces.
+- **Core Engine**: simulation runner, unified simulation context, batch/Numba vectorized simulators.
+- **Optimization**: PSO tuner (operational); additional algorithms staged via an optimization core.
+- **Utils**: validation, control primitives (e.g., saturation), monitoring, visualization, analysis, types, reproducibility, dev tools.
+- **HIL**: plant server + controller client for hardware‑in‑the‑loop experiments.
+
+### 2.2 Representative Layout (merged)
 
 ```
-├── src/                          # Main source code
-│   ├── controllers/              # Controller implementations
-│   │   ├── classic_smc.py       # Classical sliding mode controller
-│   │   ├── sta_smc.py           # Super-twisting sliding mode
-│   │   ├── adaptive_smc.py      # Adaptive sliding mode
-│   │   ├── hybrid_adaptive_sta_smc.py  # Hybrid adaptive controller
-│   │   ├── swing_up_smc.py      # Swing-up controller
-│   │   ├── mpc_controller.py    # Model predictive controller
-│   │   └── factory.py           # Controller factory
-│   ├── core/                    # Core simulation engine
-│   │   ├── dynamics.py          # Simplified dynamics model
-│   │   ├── dynamics_full.py     # Full nonlinear dynamics
-│   │   ├── simulation_runner.py # Main simulation runner
-│   │   ├── simulation_context.py # Unified simulation context
-│   │   └── vector_sim.py        # Numba-accelerated batch simulator
-│   ├── optimizer/               # PSO optimization
-│   │   └── pso_optimizer.py     # PSO tuner implementation
-│   ├── hil/                     # Hardware-in-the-loop
-│   │   ├── plant_server.py      # HIL plant server
-│   │   └── controller_client.py # HIL controller client
-│   └── config.py                # Configuration management
-├── tests/                       # Comprehensive test suite
-│   ├── test_controllers/        # Controller unit tests
-│   ├── test_core/               # Core simulation tests
-│   ├── test_optimizer/          # PSO optimization tests
-│   ├── test_benchmarks/         # Performance benchmarks
-│   └── conftest.py              # Test fixtures and configuration
-├── simulate.py                  # Main CLI application
-├── streamlit_app.py            # Web interface
-├── run_tests.py                # Test runner script
-├── config.yaml                 # Main configuration file
-└── requirements.txt            # Python dependencies
+src/
+├─ controllers/
+│  ├─ classic_smc.py
+│  ├─ sta_smc.py
+│  ├─ adaptive_smc.py
+│  ├─ hybrid_adaptive_sta_smc.py
+│  ├─ swing_up_smc.py
+│  ├─ mpc_controller.py
+│  └─ factory.py
+├─ core/
+│  ├─ dynamics.py
+│  ├─ dynamics_full.py
+│  ├─ simulation_runner.py
+│  ├─ simulation_context.py
+│  └─ vector_sim.py
+├─ plant/
+│  ├─ models/
+│  │  ├─ simplified/
+│  │  ├─ full/
+│  │  └─ lowrank/
+│  ├─ configurations/
+│  └─ core/
+├─ optimizer/
+│  └─ pso_optimizer.py
+├─ utils/
+│  ├─ validation/
+│  ├─ control/
+│  ├─ monitoring/
+│  ├─ visualization/
+│  ├─ analysis/
+│  ├─ types/
+│  ├─ reproducibility/
+│  └─ development/
+└─ hil/
+   ├─ plant_server.py
+   └─ controller_client.py
 ```
 
-## Essential Commands
+**Top‑level**
 
-### Running Simulations
+```
+simulate.py        # CLI entry
+streamlit_app.py   # Web UI
+config.yaml        # Main configuration
+requirements.txt   # Pinned deps / ranges
+run_tests.py       # Test runner helper
+README.md, CHANGELOG.md
+```
+
+------
+
+## 3) Key Technologies
+
+- Python 3.9+
+- NumPy, SciPy, Matplotlib
+- Numba for vectorized/batch simulation
+- PySwarms / Optuna for optimization (PSO primary)
+- Pydantic‑validated YAML configs
+- pytest + pytest‑benchmark; Hypothesis where useful
+- Streamlit for UI
+
+------
+
+## 4) Usage & Essential Commands
+
+### 4.1 Simulations
+
 ```bash
-# Basic simulation with classical controller
 python simulate.py --ctrl classical_smc --plot
-
-# Use super-twisting controller with full dynamics
 python simulate.py --ctrl sta_smc --plot
-
-# Load pre-tuned gains and run simulation
 python simulate.py --load tuned_gains.json --plot
-
-# Print current configuration
 python simulate.py --print-config
 ```
 
-### PSO Optimization
+### 4.2 PSO Optimization
+
 ```bash
-# Optimize classical SMC gains
 python simulate.py --ctrl classical_smc --run-pso --save gains_classical.json
-
-# Optimize adaptive SMC with specific seed
 python simulate.py --ctrl adaptive_smc --run-pso --seed 42 --save gains_adaptive.json
-
-# Optimize hybrid adaptive controller
 python simulate.py --ctrl hybrid_adaptive_sta_smc --run-pso --save gains_hybrid.json
 ```
 
-### Hardware-in-the-Loop (HIL)
-```bash
-# Run HIL simulation (spawns server and client)
-python simulate.py --run-hil --plot
+### 4.3 HIL
 
-# HIL with custom configuration
+```bash
+python simulate.py --run-hil --plot
 python simulate.py --config custom_config.yaml --run-hil
 ```
 
-### Testing
+### 4.4 Testing
+
 ```bash
-# Run full test suite
 python run_tests.py
-
-# Run specific test module
 python -m pytest tests/test_controllers/test_classical_smc.py -v
-
-# Run performance benchmarks only
 python -m pytest tests/test_benchmarks/ --benchmark-only
-
-# Run tests with coverage
 python -m pytest tests/ --cov=src --cov-report=html
 ```
 
-### Web Interface
+### 4.5 Web Interface
+
 ```bash
-# Launch Streamlit dashboard
 streamlit run streamlit_app.py
 ```
 
-## Controller Types
+------
 
-1. **classical_smc**: Classical sliding mode with boundary layer for chattering reduction
-2. **sta_smc**: Super-twisting sliding mode for continuous control and finite-time convergence
-3. **adaptive_smc**: Adaptive controller that adjusts gains online for uncertainty handling
-4. **hybrid_adaptive_sta_smc**: Hybrid adaptive super-twisting with model-based equivalent control
-5. **swing_up_smc**: Energy-based swing-up controller for large angle stabilization
-6. **mpc_controller**: Model predictive controller (experimental)
+## 5) Configuration System
 
-## Configuration System
+- Central `config.yaml` with strict validation.
+- Domains: physics params, controller settings, PSO parameters, simulation settings, HIL config.
+- Prefer “configuration first”: define parameters before implementation changes.
 
-The project uses `config.yaml` for centralized configuration with Pydantic validation:
+------
 
-- **Physics parameters**: Masses, lengths, inertias, friction coefficients
-- **Controller settings**: Gains, saturation limits, adaptation rates
-- **PSO parameters**: Swarm size, bounds, iterations, cognitive/social coefficients
-- **Simulation settings**: Duration, timestep, initial conditions
-- **HIL configuration**: Network settings, sensor noise, latency simulation
+## 6) Development Guidelines
 
-## Key Development Patterns
+### 6.1 Code Style
 
-### Adding New Controllers
-1. Implement controller class in `src/controllers/`
-2. Add factory method in `src/controllers/factory.py`
-3. Add configuration section to `config.yaml`
-4. Create unit tests in `tests/test_controllers/`
+- Type hints everywhere; clear, example‑rich docstrings.
+- ASCII header format for Python files (≈90 chars width).
+- Explicit error types; avoid broad excepts.
 
-### Running Batch Simulations
-Use `src/core/vector_sim.py` for Numba-accelerated parallel simulations:
+### 6.2 Adding New Controllers
+
+1. Implement in `src/controllers/`.
+2. Add to `src/controllers/factory.py`.
+3. Extend `config.yaml`.
+4. Add tests under `tests/test_controllers/`.
+
+### 6.3 Batch Simulation
+
 ```python
 from src.core.vector_sim import run_batch_simulation
 results = run_batch_simulation(controller, dynamics, initial_conditions, sim_params)
 ```
 
-### Configuration Loading
+### 6.4 Configuration Loading
+
 ```python
 from src.config import load_config
 config = load_config("config.yaml", allow_unknown=False)
 ```
 
-## Testing Architecture
+------
 
-- **Unit tests**: Individual component testing
-- **Integration tests**: End-to-end simulation workflows
-- **Property-based tests**: Hypothesis-driven randomized testing
-- **Performance benchmarks**: pytest-benchmark for regression detection
-- **Scientific validation**: Lyapunov stability, chattering analysis
+## 7) Testing & Coverage Standards
 
-### Test Execution Patterns
+### 7.1 Architecture of Tests
+
+- Unit, integration, property‑based, benchmarks, and scientific validation.
+- Example patterns:
+
 ```bash
-# Fast unit tests only
 pytest tests/test_controllers/ -k "not integration"
-
-# Integration tests with full dynamics
 pytest tests/ -k "full_dynamics"
-
-# Performance regression testing
 pytest --benchmark-only --benchmark-compare --benchmark-compare-fail=mean:5%
 ```
 
-## Common Debugging
+### 7.2 Coverage Targets
 
-### Import Issues
-- Ensure working directory is project root
-- Check `PYTHONPATH` includes `src/`
-- Verify all dependencies in `requirements.txt` are installed
+- **Overall** ≥ 85%
+- **Critical components** (controllers, plant models, simulation engines) ≥ 95%
+- **Safety‑critical** mechanisms: **100%**
 
-### Simulation Failures
-- Check configuration validation errors in logs
-- Verify physics parameters are positive
-- Ensure simulation duration ≥ timestep
-- Monitor for numerical instabilities (`NumericalInstabilityError`)
+### 7.3 Quality Gates (MANDATORY)
 
-### PSO Not Converging
-- Increase `pso.iters` or `pso.n_particles`
-- Adjust parameter bounds in `pso.bounds`
-- Check cost function weights in `cost_function.weights`
-- Verify controller constraints (saturation limits, adaptation rates)
+- Every new `.py` file has a `test_*.py` peer.
+- Every public function/method has dedicated tests.
+- Validate theoretical properties for critical algorithms.
+- Include performance benchmarks for perf‑critical code.
 
-## Performance Optimization
+------
 
-- Use `simulation.use_full_dynamics: false` for faster iterations
-- Reduce `simulation.duration` for development
-- Leverage `src/core/vector_sim.py` for batch processing
-- Monitor benchmark results to catch performance regressions
+## 8) Visualization & Analysis Toolkit
 
-## Development Workflow
+- Real‑time animations (DIPAnimator), static performance plots, project movie generator.
+- Statistical analysis: confidence intervals, bootstrap, Welch’s t‑test, ANOVA, Monte Carlo.
+- Real‑time monitoring (latency, deadline misses, weakly‑hard constraints) for control loops.
 
-1. **Configuration First**: Define controller parameters in `config.yaml`
-2. **Test-Driven**: Write tests before implementation
-3. **Validate Early**: Use configuration validation and type hints
-4. **Benchmark**: Measure performance impact of changes
-5. **Scientific Rigor**: Verify control-theoretic properties
+------
 
-This project emphasizes scientific reproducibility, performance, and robust engineering practices for control systems research and development.
+## 9) Production Safety & Readiness (Snapshot)
+
+**Production Readiness Score: 6.1/10** (recently improved)
+
+### Verified Improvements
+
+- **Dependency safety**: numpy 2.0 issues resolved; version bounds added; verification tests green.
+- **Memory safety**: bounded metric collections; cleanup mechanisms; memory monitoring.
+- **SPOF removal**: DI/factory registry; multi‑source resilient config; graceful degradation.
+
+### Outstanding Risks — DO NOT DEPLOY MULTI‑THREADED
+
+- **Thread safety**: suspected deadlocks; concurrent ops unsafe; validation currently failing.
+- Safe for **single‑threaded** operation with monitoring.
+
+### Validation Commands
+
+```bash
+python scripts/verify_dependencies.py
+python scripts/test_memory_leak_fixes.py
+python scripts/test_spof_fixes.py
+python scripts/test_thread_safety_fixes.py  # currently failing
+```
+
+------
+
+## 10) Workspace Organization & Hygiene
+
+### 10.1 Clean Root
+
+Keep visible items ≤ 12 (core files/dirs only). Hide dev/build clutter behind dot‑prefixed folders.
+
+**Visible files**: `simulate.py`, `streamlit_app.py`, `config.yaml`, `requirements.txt`, `README.md`, `CHANGELOG.md`
+
+**Visible dirs**: `src/`, `tests/`, `docs/`, `notebooks/`, `benchmarks/`, `config/`
+
+**Hidden dev dirs (examples)**: `.archive/`, `.build/`, `.dev_tools/`, `.scripts/`, `.tools/`
+ Move **CLAUDE.md → .CLAUDE.md** if you prefer a clean root.
+
+### 10.2 Universal Cache Cleanup
+
+```bash
+find . -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null
+rm -rf .pytest_cache .ruff_cache .numba_cache .benchmarks .hypothesis
+```
+
+### 10.3 Backup & Docs Artifacts
+
+```bash
+find . -name "*.bak" -o -name "*.backup" -o -name "*~" | xargs -I{} mv {} .archive/ 2>/dev/null
+# Docs build artifacts → archive
+mv docs/_build docs/_static docs/.github docs/.gitignore docs/.lycheeignore .archive/
+```
+
+### 10.4 Enhanced .gitignore
+
+```gitignore
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+.benchmarks/
+.numba_cache/
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+docs/_build/
+docs/_static/
+*.bak
+*.backup
+*~
+```
+
+### 10.5 Automation & Verification
+
+```bash
+# Helper for a clean view
+echo "(create) .dev_tools/clean_view.sh to list essentials, key dirs, hidden tools"
+
+# Health checks
+ls | wc -l                                    # target ≤ 12
+find . -name "__pycache__" | wc -l            # target = 0
+find . -name "*.bak" -o -name "*.backup" -o -name "*~" | wc -l  # target = 0
+```
+
+### 10.6 After Moving/Consolidation — Update References
+
+1. Search & replace hardcoded paths.
+2. Update README and diagrams.
+3. Fix CI workflows.
+4. Re‑run tests.
+
+------
+
+## 11) Controller Factory & Example Snippets
+
+```python
+from src.controllers.factory import create_controller
+controller = create_controller(
+  'classical_smc',
+  config=controller_config,
+  gains=[10.0, 5.0, 8.0, 3.0, 15.0, 2.0]
+)
+control_output = controller.compute_control(state, last_control, history)
+# Optimization (PSO)
+from src.optimizer.pso_optimizer import PSOTuner
+# ... initialize bounds, tuner, and run pso.optimize(...)
+# Monitoring
+from src.utils.monitoring.latency import LatencyMonitor
+monitor = LatencyMonitor(dt=0.01)
+start = monitor.start()
+# ... loop ...
+missed = monitor.end(start)
+```
+
+------
+
+## 12) Success Criteria
+
+- Clean root (≤ 12 visible entries), caches removed, backups archived.
+- Test coverage gates met (85% overall / 95% critical / 100% safety‑critical).
+- Single‑threaded operation stable; no dependency conflicts; memory bounded.
+- Clear, validated configuration; reproducible experiments.
+
+------
+
+### Appendix: Notes
+
+- Keep this file authoritative for style, testing, and operational posture.
+- Treat it as versioned team memory; update via PRs with a short change log.

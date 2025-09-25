@@ -13,7 +13,7 @@ import matplotlib
 matplotlib.use("Agg")
 
 try:
-    from src.utils.visualization import Visualizer
+    from src.utils import Visualizer
 except ImportError:
     from visualization import Visualizer
 

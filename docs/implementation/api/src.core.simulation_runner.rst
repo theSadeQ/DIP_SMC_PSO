@@ -9,13 +9,6 @@
    .. autosummary::
    
       get_step_fn
-      import_module
       run_simulation
       step
-   
-   .. rubric:: Classes
-
-   .. autosummary::
-   
-      Any
    

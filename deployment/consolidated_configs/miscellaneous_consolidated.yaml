@@ -1,0 +1,494 @@
+citation_map:
+  '1': dip_khalil_2002_nonlinear_systems
+  '2': dip_khalil_2002_nonlinear_systems
+  '3': smc_utkin_2013_sliding_mode_control
+  '4': smc_slotine_li_1991_applied_nonlinear_control
+  '5': smc_slotine_li_1991_applied_nonlinear_control
+  '6': smc_levant_2003_higher_order_smc
+  '7': smc_shtessel_2014_sliding_mode_control_and_observation
+  '8': dip_khalil_2002_nonlinear_systems
+researchplan.schema:
+  $defs:
+    checklist:
+      additionalProperties: false
+      properties:
+        items:
+          items:
+            type: string
+          type: array
+      required:
+      - items
+      type: object
+    typespec:
+      additionalProperties: true
+      properties:
+        constraints:
+          type: object
+        description:
+          type: string
+        type:
+          type: string
+      required:
+      - type
+      type: object
+  $id: https://example.org/researchplan.schema.json
+  $schema: https://json-schema.org/draft/2020-12/schema
+  additionalProperties: false
+  properties:
+    acceptance:
+      items:
+        additionalProperties: false
+        properties:
+          evidence:
+            type: string
+          statement:
+            type: string
+        required:
+        - statement
+        type: object
+      type: array
+    checklists:
+      additionalProperties: false
+      properties:
+        definition_of_done:
+          $ref: '#/$defs/checklist'
+        ops:
+          $ref: '#/$defs/checklist'
+        review:
+          $ref: '#/$defs/checklist'
+      required:
+      - definition_of_done
+      - review
+      - ops
+      type: object
+    executive_summary:
+      additionalProperties: false
+      properties:
+        context:
+          type: string
+        intended_outcomes:
+          items:
+            type: string
+          type: array
+        phases_overview:
+          items:
+            type: string
+          type: array
+      required:
+      - context
+      - intended_outcomes
+      - phases_overview
+      type: object
+    manifests:
+      items:
+        additionalProperties: false
+        properties:
+          acceptance:
+            items:
+              type: string
+            type: array
+          artifacts:
+            items:
+              type: string
+            type: array
+          goals:
+            items:
+              type: string
+            type: array
+          name:
+            type: string
+          risks:
+            items:
+              type: string
+            type: array
+        required:
+        - name
+        - goals
+        - acceptance
+        type: object
+      type: array
+    metadata:
+      additionalProperties: false
+      properties:
+        created_at:
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$
+          type: string
+        schema_version:
+          type: string
+        tags:
+          items:
+            type: string
+          type: array
+        title:
+          type: string
+        updated_at:
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$
+          type: string
+        version:
+          type: string
+      required:
+      - title
+      - version
+      - created_at
+      type: object
+    phases:
+      items:
+        additionalProperties: false
+        properties:
+          anti_patterns:
+            items:
+              type: string
+            type: array
+          artifacts:
+            items:
+              additionalProperties: false
+              properties:
+                kind:
+                  type: string
+                location:
+                  type: string
+                name:
+                  type: string
+              required:
+              - kind
+              - name
+              type: object
+            type: array
+          execution_prompt:
+            additionalProperties: false
+            properties:
+              artifacts:
+                items:
+                  type: string
+                type: array
+              constraints:
+                items:
+                  type: string
+                type: array
+              inputs:
+                items:
+                  type: string
+                type: array
+              tasks:
+                items:
+                  type: string
+                type: array
+              title:
+                type: string
+              validation_steps:
+                items:
+                  type: string
+                type: array
+            required:
+            - title
+            - constraints
+            - inputs
+            - tasks
+            - validation_steps
+            - artifacts
+            type: object
+          goals:
+            items:
+              type: string
+            type: array
+          name:
+            type: string
+          non_goals:
+            items:
+              type: string
+            type: array
+          success_criteria:
+            items:
+              type: string
+            type: array
+          tasks:
+            items:
+              additionalProperties: false
+              properties:
+                contracts:
+                  additionalProperties: false
+                  properties:
+                    ci:
+                      additionalProperties: true
+                      properties:
+                        artifacts:
+                          type: string
+                        matrix:
+                          items:
+                            type: string
+                          type: array
+                      type: object
+                    errors:
+                      items:
+                        type: string
+                      type: array
+                    guards:
+                      additionalProperties: true
+                      properties:
+                        nan_policy:
+                          enum:
+                          - allow
+                          - reject
+                          type: string
+                        shape_validation:
+                          type: boolean
+                      type: object
+                    inputs:
+                      additionalProperties:
+                        $ref: '#/$defs/typespec'
+                      type: object
+                    outputs:
+                      additionalProperties:
+                        $ref: '#/$defs/typespec'
+                      type: object
+                    tests:
+                      additionalProperties: false
+                      properties:
+                        coverage_target:
+                          type: number
+                        selector:
+                          type: string
+                      required:
+                      - selector
+                      type: object
+                  required:
+                  - inputs
+                  - outputs
+                  type: object
+                id:
+                  type: string
+                title:
+                  type: string
+              required:
+              - id
+              - title
+              - contracts
+              type: object
+            type: array
+          validation_steps:
+            items:
+              additionalProperties: false
+              properties:
+                action:
+                  type: string
+                expected:
+                  type: string
+                tolerance:
+                  type: string
+              required:
+              - action
+              - expected
+              type: object
+            type: array
+        required:
+        - name
+        - goals
+        - success_criteria
+        - tasks
+        - artifacts
+        - validation_steps
+        - execution_prompt
+        type: object
+      minItems: 1
+      type: array
+    risks:
+      items:
+        additionalProperties: false
+        properties:
+          description:
+            type: string
+          mitigation:
+            type: string
+        required:
+        - description
+        - mitigation
+        type: object
+      type: array
+  required:
+  - metadata
+  - executive_summary
+  - phases
+  - risks
+  - acceptance
+  - checklists
+  - manifests
+  title: ResearchPlan (core)
+  type: object
+translations:
+  English:
+    analysis_header: 3. Analyses
+    animation_header: Simulation Animation
+    author_header: About Me
+    background_uploader: Upload Background Image
+    controller_help: Super-Twisting controller offers the best performance in chattering
+      suppression. The adaptive controller is designed to handle unknown uncertainties.
+    controller_select: 1. Controller Type
+    cost_metric: Lowest Cost Found
+    display_header: 4. Display Options
+    disturbance_dur: Duration (s)
+    disturbance_enable: Add Disturbance
+    disturbance_header: Disturbance
+    disturbance_mag: Magnitude (N)
+    disturbance_start: Start Time (s)
+    download_button: Download All Results (ZIP)
+    init_state_help: "E.g. 0, 0.1, -0.2 for [x, \u03B81, \u03B82, ...]"
+    init_state_label: Initial State (comma-separated)
+    intro: A comprehensive tool for designing, optimizing, and comparatively analyzing
+      Sliding Mode Controllers.
+    iterations: Number of Iterations
+    iterations_help: Number of generations the algorithm runs to find a better solution.
+    lang_select: 'Language:'
+    metric_max_u: Max |u|
+    metric_peak_th1: "Peak |\u03B81|"
+    metric_peak_th2: "Peak |\u03B82|"
+    metric_peak_x: Peak |x|
+    metric_rms_u: RMS Control
+    metric_settling: Settling Time
+    optimizing_msg: Starting optimization process for controller
+    params_header: 'Best Parameters Found:'
+    particles: Number of Particles
+    particles_help: Number of candidate solutions per generation. Higher values search
+      better but are slower.
+    perf_header: Performance Analysis
+    pso_header: 2. Optimization Settings (PSO)
+    results_header: Optimization Results
+    robustness_help: Applies a sudden impact mid-simulation to test the controller's
+      resilience.
+    run_button: "\U0001F680 Start Optimization & Analysis"
+    run_robustness: Run Robustness Test (Disturbance)
+    run_sensitivity: Run Sensitivity Analysis
+    sensitivity_help: Compares the controller's performance with slightly perturbed
+      parameters.
+    show_convergence: PSO Convergence Plot
+    show_performance: Optimal Performance Plots
+    show_robustness: Robustness Test Plot
+    show_sensitivity: Sensitivity Analysis Plot
+    sidebar_header: Settings
+    sim_dt_label: Time Step dt (s)
+    sim_duration_label: Simulation Duration (s)
+    sim_settings_header: Simulation Settings
+    spinner_msg: Running... this process may take a while.
+    success_msg: Optimization finished successfully!
+    timeseries_header: "Time-Series (x, \u03B81, \u03B82, u)"
+    title: 'Interactive Simulator: Optimal Control of Double Inverted Pendulum'
+    ui_header: 5. UI Settings
+  "\u0641\u0627\u0631\u0633\u06CC":
+    analysis_header: "\u06F3. \u062A\u062D\u0644\u06CC\u0644\u200C\u0647\u0627"
+    animation_header: "\u0627\u0646\u06CC\u0645\u06CC\u0634\u0646 \u0634\u0628\u06CC\
+      \u0647\u200C\u0633\u0627\u0632\u06CC"
+    author_header: "\u062F\u0631\u0628\u0627\u0631\u0647 \u0645\u0646"
+    background_uploader: "\u0622\u067E\u0644\u0648\u062F \u0639\u06A9\u0633 \u067E\
+      \u0633\u200C\u0632\u0645\u06CC\u0646\u0647"
+    controller_help: "\u06A9\u0646\u062A\u0631\u0644\u0631 Super-Twisting \u0628\u0647\
+      \u062A\u0631\u06CC\u0646 \u0639\u0645\u0644\u06A9\u0631\u062F \u0631\u0627 \u062F\
+      \u0631 \u062D\u0630\u0641 \u0646\u0648\u0633\u0627\u0646\u0627\u062A \u062F\u0627\
+      \u0631\u062F. \u06A9\u0646\u062A\u0631\u0644\u0631 \u062A\u0637\u0628\u06CC\u0642\
+      \u06CC \u0628\u0631\u0627\u06CC \u0645\u0642\u0627\u0628\u0644\u0647 \u0628\u0627\
+      \ \u0639\u062F\u0645 \u0642\u0637\u0639\u06CC\u062A\u200C\u0647\u0627\u06CC\
+      \ \u0646\u0627\u0634\u0646\u0627\u062E\u062A\u0647 \u0637\u0631\u0627\u062D\u06CC\
+      \ \u0634\u062F\u0647 \u0627\u0633\u062A."
+    controller_select: "\u06F1. \u0646\u0648\u0639 \u06A9\u0646\u062A\u0631\u0644\u0631"
+    cost_metric: "\u06A9\u0645\u062A\u0631\u06CC\u0646 \u0647\u0632\u06CC\u0646\u0647\
+      \ \u06CC\u0627\u0641\u062A\u200C\u0634\u062F\u0647"
+    display_header: "\u06F4. \u0646\u0645\u0627\u06CC\u0634 \u0646\u062A\u0627\u06CC\
+      \u062C"
+    disturbance_dur: "\u0645\u062F\u062A (\u062B\u0627\u0646\u06CC\u0647)"
+    disturbance_enable: "\u0627\u0641\u0632\u0648\u062F\u0646 \u0627\u063A\u062A\u0634\
+      \u0627\u0634"
+    disturbance_header: "\u0627\u063A\u062A\u0634\u0627\u0634"
+    disturbance_mag: "\u0628\u0632\u0631\u06AF\u06CC (N)"
+    disturbance_start: "\u0632\u0645\u0627\u0646 \u0634\u0631\u0648\u0639 (\u062B\u0627\
+      \u0646\u06CC\u0647)"
+    download_button: "\u062F\u0627\u0646\u0644\u0648\u062F \u062A\u0645\u0627\u0645\
+      \ \u0646\u062A\u0627\u06CC\u062C (ZIP)"
+    init_state_help: "\u0645\u062B\u0644\u0627\u064B 0, 0.1, -0.2 \u0628\u0631\u0627\
+      \u06CC [x, \u03B81, \u03B82, ...]"
+    init_state_label: "\u0634\u0631\u0627\u06CC\u0637 \u0627\u0648\u0644\u06CC\u0647\
+      \ (\u0628\u0627 \u06A9\u0627\u0645\u0627 \u062C\u062F\u0627 \u0634\u0648\u062F\
+      )"
+    intro: "\u06CC\u06A9 \u0627\u0628\u0632\u0627\u0631 \u062C\u0627\u0645\u0639 \u0628\
+      \u0631\u0627\u06CC \u0637\u0631\u0627\u062D\u06CC\u060C \u0628\u0647\u06CC\u0646\
+      \u0647\u200C\u0633\u0627\u0632\u06CC \u0648 \u062A\u062D\u0644\u06CC\u0644 \u0645\
+      \u0642\u0627\u06CC\u0633\u0647\u200C\u0627\u06CC \u06A9\u0646\u062A\u0631\u0644\
+      \u0631\u0647\u0627\u06CC \u0645\u062F \u0644\u063A\u0632\u0634\u06CC."
+    iterations: "\u062A\u0639\u062F\u0627\u062F \u062A\u06A9\u0631\u0627\u0631\u0647\
+      \u0627"
+    iterations_help: "\u062A\u0639\u062F\u0627\u062F \u0646\u0633\u0644\u200C\u0647\
+      \u0627\u06CC\u06CC \u06A9\u0647 \u0627\u0644\u06AF\u0648\u0631\u06CC\u062A\u0645\
+      \ \u0628\u0631\u0627\u06CC \u06CC\u0627\u0641\u062A\u0646 \u067E\u0627\u0633\
+      \u062E \u0628\u0647\u062A\u0631 \u062A\u0644\u0627\u0634 \u0645\u06CC\u200C\u06A9\
+      \u0646\u062F."
+    lang_select: "\u0632\u0628\u0627\u0646 (Language):"
+    metric_max_u: "\u0628\u06CC\u0634\u06CC\u0646\u0647 |u|"
+    metric_peak_th1: "\u0628\u06CC\u0634\u06CC\u0646\u0647 |\u03B81|"
+    metric_peak_th2: "\u0628\u06CC\u0634\u06CC\u0646\u0647 |\u03B82|"
+    metric_peak_x: "\u0628\u06CC\u0634\u06CC\u0646\u0647 |x|"
+    metric_rms_u: "\u062A\u0648\u0627\u0646 \u0645\u0624\u062B\u0631 \u06A9\u0646\u062A\
+      \u0631\u0644"
+    metric_settling: "\u0632\u0645\u0627\u0646 \u0646\u0634\u0633\u062A"
+    optimizing_msg: "\u0634\u0631\u0648\u0639 \u0641\u0631\u0622\u06CC\u0646\u062F\
+      \ \u0628\u0647\u06CC\u0646\u0647\u200C\u0633\u0627\u0632\u06CC \u0628\u0631\u0627\
+      \u06CC \u06A9\u0646\u062A\u0631\u0644\u0631"
+    params_header: "\u0628\u0647\u062A\u0631\u06CC\u0646 \u067E\u0627\u0631\u0627\u0645\
+      \u062A\u0631\u0647\u0627\u06CC \u06CC\u0627\u0641\u062A\u200C\u0634\u062F\u0647\
+      :"
+    particles: "\u062A\u0639\u062F\u0627\u062F \u0630\u0631\u0627\u062A"
+    particles_help: "\u062A\u0639\u062F\u0627\u062F \u0631\u0627\u0647\u200C\u062D\
+      \u0644\u200C\u0647\u0627\u06CC \u06A9\u0627\u0646\u062F\u06CC\u062F \u062F\u0631\
+      \ \u0647\u0631 \u0646\u0633\u0644. \u0645\u0642\u0627\u062F\u06CC\u0631 \u0628\
+      \u0627\u0644\u0627\u062A\u0631 \u062C\u0633\u062A\u062C\u0648\u06CC \u0628\u0647\
+      \u062A\u0631\u06CC \u062F\u0627\u0631\u0646\u062F \u0627\u0645\u0627 \u06A9\u0646\
+      \u062F\u062A\u0631 \u0647\u0633\u062A\u0646\u062F."
+    perf_header: "\u062A\u062D\u0644\u06CC\u0644 \u0639\u0645\u0644\u06A9\u0631\u062F"
+    pso_header: "\u06F2. \u062A\u0646\u0638\u06CC\u0645\u0627\u062A \u0628\u0647\u06CC\
+      \u0646\u0647\u200C\u0633\u0627\u0632\u06CC (PSO)"
+    results_header: "\u0646\u062A\u0627\u06CC\u062C \u0628\u0647\u06CC\u0646\u0647\
+      \u200C\u0633\u0627\u0632\u06CC"
+    robustness_help: "\u06CC\u06A9 \u0636\u0631\u0628\u0647 \u0646\u0627\u06AF\u0647\
+      \u0627\u0646\u06CC \u062F\u0631 \u0645\u06CC\u0627\u0646\u0647 \u0634\u0628\u06CC\
+      \u0647\u200C\u0633\u0627\u0632\u06CC \u0627\u0639\u0645\u0627\u0644 \u0645\u06CC\
+      \u200C\u06A9\u0646\u062F \u062A\u0627 \u0645\u0642\u0627\u0648\u0645\u062A \u06A9\
+      \u0646\u062A\u0631\u0644\u0631 \u0633\u0646\u062C\u06CC\u062F\u0647 \u0634\u0648\
+      \u062F."
+    run_button: "\U0001F680 \u0634\u0631\u0648\u0639 \u0628\u0647\u06CC\u0646\u0647\
+      \u200C\u0633\u0627\u0632\u06CC \u0648 \u062A\u062D\u0644\u06CC\u0644"
+    run_robustness: "\u0627\u062C\u0631\u0627\u06CC \u062A\u0633\u062A \u0645\u0642\
+      \u0627\u0648\u0645\u062A (\u0627\u063A\u062A\u0634\u0627\u0634)"
+    run_sensitivity: "\u0627\u062C\u0631\u0627\u06CC \u062A\u062D\u0644\u06CC\u0644\
+      \ \u062D\u0633\u0627\u0633\u06CC\u062A"
+    sensitivity_help: "\u0639\u0645\u0644\u06A9\u0631\u062F \u06A9\u0646\u062A\u0631\
+      \u0644\u0631 \u0631\u0627 \u0628\u0627 \u067E\u0627\u0631\u0627\u0645\u062A\u0631\
+      \u0647\u0627\u06CC \u06A9\u0645\u06CC \u062A\u063A\u06CC\u06CC\u0631 \u06CC\u0627\
+      \u0641\u062A\u0647 \u0645\u0642\u0627\u06CC\u0633\u0647 \u0645\u06CC\u200C\u06A9\
+      \u0646\u062F \u062A\u0627 \u062D\u0633\u0627\u0633\u06CC\u062A \u0622\u0646\
+      \ \u0633\u0646\u062C\u06CC\u062F\u0647 \u0634\u0648\u062F."
+    show_convergence: "\u0646\u0645\u0648\u062F\u0627\u0631 \u0647\u0645\u06AF\u0631\
+      \u0627\u06CC\u06CC PSO"
+    show_performance: "\u0646\u0645\u0648\u062F\u0627\u0631\u0647\u0627\u06CC \u0639\
+      \u0645\u0644\u06A9\u0631\u062F \u0628\u0647\u06CC\u0646\u0647"
+    show_robustness: "\u0646\u0645\u0648\u062F\u0627\u0631 \u062A\u0633\u062A \u0645\
+      \u0642\u0627\u0648\u0645\u062A"
+    show_sensitivity: "\u0646\u0645\u0648\u062F\u0627\u0631 \u062A\u062D\u0644\u06CC\
+      \u0644 \u062D\u0633\u0627\u0633\u06CC\u062A"
+    sidebar_header: "\u062A\u0646\u0638\u06CC\u0645\u0627\u062A"
+    sim_dt_label: "\u06AF\u0627\u0645 \u0632\u0645\u0627\u0646\u06CC dt (\u062B\u0627\
+      \u0646\u06CC\u0647)"
+    sim_duration_label: "\u0645\u062F\u062A \u0634\u0628\u06CC\u0647\u200C\u0633\u0627\
+      \u0632\u06CC (\u062B\u0627\u0646\u06CC\u0647)"
+    sim_settings_header: "\u062A\u0646\u0638\u06CC\u0645\u0627\u062A \u0634\u0628\u06CC\
+      \u0647\u200C\u0633\u0627\u0632\u06CC"
+    spinner_msg: "\u062F\u0631 \u062D\u0627\u0644 \u0627\u062C\u0631\u0627... \u0627\
+      \u06CC\u0646 \u0641\u0631\u0622\u06CC\u0646\u062F \u0645\u0645\u06A9\u0646 \u0627\
+      \u0633\u062A \u0632\u0645\u0627\u0646\u200C\u0628\u0631 \u0628\u0627\u0634\u062F\
+      ."
+    success_msg: "\u0628\u0647\u06CC\u0646\u0647\u200C\u0633\u0627\u0632\u06CC \u0628\
+      \u0627 \u0645\u0648\u0641\u0642\u06CC\u062A \u0628\u0647 \u067E\u0627\u06CC\u0627\
+      \u0646 \u0631\u0633\u06CC\u062F!"
+    timeseries_header: "\u0633\u06CC\u06AF\u0646\u0627\u0644\u200C\u0647\u0627\u06CC\
+      \ \u0632\u0645\u0627\u0646\u06CC (x, \u03B81, \u03B82, u)"
+    title: "\u0634\u0628\u06CC\u0647\u200C\u0633\u0627\u0632 \u062A\u0639\u0627\u0645\
+      \u0644\u06CC: \u06A9\u0646\u062A\u0631\u0644 \u0628\u0647\u06CC\u0646\u0647\
+      \ \u067E\u0627\u0646\u062F\u0648\u0644 \u0645\u0639\u06A9\u0648\u0633 \u062F\
+      \u0648\u062A\u0627\u06CC\u06CC"
+    ui_header: "\u06F5. \u062A\u0646\u0638\u06CC\u0645\u0627\u062A \u0638\u0627\u0647\
+      \u0631\u06CC"

@@ -25,7 +25,7 @@ m_2 l_2 c_{12} & m_2 l_1 l_2 c_2 & I_2 + m_2 l_2^2
 **Location**: {doc}`system_dynamics_complete`
 
 ```{math}
-:label: eq:coriolis_matrix
+:label: eq:coriolis_matrix_ref
 \mat{C}(\vec{q}, \dot{\vec{q}}) = \begin{bmatrix}
 0 & -m_1 l_1 s_1 \dot{\theta_1} - m_2(l_1 s_1 \dot{\theta_1} + l_2 s_{12}(\dot{\theta_1} + \dot{\theta_2})) & -m_2 l_2 s_{12}(\dot{\theta_1} + \dot{\theta_2}) \\
 0 & 0 & -m_2 l_1 l_2 s_2 \dot{\theta_2} \\
@@ -59,7 +59,7 @@ s(\vec{x}) = \mat{S}\vec{x} = \vec{c}^T \vec{e} + \dot{\vec{e}}
 **Location**: {doc}`smc_theory_complete`
 
 ```{math}
-:label: eq:reaching_condition
+:label: eq:reaching_condition_ref
 s \dot{s} \leq -\eta |s|
 ```
 **Context**: Reaching condition for finite-time convergence to sliding surface.
@@ -95,7 +95,7 @@ u_2 &= -\beta \text{sign}(s)
 ## Lyapunov Stability Analysis
 
 ```{math}
-:label: eq:lyapunov_candidate
+:label: eq:lyapunov_candidate_ref
 V(\vec{x}) = \frac{1}{2}s^T s + \frac{1}{2}\tilde{\theta}^T \Gamma^{-1} \tilde{\theta}
 ```
 **Context**: Lyapunov function candidate for adaptive sliding mode control.
@@ -120,14 +120,14 @@ t_{reach} \leq \frac{V(0)}{\eta}
 ### Particle Dynamics
 
 ```{math}
-:label: eq:pso_velocity_update
+:label: eq:pso_velocity_update_ref
 \vec{v}_i^{(k+1)} = w\vec{v}_i^{(k)} + c_1 r_1(\vec{p}_i - \vec{x}_i^{(k)}) + c_2 r_2(\vec{g} - \vec{x}_i^{(k)})
 ```
 **Context**: Velocity update equation for PSO particle motion.
 **Location**: {doc}`pso_optimization_complete`
 
 ```{math}
-:label: eq:pso_position_update
+:label: eq:pso_position_update_ref
 \vec{x}_i^{(k+1)} = \vec{x}_i^{(k)} + \vec{v}_i^{(k+1)}
 ```
 **Context**: Position update equation for PSO particles.

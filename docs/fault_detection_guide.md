@@ -207,7 +207,7 @@ Where:
 - `μ`: Running average of residual norm
 - `S(k)`: Cumulative sum statistic
 
-### Configuration
+### Configuration {#cusum-configuration}
 
 ```yaml
 fdi:

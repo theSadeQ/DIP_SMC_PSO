@@ -11,9 +11,3 @@
       simulate
       simulate_system_batch
    
-   .. rubric:: Classes
-
-   .. autosummary::
-   
-      Any
-   

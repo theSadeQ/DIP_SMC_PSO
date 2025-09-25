@@ -9,5 +9,4 @@
    .. autosummary::
    
       AdaptiveSMC
-      AdaptiveSMCOutput
    

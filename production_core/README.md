@@ -1,0 +1,1 @@
+# DIP Production Core System\n\nMinimal production-ready Double Inverted Pendulum control system.\n\n**System Size**: 5 files, ~950 lines\n**Reduction**: 99.5% smaller than research system\n\n## Usage\n```python\npython control_system.py\n```\n

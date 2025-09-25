@@ -8,7 +8,5 @@
 
    .. autosummary::
    
-      Any
       HybridAdaptiveSTASMC
-      HybridSTAOutput
    

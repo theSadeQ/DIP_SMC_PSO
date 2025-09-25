@@ -7,8 +7,8 @@
 import os
 import sys
 
-# Add project root to Python path
-sys.path.insert(0, os.path.abspath(os.path.join('..', 'src')))
+# Add project root to Python path (so 'src' module can be imported)
+sys.path.insert(0, os.path.abspath('..'))
 
 # Project information
 project = 'DIP_SMC_PSO'
@@ -16,23 +16,33 @@ author = 'Research Team'
 copyright = '2024, Research Team'
 release = '1.0.0'
 
+# Exclude patterns - files/directories to ignore during build
+exclude_patterns = [
+    '_build',                    # Build output directory
+    'Thumbs.db',                # Windows thumbnail cache
+    '.DS_Store',                # macOS folder metadata
+    '.github/**',               # GitHub templates and workflows
+    '**.ipynb_checkpoints',     # Jupyter notebook checkpoints
+]
+
 # Extensions - comprehensive set for world-class docs
 extensions = [
     # Core Sphinx extensions
-    # 'sphinx.ext.autodoc',      # Temporarily disabled for testing
-    # 'sphinx.ext.autosummary',  # Temporarily disabled for testing
-    # 'sphinx.ext.napoleon',     # Temporarily disabled for testing
-    # 'sphinx.ext.viewcode',     # Temporarily disabled for testing
+    'sphinx.ext.autodoc',         # Auto-generate docs from docstrings
+    'sphinx.ext.autosummary',     # Generate summary tables
+    'sphinx.ext.napoleon',        # Google/NumPy style docstrings
+    'sphinx.ext.viewcode',        # Add source code links
     'sphinx.ext.mathjax',
     'sphinx.ext.intersphinx',
     'sphinx.ext.autosectionlabel',
 
     # External extensions
     'myst_parser',
-    # 'sphinxcontrib.bibtex',    # Temporarily disabled for testing
+    'sphinxcontrib.bibtex',       # Bibliography support
     'sphinx_copybutton',
     'sphinx_design',
     'sphinxcontrib.mermaid',
+    'sphinx_reredirects',
 ]
 
 # MyST Parser configuration - quality-of-life features
@@ -157,3 +167,17 @@ if os.environ.get('READTHEDOCS'):
 else:
     # Strict mode for local development
     suppress_warnings = []
+
+# Redirects for moved pages
+redirects = {
+    # Legacy landing pages moved to new Reference IA
+    'controllers/index': 'reference/controllers/index',
+    'optimization/index': 'reference/optimizer/index',
+    'implementation/index': 'reference/index',
+    'implementation/code_documentation_index': 'reference/index',
+    # Controllers detail pages
+    'controllers/classical-smc': 'reference/controllers/classical-smc',
+    'controllers/super-twisting-smc': 'reference/controllers/super-twisting-smc',
+    'controllers/adaptive-smc': 'reference/controllers/adaptive-smc',
+    'controllers/hybrid-adaptive-smc': 'reference/controllers/hybrid-adaptive-smc',
+}

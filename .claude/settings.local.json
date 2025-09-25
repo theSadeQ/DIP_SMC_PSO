@@ -18,7 +18,8 @@
       "Read(//d/Projects/main/**)",
       "Bash(PYTHONPATH=.. python -m sphinx -nW -b html . _build/html)",
       "Bash(PYTHONPATH=.. python -m sphinx -b html . _build/html)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

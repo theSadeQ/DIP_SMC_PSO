@@ -1,0 +1,32 @@
+#!/bin/bash
+echo "🚀 DIP_SMC_PSO - Human-Friendly Project View"
+echo "============================================"
+echo
+echo "🎯 MAIN FILES (What you work with daily):"
+echo "   simulate.py        - Main CLI simulation"
+echo "   streamlit_app.py   - Web interface"  
+echo "   config.yaml        - Configuration"
+echo "   requirements.txt   - Dependencies"
+echo "   README.md          - Project documentation"
+echo "   CHANGELOG.md       - Version history"
+echo
+echo "📁 KEY DIRECTORIES:"
+echo "   src/               - Source code"
+echo "   tests/             - Test suite"
+echo "   docs/              - Documentation"
+echo "   notebooks/         - Jupyter examples"
+echo "   benchmarks/        - Performance tests"
+echo "   config/            - Extra configurations"
+echo
+echo "🔧 HIDDEN DEVELOPMENT TOOLS (use ls -a to see):"
+echo "   .scripts/          - Utility scripts"
+echo "   .tools/            - Development tools"
+echo "   .dev_tools/        - Project maintenance"
+echo "   .build/            - Build configuration"
+echo "   .archive/          - Old files & logs"
+echo "   .dev/              - Development utilities"
+echo
+echo "💡 Tips:"
+echo "   • Clean view: ls (12 items)"
+echo "   • Include hidden: ls -a (30 items)"  
+echo "   • This guide: ./.dev_tools/clean_view.sh"

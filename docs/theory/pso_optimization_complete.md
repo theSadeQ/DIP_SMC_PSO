@@ -457,7 +457,7 @@ from pyswarms.single import GlobalBestPSO
 
 - **Velocity Clamping**: Implemented through `velocity_clamp` parameter to prevent particle divergence:
   ```{math}
-  :label: eq:velocity_clamping
+  :label: eq:pyswarms_velocity_clamping
   \vec{v}_{min} \leq \vec{v}_i^{(k)} \leq \vec{v}_{max}
   ```
   where clamp limits are expressed as fractions of the search range: $\vec{v}_{min/max} = \delta_{min/max} \cdot (\vec{\theta}_{max} - \vec{\theta}_{min})$
