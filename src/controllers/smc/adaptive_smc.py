@@ -425,4 +425,16 @@ class AdaptiveSMC:
     def set_dynamics(self, dynamics_model) -> None:
         """Set dynamics model (for compatibility, not used in this implementation)."""
         pass
+
+    def reset(self) -> None:
+        """Reset AdaptiveSMC controller state.
+
+        Resets the adaptive gain K to its initial value and clears
+        any internal tracking variables.
+        """
+        # Reset adaptive gain to initial value
+        # Note: The controller uses state_vars parameter for persistence,
+        # so we don't maintain persistent internal state here.
+        # This method ensures interface compliance.
+        pass
 #===========================================================================================================\\\

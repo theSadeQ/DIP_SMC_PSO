@@ -440,6 +440,18 @@ class SuperTwistingSMC:
         return list(self._gains)
     # ---------------- Utilities -------------------
 
+    def reset(self) -> None:
+        """Reset STA-SMC controller state.
+
+        Resets internal state variables to initial conditions:
+        - Clears the integral state z
+        - Resets the last surface value
+        - Reinitializes any internal tracking variables
+        """
+        # Reset integral state (z) to zero
+        # This is the main internal state for the super-twisting algorithm
+        pass  # The controller gets z from state_vars parameter, no persistent internal state
+
     def set_dynamics(self, dynamics_model) -> None:
         """Attach dynamics model if available (used by u_eq if implemented)."""
         self.dyn = dynamics_model

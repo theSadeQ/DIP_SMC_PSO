@@ -461,4 +461,15 @@ class ClassicalSMC:
 
         # Return structured output
         return ClassicalSMCOutput(u_saturated, (), hist)
+
+    def reset(self) -> None:
+        """Reset ClassicalSMC controller state.
+
+        Classical SMC has no internal state variables to reset since it is
+        stateless and purely reactive based on current measurements.
+        This method is provided for interface compliance.
+        """
+        # Classical SMC is stateless - no internal state to reset
+        pass
+
 #=======================================================================================\\\

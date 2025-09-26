@@ -242,6 +242,14 @@ class ModularSuperTwistingSMC:
         self._previous_surface = 0.0
         self._control_history.clear()
 
+    def reset(self) -> None:
+        """Reset controller state (interface compliance).
+
+        Provides standard reset() method interface for compatibility with
+        other controllers and test frameworks.
+        """
+        self.reset_controller()
+
     def get_stability_analysis(self) -> Dict[str, Any]:
         """Get comprehensive stability analysis."""
         stability_info = self.config.check_stability_conditions()

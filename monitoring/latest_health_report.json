@@ -1,0 +1,41 @@
+{
+  "timestamp": 1758906089.1935546,
+  "health_checks": {
+    "dynamics_models": {
+      "component": "dynamics_models",
+      "status": "failed",
+      "score": 0.0,
+      "message": "Dynamics health check failed: No module named 'src'",
+      "timestamp": 1758906089.1914916,
+      "details": null
+    },
+    "pso_optimization": {
+      "component": "pso_optimization",
+      "status": "failed",
+      "score": 0.0,
+      "message": "PSO health check failed: No module named 'src'",
+      "timestamp": 1758906089.1925435,
+      "details": null
+    },
+    "controller_factory": {
+      "component": "controller_factory",
+      "status": "failed",
+      "score": 0.0,
+      "message": "Controller factory health check failed: No module named 'src'",
+      "timestamp": 1758906089.1935546,
+      "details": null
+    },
+    "overall_system": {
+      "component": "overall_system",
+      "status": "failed",
+      "score": 0.0,
+      "message": "System health: 0.0% (failed)",
+      "timestamp": 1758906089.1935546,
+      "details": {
+        "dynamics_models": 0.0,
+        "pso_optimization": 0.0,
+        "controller_factory": 0.0
+      }
+    }
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "health_history": [
+    {
+      "component": "dynamics_models",
+      "status": "failed",
+      "score": 0.0,
+      "message": "Dynamics health check failed: No module named 'src'",
+      "timestamp": 1758906089.1914916,
+      "details": null
+    },
+    {
+      "component": "pso_optimization",
+      "status": "failed",
+      "score": 0.0,
+      "message": "PSO health check failed: No module named 'src'",
+      "timestamp": 1758906089.1925435,
+      "details": null
+    },
+    {
+      "component": "controller_factory",
+      "status": "failed",
+      "score": 0.0,
+      "message": "Controller factory health check failed: No module named 'src'",
+      "timestamp": 1758906089.1935546,
+      "details": null
+    },
+    {
+      "component": "overall_system",
+      "status": "failed",
+      "score": 0.0,
+      "message": "System health: 0.0% (failed)",
+      "timestamp": 1758906089.1935546,
+      "details": {
+        "dynamics_models": 0.0,
+        "pso_optimization": 0.0,
+        "controller_factory": 0.0
+      }
+    }
+  ],
+  "performance_history": [],
+  "dashboard_data": {
+    "health_status": {
+      "dynamics_models": {
+        "current_score": 0.0,
+        "current_status": "failed",
+        "last_check": 1758906089.1914916,
+        "trend": "stable"
+      },
+      "pso_optimization": {
+        "current_score": 0.0,
+        "current_status": "failed",
+        "last_check": 1758906089.1925435,
+        "trend": "stable"
+      },
+      "controller_factory": {
+        "current_score": 0.0,
+        "current_status": "failed",
+        "last_check": 1758906089.1935546,
+        "trend": "stable"
+      },
+      "overall_system": {
+        "current_score": 0.0,
+        "current_status": "failed",
+        "last_check": 1758906089.1935546,
+        "trend": "stable"
+      }
+    },
+    "performance_metrics": {},
+    "total_health_checks": 4,
+    "total_performance_records": 0,
+    "last_update": 1758906089.1980534
+  },
+  "export_timestamp": 1758906089.1980534
+}

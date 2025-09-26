@@ -167,6 +167,73 @@ class _BaseControllerConfig(BaseModel):
 class ControllerConfig(_BaseControllerConfig):
     pass
 
+class ClassicalSMCConfig(_BaseControllerConfig):
+    """Configuration for Classical Sliding Mode Controller."""
+    max_force: Optional[float] = Field(None, gt=0.0)
+    boundary_layer: Optional[float] = Field(None, gt=0.0)
+
+class STASMCConfig(_BaseControllerConfig):
+    """Configuration for Super-Twisting Algorithm Sliding Mode Controller."""
+    max_force: Optional[float] = Field(None, gt=0.0)
+    damping_gain: Optional[float] = Field(None, ge=0.0)
+    dt: Optional[float] = Field(None, gt=0.0)
+
+class AdaptiveSMCConfig(_BaseControllerConfig):
+    """Configuration for Adaptive Sliding Mode Controller."""
+    max_force: Optional[float] = Field(None, gt=0.0)
+    leak_rate: Optional[float] = Field(None, ge=0.0)
+    dead_zone: Optional[float] = Field(None, gt=0.0)
+    adapt_rate_limit: Optional[float] = Field(None, gt=0.0)
+    K_min: Optional[float] = Field(None, gt=0.0)
+    K_max: Optional[float] = Field(None, gt=0.0)
+    dt: Optional[float] = Field(None, gt=0.0)
+    smooth_switch: Optional[bool] = None
+    boundary_layer: Optional[float] = Field(None, gt=0.0)
+
+    @model_validator(mode="after")
+    def _validate_adaptive_bounds(self) -> "AdaptiveSMCConfig":
+        if self.K_min is not None and self.K_max is not None:
+            if self.K_min >= self.K_max:
+                raise ValueError(f"K_min ({self.K_min}) must be less than K_max ({self.K_max})")
+        return self
+
+class SwingUpSMCConfig(_BaseControllerConfig):
+    """Configuration for Swing-Up Sliding Mode Controller."""
+    max_force: Optional[float] = Field(None, gt=0.0)
+    stabilizing_controller: Optional[str] = None
+    energy_gain: Optional[float] = Field(None, gt=0.0)
+    switch_energy_factor: Optional[float] = Field(None, gt=0.0, le=1.0)
+    switch_angle_tolerance: Optional[float] = Field(None, gt=0.0)
+    exit_energy_factor: Optional[float] = Field(None, gt=0.0, le=1.0)
+    reentry_angle_tolerance: Optional[float] = Field(None, gt=0.0)
+
+class HybridAdaptiveSTASMCConfig(_BaseControllerConfig):
+    """Configuration for Hybrid Adaptive Super-Twisting Sliding Mode Controller."""
+    max_force: Optional[float] = Field(None, gt=0.0)
+    dt: Optional[float] = Field(None, gt=0.0)
+    k1_init: Optional[float] = Field(None, gt=0.0)
+    k2_init: Optional[float] = Field(None, gt=0.0)
+    gamma1: Optional[float] = Field(None, gt=0.0)
+    gamma2: Optional[float] = Field(None, gt=0.0)
+    dead_zone: Optional[float] = Field(None, gt=0.0)
+    enable_equivalent: Optional[bool] = None
+    damping_gain: Optional[float] = Field(None, ge=0.0)
+    adapt_rate_limit: Optional[float] = Field(None, gt=0.0)
+    sat_soft_width: Optional[float] = Field(None, gt=0.0)
+    cart_gain: Optional[float] = Field(None, ge=0.0)
+    cart_lambda: Optional[float] = Field(None, gt=0.0)
+    cart_p_gain: Optional[float] = Field(None, ge=0.0)
+    cart_p_lambda: Optional[float] = Field(None, gt=0.0)
+
+    @model_validator(mode="after")
+    def _validate_hybrid_constraints(self) -> "HybridAdaptiveSTASMCConfig":
+        if self.sat_soft_width is not None and self.dead_zone is not None:
+            if self.sat_soft_width < self.dead_zone:
+                raise ValueError(
+                    f"sat_soft_width ({self.sat_soft_width}) must be >= dead_zone ({self.dead_zone})"
+                )
+        return self
+
 class PermissiveControllerConfig(_BaseControllerConfig):
     model_config = ConfigDict(extra="allow")
     unknown_params: Dict[str, Any] = Field(default_factory=dict)
@@ -193,11 +260,11 @@ def set_allow_unknown_config(_: bool) -> None:
     )
 
 class ControllersConfig(StrictModel):
-    classical_smc: Optional[PermissiveControllerConfig] = None
-    sta_smc: Optional[PermissiveControllerConfig] = None
-    adaptive_smc: Optional[PermissiveControllerConfig] = None
-    swing_up_smc: Optional[PermissiveControllerConfig] = None
-    hybrid_adaptive_sta_smc: Optional[PermissiveControllerConfig] = None
+    classical_smc: Optional[ClassicalSMCConfig] = None
+    sta_smc: Optional[STASMCConfig] = None
+    adaptive_smc: Optional[AdaptiveSMCConfig] = None
+    swing_up_smc: Optional[SwingUpSMCConfig] = None
+    hybrid_adaptive_sta_smc: Optional[HybridAdaptiveSTASMCConfig] = None
     mpc_controller: Optional[PermissiveControllerConfig] = None
 
     def keys(self) -> List[str]:
