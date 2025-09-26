@@ -1,0 +1,81 @@
+{
+  "test_timestamp": "2025-09-26",
+  "test_description": "Deep validation of hybrid_adaptive_sta_smc controller",
+  "results": {
+    "creation": "SUCCESS",
+    "controller_info": {
+      "type": "ModularHybridSMC",
+      "module": "src.controllers.smc.algorithms.hybrid.controller",
+      "has_reset": true
+    },
+    "reset": "SUCCESS",
+    "control_computation": "SUCCESS",
+    "output_format": "DICT",
+    "output_keys": [
+      "u",
+      "active_controller",
+      "switched_this_step",
+      "switching_decision",
+      "active_controller_output",
+      "surface_value",
+      "surface_derivative",
+      "all_controller_outputs",
+      "all_surface_values",
+      "control_effort",
+      "surface_magnitude",
+      "tracking_error",
+      "transition_filtering_active",
+      "control_before_filtering",
+      "controller_type",
+      "hybrid_mode",
+      "switching_criterion",
+      "simulation_time",
+      "equivalent_control",
+      "switching_control",
+      "boundary_layer_active",
+      "switching_stats"
+    ],
+    "sequential_computation": [
+      {
+        "step": 0,
+        "state": [
+          0.1,
+          0.0,
+          0.05,
+          0.0,
+          0.02,
+          0.0
+        ],
+        "control_output": "{'u': -0.01941560938100728, 'active_controller': 'classical', 'switched_this_step': False, 'switchin",
+        "success": true
+      },
+      {
+        "step": 1,
+        "state": [
+          0.05,
+          0.1,
+          0.02,
+          0.05,
+          0.01,
+          0.02
+        ],
+        "control_output": "{'u': -0.02628981311863459, 'active_controller': 'classical', 'switched_this_step': False, 'switchin",
+        "success": true
+      },
+      {
+        "step": 2,
+        "state": [
+          0.02,
+          0.05,
+          0.01,
+          0.02,
+          0.005,
+          0.01
+        ],
+        "control_output": "{'u': -0.03454883609219117, 'active_controller': 'classical', 'switched_this_step': False, 'switchin",
+        "success": true
+      }
+    ],
+    "overall_status": "FULLY_FUNCTIONAL"
+  }
+}

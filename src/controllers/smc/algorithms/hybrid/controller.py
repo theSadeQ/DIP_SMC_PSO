@@ -71,6 +71,9 @@ class ModularHybridSMC:
     based on current system conditions and performance metrics.
     """
 
+    # Required for PSO optimization integration
+    n_gains = 4  # [c1, lambda1, c2, lambda2] - surface gains only
+
     def __init__(self, config: HybridSMCConfig):
         """
         Initialize modular hybrid SMC.
@@ -79,6 +82,9 @@ class ModularHybridSMC:
             config: Type-safe hybrid configuration object
         """
         self.config = config
+
+        # Setup logging first
+        self.logger = logging.getLogger(self.__class__.__name__)
 
         # Initialize individual controllers
         self.controllers = {}
@@ -97,9 +103,6 @@ class ModularHybridSMC:
         self.simulation_time = 0.0
         self.control_history = []
         self.switching_history = []
-
-        # Setup logging
-        self.logger = logging.getLogger(self.__class__.__name__)
 
     def _initialize_controllers(self) -> None:
         """Initialize individual SMC controllers based on hybrid mode."""
@@ -322,10 +325,17 @@ class ModularHybridSMC:
         active_name = self.get_active_controller_name()
         return self.controllers[active_name]
 
+    def reset(self) -> None:
+        """Reset controller to initial state (standard interface)."""
+        self.reset_all_controllers()
+
     def reset_all_controllers(self) -> None:
         """Reset all individual controllers to initial state."""
         for controller in self.controllers.values():
-            if hasattr(controller, 'reset_controller'):
+            # Try different reset method names
+            if hasattr(controller, 'reset'):
+                controller.reset()
+            elif hasattr(controller, 'reset_controller'):
                 controller.reset_controller()
             elif hasattr(controller, 'reset_adaptation'):
                 controller.reset_adaptation()
@@ -335,6 +345,11 @@ class ModularHybridSMC:
         self.control_history.clear()
         self.switching_history.clear()
 
+        # Reset switching logic
+        if hasattr(self.switching_logic, 'reset'):
+            self.switching_logic.reset()
+
+        # Reset transition filter
         if self.transition_filter:
             self.transition_filter.reset()
 

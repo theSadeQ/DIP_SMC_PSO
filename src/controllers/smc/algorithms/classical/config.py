@@ -26,6 +26,7 @@ class ClassicalSMCConfig:
     """
 
     # Required parameters
+    dt: float = field()                                    # Control timestep
     gains: List[float] = field()                           # [k1, k2, lam1, lam2, K, kd]
     max_force: float = field()                             # Control saturation limit
 
@@ -71,6 +72,9 @@ class ClassicalSMCConfig:
         """Validate other configuration parameters."""
         if self.max_force <= 0:
             raise ValueError("max_force must be positive")
+
+        if self.dt <= 0:
+            raise ValueError("dt must be positive")
 
         if self.boundary_layer <= 0:
             raise ValueError("boundary_layer must be positive")
@@ -130,6 +134,7 @@ class ClassicalSMCConfig:
         return {
             'gains': list(self.gains),
             'max_force': self.max_force,
+            'dt': self.dt,
             'boundary_layer': self.boundary_layer,
             'boundary_layer_slope': self.boundary_layer_slope,
             'switch_method': self.switch_method,
@@ -146,11 +151,11 @@ class ClassicalSMCConfig:
 
     @classmethod
     def create_default(cls, gains: List[float], max_force: float = 100.0,
-                      boundary_layer: float = 0.01, **kwargs) -> 'ClassicalSMCConfig':
+                      dt: float = 0.01, boundary_layer: float = 0.01, **kwargs) -> 'ClassicalSMCConfig':
         """Create configuration with sensible defaults."""
         return cls(
             gains=gains,
             max_force=max_force,
+            dt=dt,
             boundary_layer=boundary_layer,
-            **kwargs
         )

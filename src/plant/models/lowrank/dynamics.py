@@ -11,7 +11,7 @@ fast prototyping, educational purposes, and real-time applications.
 """
 
 from __future__ import annotations
-from typing import Tuple, Optional, Dict, Any
+from typing import Tuple, Optional, Dict, Any, Union
 import numpy as np
 import warnings
 
@@ -39,7 +39,7 @@ class LowRankDIPDynamics(BaseDynamicsModel):
 
     def __init__(
         self,
-        config: LowRankDIPConfig,
+        config: Union[LowRankDIPConfig, Dict[str, Any]],
         enable_monitoring: bool = False,
         enable_validation: bool = True
     ):
@@ -47,20 +47,29 @@ class LowRankDIPDynamics(BaseDynamicsModel):
         Initialize low-rank DIP dynamics.
 
         Args:
-            config: Validated configuration for low-rank DIP model
+            config: Validated configuration for low-rank DIP model or dictionary
             enable_monitoring: Enable performance monitoring (optional for speed)
             enable_validation: Enable state validation
         """
-        # Set attributes before base class initialization
-        self.config = config
+        # Handle config parameter conversion
+        if isinstance(config, dict):
+            if config:
+                self.config = LowRankDIPConfig.from_dict(config)
+            else:
+                self.config = LowRankDIPConfig.create_default()
+        elif isinstance(config, LowRankDIPConfig):
+            self.config = config
+        else:
+            raise ValueError(f"config must be LowRankDIPConfig or dict, got {type(config)}")
+
         self.enable_monitoring = enable_monitoring
         self.enable_validation = enable_validation
 
         # Initialize base class
-        super().__init__(config)
+        super().__init__(self.config)
 
         # Initialize physics computer
-        self.physics = LowRankPhysicsComputer(config)
+        self.physics = LowRankPhysicsComputer(self.config)
 
         # Setup simplified integration tracking
         self.computation_stats = {

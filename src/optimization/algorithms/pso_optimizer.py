@@ -247,8 +247,8 @@ class PSOTuner:
                 except Exception:
                     u_max_val = 150.0
                 res = simulate_system_batch(
-                    controller_factory,
-                    baseline_particles,
+                    controller_factory=controller_factory,
+                    particles=baseline_particles,
                     sim_time=self.sim_cfg.duration,
                     dt=self.sim_cfg.dt,
                     u_max=u_max_val,
@@ -527,8 +527,8 @@ class PSOTuner:
             physics_models = list(self._iter_perturbed_physics())
             try:
                 results_list = simulate_system_batch(
-                    self.controller_factory,
-                    valid_particles,
+                    controller_factory=self.controller_factory,
+                    particles=valid_particles,
                     sim_time=self._T,
                     dt=self.sim_cfg.dt,
                     u_max=self._u_max,
@@ -536,8 +536,8 @@ class PSOTuner:
                 )
             except TypeError:
                 results_list = simulate_system_batch(
-                    self.controller_factory,
-                    valid_particles,
+                    controller_factory=self.controller_factory,
+                    particles=valid_particles,
                     sim_time=self._T,
                     u_max=self._u_max,
                     params_list=physics_models,
@@ -560,16 +560,16 @@ class PSOTuner:
         else:
             try:
                 t, x_b, u_b, sigma_b = simulate_system_batch(
-                    self.controller_factory,
-                    valid_particles,
+                    controller_factory=self.controller_factory,
+                    particles=valid_particles,
                     sim_time=self._T,
                     dt=self.sim_cfg.dt,
                     u_max=self._u_max,
                 )
             except TypeError:
                 t, x_b, u_b, sigma_b = simulate_system_batch(
-                    self.controller_factory,
-                    valid_particles,
+                    controller_factory=self.controller_factory,
+                    particles=valid_particles,
                     sim_time=self._T,
                     u_max=self._u_max,
                 )
@@ -721,16 +721,27 @@ class PSOTuner:
         except Exception:
             v_clamp = None
 
-        optimizer = GlobalBestPSO(
-            n_particles=n_particles,
-            dimensions=expected_dims,
-            options=pso_options,
-            bounds=bounds,
-            init_pos=init_pos,
-            seed=seed_int,
-            # Pass the computed velocity clamp (None disables clamping)
-            velocity_clamp=v_clamp,
-        )
+        # Create optimizer - handle version compatibility for PySwarms
+        try:
+            # Try with newer PySwarms API that supports seed and velocity_clamp
+            optimizer = GlobalBestPSO(
+                n_particles=n_particles,
+                dimensions=expected_dims,
+                options=pso_options,
+                bounds=bounds,
+                init_pos=init_pos,
+                seed=seed_int,
+                velocity_clamp=v_clamp,
+            )
+        except TypeError:
+            # Fallback for PySwarms 1.3.0 which doesn't support seed or velocity_clamp
+            optimizer = GlobalBestPSO(
+                n_particles=n_particles,
+                dimensions=expected_dims,
+                options=pso_options,
+                bounds=bounds,
+                init_pos=init_pos,
+            )
         # If an inertia weight schedule is provided, perform manual stepping.  A
         # linearly decreasing inertia weight from 0.9 to 0.4 encourages early
         # exploration and late exploitation.  The

@@ -1,0 +1,38 @@
+{
+  "creation": true,
+  "reset_available": true,
+  "reset_functional": true,
+  "control_computation": true,
+  "output_format_valid": true,
+  "controller_type": "ModularHybridSMC",
+  "output_keys": [
+    "u",
+    "active_controller",
+    "control_effort"
+  ],
+  "errors": [],
+  "all_output_keys": [
+    "u",
+    "active_controller",
+    "switched_this_step",
+    "switching_decision",
+    "active_controller_output",
+    "surface_value",
+    "surface_derivative",
+    "all_controller_outputs",
+    "all_surface_values",
+    "control_effort",
+    "surface_magnitude",
+    "tracking_error",
+    "transition_filtering_active",
+    "control_before_filtering",
+    "controller_type",
+    "hybrid_mode",
+    "switching_criterion",
+    "simulation_time",
+    "equivalent_control",
+    "switching_control",
+    "boundary_layer_active",
+    "switching_stats"
+  ]
+}

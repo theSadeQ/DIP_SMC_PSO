@@ -1,0 +1,52 @@
+{
+  "timestamp": "2025-09-26T18:49:06.059270",
+  "test_name": "Dynamics Models Deep Validation (Final)",
+  "validation_matrix": {
+    "dynamics_3_of_3": false,
+    "dynamics_2_of_3": false,
+    "dynamics_1_of_3": false,
+    "empty_config_issue_resolved": false,
+    "overall_status": "FAILED"
+  },
+  "dynamics_tests": {
+    "SimplifiedDIPDynamics": {
+      "name": "SimplifiedDIPDynamics",
+      "import_success": true,
+      "config_creation_success": false,
+      "instantiation_success": false,
+      "compute_derivatives_success": false,
+      "error_messages": [
+        "Config/instantiation: Pendulum 1 inertia (0.083) below physical bound (0.125)"
+      ],
+      "warnings": []
+    },
+    "FullDIPDynamics": {
+      "name": "FullDIPDynamics",
+      "import_success": true,
+      "instantiation_success": false,
+      "error_messages": [
+        "Both config methods failed: FullDIPConfig.__init__() missing 2 required positional arguments: 'pendulum1_com' and 'pendulum2_com', FullDIPConfig.__init__() missing 2 required positional arguments: 'pendulum1_com' and 'pendulum2_com'"
+      ],
+      "warnings": []
+    },
+    "LowRankDIPDynamics": {
+      "name": "LowRankDIPDynamics",
+      "import_success": true,
+      "instantiation_success": false,
+      "error_messages": [
+        "Both config methods failed: LowRankDIPConfig.__init__() got an unexpected keyword argument 'pendulum1_inertia', LowRankDIPConfig.__init__() got an unexpected keyword argument 'pendulum1_inertia'"
+      ],
+      "warnings": []
+    }
+  },
+  "summary": {
+    "total_models": 3,
+    "functional_models": 0,
+    "success_rate": 0.0,
+    "critical_issues": [
+      "SimplifiedDIPDynamics: Not functional",
+      "FullDIPDynamics: Not functional",
+      "LowRankDIPDynamics: Not functional"
+    ]
+  }
+}

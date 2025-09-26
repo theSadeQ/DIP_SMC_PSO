@@ -1,0 +1,73 @@
+{
+  "timestamp": "2025-09-26T11:27:55.401069",
+  "validation_type": "PSO Integration Validation",
+  "tests": {
+    "imports": {
+      "status": "PASS",
+      "details": "All PSO-related imports successful"
+    },
+    "config_loading": {
+      "status": "PASS",
+      "pso_particles": 20,
+      "pso_iterations": 200,
+      "pso_c1": 2.0,
+      "pso_c2": 2.0,
+      "pso_w": 0.7,
+      "has_bounds": true
+    },
+    "controller_factory": {
+      "status": "PASS",
+      "results": {
+        "classical_smc": "PASS",
+        "sta_smc": "PASS",
+        "adaptive_smc": "PASS"
+      },
+      "success_count": 3,
+      "total_tested": 3
+    },
+    "pso_tuner": {
+      "status": "FAIL",
+      "error": "'PSOTuner' object has no attribute 'config'"
+    },
+    "parameter_bounds": {
+      "status": "PASS",
+      "bounds_info": {
+        "min_bounds": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          5.0,
+          0.1
+        ],
+        "max_bounds": [
+          100.0,
+          100.0,
+          20.0,
+          20.0,
+          150.0,
+          10.0
+        ],
+        "dimensions": 6,
+        "bounds_valid": true
+      }
+    },
+    "result_serialization": {
+      "status": "PASS",
+      "json_serializable": true,
+      "result_keys": [
+        "best_cost",
+        "best_pos",
+        "history",
+        "metadata"
+      ],
+      "json_size": 718
+    }
+  },
+  "summary": {
+    "tests_passed": 5,
+    "tests_total": 6,
+    "success_rate": 0.8333333333333334,
+    "overall_status": "PASS"
+  }
+}

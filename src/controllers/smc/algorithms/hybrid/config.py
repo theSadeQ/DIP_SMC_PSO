@@ -298,7 +298,7 @@ class HybridSMCConfig:
                                         dt: float = 0.01, max_force: float = 100.0, **kwargs) -> 'HybridSMCConfig':
         """Create Classical-Adaptive hybrid configuration."""
         classical_config = ClassicalSMCConfig(
-            gains=classical_gains, dt=dt, max_force=max_force
+            gains=classical_gains, dt=dt, max_force=max_force, boundary_layer=0.01
         )
         adaptive_config = AdaptiveSMCConfig(
             gains=adaptive_gains, dt=dt, max_force=max_force

@@ -1,0 +1,115 @@
+{
+  "validation_timestamp": "2025-09-26T18:44:06.737378",
+  "validation_type": "Integration Coordinator Dynamics Models Deep Validation",
+  "dynamics_models_test": {
+    "timestamp": "2025-09-26T18:44:00.713307",
+    "test_name": "Dynamics Models Deep Validation",
+    "validation_matrix": {
+      "dynamics_3_of_3": false,
+      "dynamics_2_of_3": false,
+      "empty_config_working": false,
+      "overall_status": "FAILED"
+    },
+    "dynamics_tests": {
+      "SimplifiedDIPDynamics": {
+        "name": "SimplifiedDIPDynamics",
+        "module": "src.plant.models.simplified.dynamics",
+        "import_success": true,
+        "empty_config_instantiation": false,
+        "with_config_instantiation": false,
+        "compute_derivatives_success": false,
+        "error_messages": [
+          "Empty config instantiation: SimplifiedDIPDynamics.__init__() missing 1 required positional argument: 'config'",
+          "With config instantiation: SimplifiedDIPConfig.__init__() got an unexpected keyword argument 'm1'"
+        ],
+        "warnings": []
+      },
+      "FullDIPDynamics": {
+        "name": "FullDIPDynamics",
+        "module": "src.plant.models.full.dynamics",
+        "import_success": true,
+        "empty_config_instantiation": false,
+        "with_config_instantiation": false,
+        "compute_derivatives_success": false,
+        "error_messages": [
+          "Empty config instantiation: FullDIPDynamics.__init__() missing 1 required positional argument: 'config'",
+          "With config instantiation: FullDIPConfig.__init__() got an unexpected keyword argument 'm1'"
+        ],
+        "warnings": []
+      },
+      "LowRankDIPDynamics": {
+        "name": "LowRankDIPDynamics",
+        "module": "src.plant.models.lowrank.dynamics",
+        "import_success": true,
+        "empty_config_instantiation": false,
+        "with_config_instantiation": false,
+        "compute_derivatives_success": false,
+        "error_messages": [
+          "Empty config instantiation: LowRankDIPDynamics.__init__() missing 1 required positional argument: 'config'",
+          "With config instantiation: LowRankDIPConfig.__init__() got an unexpected keyword argument 'm1'"
+        ],
+        "warnings": []
+      }
+    },
+    "summary": {
+      "total_models": 3,
+      "functional_models": 0,
+      "success_rate": 0.0,
+      "critical_issues": [
+        "SimplifiedDIPDynamics: Not functional",
+        "FullDIPDynamics: Not functional",
+        "LowRankDIPDynamics: Not functional"
+      ]
+    }
+  },
+  "legacy_imports_test": {
+    "timestamp": "2025-09-26T18:44:04.745957",
+    "test_name": "Legacy Dynamics Import Test",
+    "imports_tested": 6,
+    "imports_successful": 5,
+    "legacy_paths": {
+      "Core Dynamics": {
+        "status": "success",
+        "module": "src.core.dynamics",
+        "class": "DIPDynamics"
+      },
+      "Simplified Direct": {
+        "status": "success",
+        "module": "src.plant.models.simplified.dynamics",
+        "class": "SimplifiedDIPDynamics"
+      },
+      "Full Direct": {
+        "status": "success",
+        "module": "src.plant.models.full.dynamics",
+        "class": "FullDIPDynamics"
+      },
+      "LowRank Direct": {
+        "status": "success",
+        "module": "src.plant.models.lowrank.dynamics",
+        "class": "LowRankDIPDynamics"
+      },
+      "Plant Core": {
+        "status": "failed",
+        "module": "src.plant.core",
+        "class": "DIPDynamics",
+        "error": "module 'src.plant.core' has no attribute 'DIPDynamics'"
+      },
+      "Legacy Core": {
+        "status": "success",
+        "module": "src.core.dynamics",
+        "class": "DoubleInvertedPendulum"
+      }
+    },
+    "success_rate": 0.8333333333333334
+  },
+  "overall_assessment": {
+    "dynamics_models_passed": false,
+    "empty_config_issue_resolved": false,
+    "legacy_imports_working": true,
+    "critical_issues": [
+      "SimplifiedDIPDynamics: Not functional",
+      "FullDIPDynamics: Not functional",
+      "LowRankDIPDynamics: Not functional"
+    ]
+  }
+}

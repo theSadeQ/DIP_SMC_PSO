@@ -412,6 +412,16 @@ def _run_pso(args: Args) -> int:
     def controller_factory(gains):
         return create_controller(ctrl_name, config=cfg, gains=gains)
 
+    # Set n_gains attribute on factory function for PSO integration
+    # These values match the CONTROLLER_REGISTRY in factory.py
+    n_gains_map = {
+        'classical_smc': 6,
+        'sta_smc': 6,
+        'adaptive_smc': 5,
+        'hybrid_adaptive_sta_smc': 4,
+    }
+    controller_factory.n_gains = n_gains_map.get(ctrl_name, 6)
+
     #
     # The previous implementation adjusted the PSO workload based on the presence of
     # environment variables (``PYTEST_CURRENT_TEST`` and ``TEST_MODE``).  While

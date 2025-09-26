@@ -11,7 +11,7 @@ pendulum dynamics with numerical stability and performance optimizations.
 """
 
 from __future__ import annotations
-from typing import Tuple, Optional, Dict, Any
+from typing import Tuple, Optional, Dict, Any, Union
 import numpy as np
 import warnings
 
@@ -39,7 +39,7 @@ class SimplifiedDIPDynamics(BaseDynamicsModel):
 
     def __init__(
         self,
-        config: SimplifiedDIPConfig,
+        config: Union[SimplifiedDIPConfig, Dict[str, Any]],
         enable_fast_mode: bool = False,
         enable_monitoring: bool = True
     ):
@@ -47,19 +47,29 @@ class SimplifiedDIPDynamics(BaseDynamicsModel):
         Initialize simplified DIP dynamics.
 
         Args:
-            config: Validated configuration for simplified DIP
+            config: Validated configuration for simplified DIP or dictionary
             enable_fast_mode: Use JIT-compiled fast dynamics computation
             enable_monitoring: Enable performance and stability monitoring
         """
-        # Initialize base class
-        super().__init__(config)
+        # Handle config parameter conversion
+        if isinstance(config, dict):
+            if config:
+                self.config = SimplifiedDIPConfig.from_dict(config)
+            else:
+                self.config = SimplifiedDIPConfig.create_default()
+        elif isinstance(config, SimplifiedDIPConfig):
+            self.config = config
+        else:
+            raise ValueError(f"config must be SimplifiedDIPConfig or dict, got {type(config)}")
 
-        self.config = config
+        # Initialize base class
+        super().__init__(self.config)
+
         self.enable_fast_mode = enable_fast_mode
         self.enable_monitoring = enable_monitoring
 
         # Initialize physics computer
-        self.physics = SimplifiedPhysicsComputer(config)
+        self.physics = SimplifiedPhysicsComputer(self.config)
 
         # Performance optimizations for fast mode
         if enable_fast_mode:
@@ -70,7 +80,8 @@ class SimplifiedDIPDynamics(BaseDynamicsModel):
         self,
         state: np.ndarray,
         control_input: np.ndarray,
-        time: float = 0.0
+        time: float = 0.0,
+        **kwargs: Any
     ) -> DynamicsResult:
         """
         Compute simplified DIP dynamics.

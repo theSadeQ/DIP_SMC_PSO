@@ -235,6 +235,7 @@ class DIPParams:
         """Create DIPParams from a physics configuration object."""
         # Extract parameters from config object
         try:
+            # Try nested structure first (for backward compatibility)
             kwargs = {
                 'cart_mass': physics_config.masses.cart,
                 'pendulum1_mass': physics_config.masses.pendulum1,
@@ -251,8 +252,26 @@ class DIPParams:
                 'pendulum2_damping': physics_config.damping.pendulum2,
             }
         except AttributeError:
-            # Fallback for different config structures
-            kwargs = {}
+            # Try flat structure (SimplifiedDIPConfig)
+            try:
+                kwargs = {
+                    'cart_mass': physics_config.cart_mass,
+                    'pendulum1_mass': physics_config.pendulum1_mass,
+                    'pendulum2_mass': physics_config.pendulum2_mass,
+                    'pendulum1_length': physics_config.pendulum1_length,
+                    'pendulum2_length': physics_config.pendulum2_length,
+                    'pendulum1_com': physics_config.pendulum1_com,
+                    'pendulum2_com': physics_config.pendulum2_com,
+                    'pendulum1_inertia': physics_config.pendulum1_inertia,
+                    'pendulum2_inertia': physics_config.pendulum2_inertia,
+                    'gravity': physics_config.gravity,
+                    'cart_damping': physics_config.cart_friction,
+                    'pendulum1_damping': physics_config.joint1_friction,
+                    'pendulum2_damping': physics_config.joint2_friction,
+                }
+            except AttributeError:
+                # Final fallback - use defaults
+                kwargs = {}
 
         return cls(**kwargs)
 

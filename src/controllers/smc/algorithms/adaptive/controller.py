@@ -33,6 +33,9 @@ class ModularAdaptiveSMC:
     Where K(t) adapts online: K̇ = γ|s| - σK
     """
 
+    # Required for PSO optimization integration
+    n_gains = 5  # [c1, lambda1, c2, lambda2, adaptation_rate]
+
     def __init__(self, config: AdaptiveSMCConfig):
         """
         Initialize modular adaptive SMC.
@@ -196,6 +199,10 @@ class ModularAdaptiveSMC:
         """Get current adaptive gain value."""
         return self._adaptation.get_current_gain()
 
+    def reset(self) -> None:
+        """Reset controller to initial state (standard interface)."""
+        self.reset_adaptation()
+
     def reset_adaptation(self, initial_gain: Optional[float] = None) -> None:
         """Reset adaptive components to initial state."""
         self._adaptation.reset_gain(initial_gain or self.config.K_init)
@@ -273,6 +280,10 @@ class AdaptiveSMC:
     def get_adaptive_gain(self) -> float:
         """Get current adaptive gain."""
         return self._controller.get_adaptive_gain()
+
+    def reset(self) -> None:
+        """Reset controller to initial state."""
+        self._controller.reset()
 
     def reset_adaptation(self) -> None:
         """Reset adaptation state."""

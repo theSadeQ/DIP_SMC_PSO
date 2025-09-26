@@ -36,6 +36,9 @@ class ModularSuperTwistingSMC:
     Provides finite-time convergence when K₁ > K₂ > 0.
     """
 
+    # Required for PSO optimization integration
+    n_gains = 6  # [c1, lambda1, c2, lambda2, K1, K2]
+
     def __init__(self, config: SuperTwistingSMCConfig):
         """
         Initialize modular Super-Twisting SMC.

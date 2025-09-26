@@ -1,0 +1,61 @@
+{
+  "timestamp": "2025-09-26 10:34:32",
+  "controllers": {
+    "import_error": "cannot import name 'ControllerFactory' from 'src.controllers.factory' (D:\\Projects\\main\\DIP_SMC_PSO\\src\\controllers\\factory\\__init__.py)"
+  },
+  "dynamics": {
+    "simplified": {
+      "creation": "FAIL",
+      "error": "'DynamicsResult' object has no attribute 'state_derivatives'"
+    },
+    "full": {
+      "creation": "FAIL",
+      "error": "'DynamicsResult' object has no attribute 'state_derivatives'"
+    },
+    "lowrank": {
+      "creation": "FAIL",
+      "error": "'DynamicsResult' object has no attribute 'state_derivatives'"
+    }
+  },
+  "reset_interfaces": {
+    "classical_smc": {
+      "has_reset": true,
+      "reset_works": true
+    },
+    "sta_smc": {
+      "has_reset": false,
+      "reset_works": false
+    },
+    "adaptive_smc": {
+      "has_reset": true,
+      "reset_works": true
+    },
+    "hybrid_adaptive_sta_smc": {
+      "has_reset": true,
+      "reset_works": true
+    }
+  },
+  "summary": {
+    "controllers": {
+      "passed": 0,
+      "total": 0,
+      "percentage": 0.0
+    },
+    "dynamics": {
+      "passed": 0,
+      "total": 3,
+      "percentage": 0.0
+    },
+    "reset_interfaces": {
+      "working": 3,
+      "total": 4,
+      "percentage": 75.0
+    },
+    "hybrid_special": false,
+    "overall_health": 42.857142857142854
+  },
+  "issues": [],
+  "hybrid_deep_test": {
+    "computation_error": "'dict' object has no attribute 'u'"
+  }
+}

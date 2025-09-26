@@ -323,7 +323,94 @@ missed = monitor.end(start)
 
 ------
 
-## 12) Success Criteria
+## 12) Multi-Agent Orchestration System
+
+**4-Agent Parallel Orchestration for DIP SMC PSO Project**
+
+This project implements an advanced **Ultimate Orchestrator** pattern specifically designed for complex control systems engineering tasks. The system automatically deploys 4 specialized agents in parallel for maximum efficiency and comprehensive validation coverage.
+
+### 12.1 Project-Specific Agent Architecture
+
+**🔵 Ultimate Orchestrator (Blue)** - Master conductor for DIP SMC PSO tasks
+- Headless CI coordinator for integration validation and critical fixes
+- Strategic planning with dependency-free task decomposition
+- Parallel delegation to 3 subordinate domain specialists
+- JSON-structured artifact integration and production readiness assessment
+
+**Subordinate Specialist Agents (Parallel Execution):**
+- 🌈 **Integration Coordinator** - DIP system health, configuration validation, dynamics models testing
+- 🔴 **Control Systems Specialist** - SMC controller validation, factory testing, stability analysis
+- 🔵 **PSO Optimization Engineer** - Parameter tuning workflows, convergence validation, optimization integration
+
+### 12.2 Automatic Orchestration for DIP SMC PSO
+
+**Integration Validation Workflow:**
+```bash
+# When Claude encounters: prompt/integration_recheck_validation_prompt.md
+# Automatically deploys: Ultimate Orchestrator + 3 specialists in parallel
+# Validates: Controllers (4/4), Dynamics (3/3), PSO workflows
+# Result: 90% system health, production deployment recommendation
+```
+
+**Critical Fixes Orchestration:**
+```bash
+# When Claude encounters: prompt/integration_critical_fixes_orchestration.md
+# Automatically deploys: All 4 agents with strategic coordination
+# Fixes: Hybrid controller failures, configuration degraded mode, reset interfaces
+# Result: 100% functional capability, all blocking issues resolved
+```
+
+### 12.3 DIP SMC PSO Validation Standards
+
+**Controller Domain Validation:**
+- Factory pattern testing (classical_smc, sta_smc, adaptive_smc, hybrid_adaptive_sta_smc)
+- Reset interface compliance verification
+- 6-element state vector computation testing
+- Configuration system stability assessment
+
+**Dynamics Models Validation:**
+- SimplifiedDIPDynamics, FullDIPDynamics, LowRankDIPDynamics instantiation
+- Empty configuration handling and fallback behavior
+- Constructor parameter binding verification
+
+**PSO Integration Validation:**
+- Parameter bounds definition and enforcement
+- Controller factory integration testing
+- Optimization result serialization and packaging
+- Convergence criteria and termination validation
+
+### 12.4 Production Readiness Framework
+
+**Quality Gates for DIP SMC PSO:**
+- **System Health Threshold:** ≥90% composite score from all agents
+- **Validation Matrix:** Must pass ≥6/7 critical components
+- **Controller Health:** All 4 controller types must create successfully
+- **Dynamics Health:** All 3 dynamics models must instantiate correctly
+- **Configuration Health:** Degraded mode warnings acceptable, blocking errors not allowed
+
+**Expected Artifacts:**
+```
+validation/
+├─ controller_factory_results.json      # 4/4 controllers validation
+├─ dynamics_models_results.json         # 3/3 dynamics models validation
+├─ pso_workflow_results.json            # PSO optimization validation
+├─ system_health_score.json             # Composite health assessment
+└─ integration_validation_report.md     # Complete validation summary
+```
+
+### 12.5 DIP SMC PSO Orchestration Commands
+
+The orchestrator recognizes and automatically handles:
+- **Integration validation requests** - Comprehensive system health verification
+- **Critical fixes orchestration** - Multi-domain problem resolution
+- **Production readiness assessment** - Deployment go/no-go decisions
+- **Regression detection** - Comparison with baseline system claims
+
+This specialized orchestration ensures consistent, high-quality validation and development workflows specifically tailored for double-inverted pendulum sliding mode control systems with PSO optimization.
+
+------
+
+## 13) Success Criteria
 
 - Clean root (≤ 12 visible entries), caches removed, backups archived.
 - Test coverage gates met (85% overall / 95% critical / 100% safety‑critical).

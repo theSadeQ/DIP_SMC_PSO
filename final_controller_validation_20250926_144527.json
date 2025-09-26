@@ -1,0 +1,47 @@
+{
+  "timestamp": "2025-09-26T14:45:23.644705",
+  "controllers_working": 4,
+  "controllers_tested": 4,
+  "controllers_with_reset": 3,
+  "hybrid_status": "FUNCTIONAL",
+  "control_computation_working": 4,
+  "detailed_results": {
+    "classical_smc": {
+      "creation_success": true,
+      "has_reset": true,
+      "reset_works": true,
+      "compute_control_works": true,
+      "control_output": "{'u': -0.4999999999999994, 'surface_value': 0.35, 'surface_derivative': 0.0, 'equivalent_control': 0.0, 'switching_control': -0.4999999999999994, 'derivative_control': 0.0, 'total_before_saturation': -0.4999999999999994, 'saturation_active': np.False_, 'in_boundary_layer': False, 'controller_type': 'classical_smc', 'control_effort': np.float64(0.4999999999999994), 'surface_magnitude': 0.35}",
+      "error": null,
+      "method_signature": "state+last_control+history"
+    },
+    "sta_smc": {
+      "creation_success": true,
+      "has_reset": false,
+      "reset_works": false,
+      "compute_control_works": true,
+      "control_output": "{'u': -2.648751311064591, 'surface_value': 0.28, 'surface_derivative': 280.0, 'u1_continuous': -2.6457513110645907, 'u2_integral': -0.003, 'integral_state': 0.001, 'switch_output': 1.0, 'surface_power': 0.5291502622129182, 'damping_control': 0.0, 'control_before_saturation': -2.648751311064591, 'K1': 5.0, 'K2': 3.0, 'gain_ratio': 1.6666666666666667, 'saturation_active': False, 'regularization_active': False, 'anti_windup_active': False, 'controller_type': 'super_twisting_smc', 'control_effort': np.float64(2.648751311064591), 'surface_magnitude': 0.28, 'finite_time_convergence': True, 'stability_condition_satisfied': True, 'convergence_time_estimate': 0.6110100926607788, 'lyapunov_function': np.float64(4.347941753933195), 'power_exponent': 0.5, 'boundary_layer': 0.01, 'switch_method': 'tanh'}",
+      "error": null,
+      "method_signature": "state+last_control+history"
+    },
+    "adaptive_smc": {
+      "creation_success": true,
+      "has_reset": true,
+      "reset_works": true,
+      "compute_control_works": true,
+      "control_output": "{'u': -10.00066, 'surface_value': 0.66, 'surface_derivative': 660.0, 'adaptive_gain': 10.00066, 'uncertainty_bound': 1.0, 'switching_output': 1.0, 'control_before_saturation': -10.00066, 'saturation_active': np.False_, 'adaptation_active': True, 'controller_type': 'adaptive_smc', 'control_effort': np.float64(10.00066), 'surface_magnitude': 0.66, 'adaptation_rate': np.float64(-0.3400660000000001), 'gain_bounds': (0.1, 100.0), 'gain_utilization': np.float64(0.0991057057057057)}",
+      "error": null,
+      "method_signature": "state+last_control+history"
+    },
+    "hybrid_adaptive_sta_smc": {
+      "creation_success": true,
+      "has_reset": true,
+      "reset_works": true,
+      "compute_control_works": true,
+      "control_output": "{'u': -0.009803921568627439, 'active_controller': 'classical', 'switched_this_step': False, 'switching_decision': None, 'active_controller_output': -0.4999999999999994, 'surface_value': 0.35, 'surface_derivative': 0.0, 'all_controller_outputs': {'classical': -0.4999999999999994, 'adaptive': -10.00066}, 'all_surface_values': {'classical': 0.35, 'adaptive': 0.66}, 'control_effort': np.float64(0.009803921568627439), 'surface_magnitude': 0.35, 'tracking_error': np.float64(0.17), 'transition_filtering_active': True, 'control_before_filtering': -0.4999999999999994, 'controller_type': 'hybrid_smc', 'hybrid_mode': 'classical_adaptive', 'switching_criterion': 'surface_magnitude', 'simulation_time': 0.001, 'equivalent_control': 0.0, 'switching_control': -0.4999999999999994, 'boundary_layer_active': False, 'switching_stats': {'total_switches': 0, 'last_switch_time': 0.0, 'time_since_last_switch': 0.001}}",
+      "error": null,
+      "method_signature": "state+last_control+history"
+    }
+  },
+  "validation_score": 106.25
+}

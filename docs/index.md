@@ -207,6 +207,13 @@ guides/getting-started
 how-to/testing-and-benchmarks
 reference/index
 ```
+```{toctree}
+:maxdepth: 1
+:caption: Examples & Traceability
+
+examples/index
+traceability/index
+```
 ### Core Documentation
 - 📚 [Theory Overview](theory_overview.md)
 - 🎮 [Controller Documentation](controllers/index.md)

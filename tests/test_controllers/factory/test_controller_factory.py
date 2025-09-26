@@ -70,8 +70,8 @@ class TestControllerCreation:
         """Set up test fixtures."""
         self.plant_config = ConfigurationFactory.create_default_config("simplified")
         self.valid_gains = {
-            SMCType.CLASSICAL: [10.0, 5.0, 8.0, 3.0],
-            SMCType.ADAPTIVE: [10.0, 5.0, 8.0, 3.0, 2.0, 1.5],
+            SMCType.CLASSICAL: [10.0, 5.0, 8.0, 3.0, 15.0, 2.0],  # 6 gains: k1, k2, lam1, lam2, K, kd
+            SMCType.ADAPTIVE: [10.0, 5.0, 8.0, 3.0, 2.0],  # 5 gains: k1, k2, lam1, lam2, gamma
         }
 
     def test_create_classical_smc(self):
@@ -84,14 +84,22 @@ class TestControllerCreation:
             dt=0.01
         )
 
-        controller = SMCFactory.create(config)
+        controller = SMCFactory.create_controller(SMCType.CLASSICAL, config)
         assert controller is not None
 
         # Test control computation
         state = np.array([0.1, 0.2, 0.3, 0.0, 0.0, 0.0])
-        control = controller.compute_control(state)
-        assert isinstance(control, np.ndarray)
-        assert control.shape == (1,)
+        state_vars = ()  # Empty tuple for state vars
+        history = {}     # Empty dict for history
+        control_output = controller.compute_control(state, state_vars, history)
+        assert control_output is not None
+        assert hasattr(control_output, 'u')
+        assert isinstance(control_output.u, (float, np.ndarray, int))
+        # Ensure it's a scalar or 1D array
+        if isinstance(control_output.u, np.ndarray):
+            assert control_output.u.shape == (1,)
+        else:
+            assert isinstance(control_output.u, (float, int))
 
     def test_create_adaptive_smc(self):
         """Test creating adaptive SMC controller."""
@@ -103,14 +111,22 @@ class TestControllerCreation:
             dt=0.01
         )
 
-        controller = SMCFactory.create(config)
+        controller = SMCFactory.create_controller(SMCType.ADAPTIVE, config)
         assert controller is not None
 
         # Test control computation
         state = np.array([0.1, 0.2, 0.3, 0.0, 0.0, 0.0])
-        control = controller.compute_control(state)
-        assert isinstance(control, np.ndarray)
-        assert control.shape == (1,)
+        state_vars = ()  # Empty tuple for state vars
+        history = {}     # Empty dict for history
+        control_output = controller.compute_control(state, state_vars, history)
+        assert control_output is not None
+        assert hasattr(control_output, 'u')
+        assert isinstance(control_output.u, (float, np.ndarray, int))
+        # Ensure it's a scalar or 1D array
+        if isinstance(control_output.u, np.ndarray):
+            assert control_output.u.shape == (1,)
+        else:
+            assert isinstance(control_output.u, (float, int))
 
     def test_invalid_smc_type_raises_error(self):
         """Test that invalid SMC type raises appropriate error."""
@@ -120,7 +136,7 @@ class TestControllerCreation:
                 max_force=100.0,
                 dt=0.01
             )
-            SMCFactory.create(config)
+            SMCFactory.create_controller("invalid_type", config)
 
 
 class TestPSOIntegration:
@@ -203,11 +219,13 @@ class TestFactoryRobustness:
 
         def create_controller_threaded():
             try:
-                gains = [10.0, 5.0, 8.0, 3.0]
+                gains = [10.0, 5.0, 8.0, 3.0, 15.0, 2.0]  # 6 gains for classical SMC
                 controller = create_smc_for_pso(
                     SMCType.CLASSICAL,
                     gains,
-                    self.plant_config
+                    max_force=100.0,
+                    dt=0.01,
+                    dynamics_model=self.plant_config
                 )
                 results.append(controller is not None)
             except Exception:

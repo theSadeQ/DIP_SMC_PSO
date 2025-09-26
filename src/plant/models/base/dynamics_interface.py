@@ -74,7 +74,8 @@ class DynamicsModel(Protocol):
         self,
         state: np.ndarray,
         control_input: np.ndarray,
-        time: float = 0.0
+        time: float = 0.0,
+        **kwargs: Any
     ) -> DynamicsResult:
         """
         Compute system dynamics at given state and input.
@@ -83,6 +84,7 @@ class DynamicsModel(Protocol):
             state: Current system state
             control_input: Applied control input
             time: Current time (for time-varying systems)
+            **kwargs: Additional implementation-specific parameters
 
         Returns:
             Dynamics computation result
@@ -149,7 +151,8 @@ class BaseDynamicsModel(ABC):
         self,
         state: np.ndarray,
         control_input: np.ndarray,
-        time: float = 0.0
+        time: float = 0.0,
+        **kwargs: Any
     ) -> DynamicsResult:
         """Compute system dynamics (must be implemented by subclasses)."""
         pass
@@ -267,7 +270,8 @@ class LinearDynamicsModel(BaseDynamicsModel):
         self,
         state: np.ndarray,
         control_input: np.ndarray,
-        time: float = 0.0
+        time: float = 0.0,
+        **kwargs: Any
     ) -> DynamicsResult:
         """Compute linear dynamics."""
         if not self.validate_state(state):
@@ -288,7 +292,8 @@ class LinearDynamicsModel(BaseDynamicsModel):
             return self._create_success_result(
                 state_derivative,
                 time=time,
-                control_input=control_input.copy()
+                control_input=control_input.copy(),
+                **kwargs
             )
 
         except Exception as e:

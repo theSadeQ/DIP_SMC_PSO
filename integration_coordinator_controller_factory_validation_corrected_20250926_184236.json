@@ -1,0 +1,151 @@
+{
+  "validation_timestamp": "2025-09-26T18:42:36.360192",
+  "validation_type": "Integration Coordinator Controller Factory Test (Corrected)",
+  "controller_factory_test": {
+    "timestamp": "2025-09-26T18:42:32.466412",
+    "test_name": "Controller Factory Comprehensive Test (Corrected Interface)",
+    "validation_matrix": {
+      "factory_import": true,
+      "list_controllers": true,
+      "controllers_4_of_4": true,
+      "controllers_3_of_4": true,
+      "controllers_2_of_4": true,
+      "hybrid_controller_functional": true,
+      "hybrid_dt_error_resolved": true,
+      "overall_status": "PASSED"
+    },
+    "controller_tests": {
+      "classical_smc": {
+        "type": "classical_smc",
+        "creation_success": true,
+        "compute_control_success": true,
+        "gains_retrieval_success": true,
+        "interface_correct": true,
+        "error_messages": [],
+        "warnings": [],
+        "default_gains": [
+          5.0,
+          5.0,
+          5.0,
+          0.5,
+          0.5,
+          0.5
+        ],
+        "test_control_value": 0.0
+      },
+      "sta_smc": {
+        "type": "sta_smc",
+        "creation_success": true,
+        "compute_control_success": true,
+        "gains_retrieval_success": true,
+        "interface_correct": true,
+        "error_messages": [],
+        "warnings": [],
+        "default_gains": [
+          5.0,
+          3.0,
+          4.0,
+          4.0,
+          0.4,
+          0.4
+        ],
+        "test_control_value": 0.0
+      },
+      "adaptive_smc": {
+        "type": "adaptive_smc",
+        "creation_success": true,
+        "compute_control_success": true,
+        "gains_retrieval_success": true,
+        "interface_correct": true,
+        "error_messages": [],
+        "warnings": [],
+        "default_gains": [
+          10.0,
+          8.0,
+          5.0,
+          4.0,
+          1.0
+        ],
+        "test_control_value": 0.0
+      },
+      "hybrid_adaptive_sta_smc": {
+        "type": "hybrid_adaptive_sta_smc",
+        "creation_success": true,
+        "compute_control_success": true,
+        "gains_retrieval_success": true,
+        "interface_correct": true,
+        "error_messages": [],
+        "warnings": [],
+        "default_gains": [
+          5.0,
+          5.0,
+          5.0,
+          0.5
+        ],
+        "test_control_value": 0.0
+      }
+    },
+    "summary": {
+      "total_controllers": 4,
+      "functional_controllers": 4,
+      "success_rate": 1.0,
+      "critical_issues": []
+    }
+  },
+  "import_resolution_test": {
+    "timestamp": "2025-09-26T18:42:36.360192",
+    "test_name": "Import Resolution Test",
+    "imports_tested": 8,
+    "imports_successful": 8,
+    "import_details": {
+      "Factory": {
+        "status": "success",
+        "module": "src.controllers.factory",
+        "class": "create_controller"
+      },
+      "Classical SMC": {
+        "status": "success",
+        "module": "src.controllers.smc.algorithms.classical.controller",
+        "class": "ModularClassicalSMC"
+      },
+      "STA SMC": {
+        "status": "success",
+        "module": "src.controllers.smc.algorithms.super_twisting.controller",
+        "class": "ModularSuperTwistingSMC"
+      },
+      "Adaptive SMC": {
+        "status": "success",
+        "module": "src.controllers.smc.algorithms.adaptive.controller",
+        "class": "ModularAdaptiveSMC"
+      },
+      "Hybrid SMC": {
+        "status": "success",
+        "module": "src.controllers.smc.algorithms.hybrid.controller",
+        "class": "ModularHybridSMC"
+      },
+      "Classical Config": {
+        "status": "success",
+        "module": "src.controllers.smc.algorithms.classical.config",
+        "class": "ClassicalSMCConfig"
+      },
+      "STA Config": {
+        "status": "success",
+        "module": "src.controllers.smc.algorithms.super_twisting.config",
+        "class": "SuperTwistingSMCConfig"
+      },
+      "Adaptive Config": {
+        "status": "success",
+        "module": "src.controllers.smc.algorithms.adaptive.config",
+        "class": "AdaptiveSMCConfig"
+      }
+    },
+    "critical_imports": [],
+    "success_rate": 1.0
+  },
+  "overall_assessment": {
+    "controller_factory_passed": true,
+    "import_resolution_passed": true,
+    "hybrid_controller_working": true,
+    "critical_issues": []
+  }
+}

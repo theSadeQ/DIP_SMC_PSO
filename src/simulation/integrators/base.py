@@ -70,6 +70,33 @@ class BaseIntegrator(Integrator):
         """Get integration statistics."""
         return self._stats.copy()
 
+    def integrate_step(self, dynamics_fn: Callable, state: np.ndarray, time: float, dt: float) -> np.ndarray:
+        """
+        Integrate dynamics forward by one time step (interface compatibility method).
+
+        This method provides compatibility with test interfaces that expect integrate_step.
+        It adapts the dynamics function signature for use with the integrate method.
+
+        Args:
+            dynamics_fn: Dynamics function that takes (state, time) and returns derivative
+            state: Current state vector
+            time: Current time
+            dt: Integration time step
+
+        Returns:
+            Next state vector
+        """
+        # Adapt dynamics function to expected signature
+        def adapted_dynamics(t, x, u=None):
+            # Call the original dynamics function with expected signature
+            return dynamics_fn(x, t)
+
+        # Use empty control input since dynamics_fn is expected to handle control internally
+        control = np.array([0.0])
+
+        # Call the main integrate method
+        return self.integrate(adapted_dynamics, state, control, dt, time)
+
     def _update_stats(self, accepted: bool = True, func_evals: int = 1) -> None:
         """Update integration statistics."""
         self._stats["total_steps"] += 1

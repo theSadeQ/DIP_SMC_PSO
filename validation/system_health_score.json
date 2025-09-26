@@ -1,0 +1,105 @@
+{
+  "timestamp": "2025-09-26T11:28:41.268631",
+  "validation_summary": {
+    "controllers": {
+      "total": 4,
+      "working": 4,
+      "with_reset": 3,
+      "success_rate": 100.0
+    },
+    "dynamics": {
+      "total": 3,
+      "working": 3,
+      "success_rate": 100.0
+    },
+    "hybrid_controller": {
+      "creation": true,
+      "reset_functional": true,
+      "control_computation": true,
+      "output_format_valid": true
+    },
+    "configuration": {
+      "health_status": "DEGRADED",
+      "warnings_detected": 6,
+      "controllers_tested": 4
+    }
+  },
+  "detailed_scores": {
+    "controller_health": 100.0,
+    "dynamics_health": 100.0,
+    "reset_interface_health": 75.0,
+    "hybrid_controller_health": 100,
+    "configuration_penalty": 10,
+    "base_score": 100.0,
+    "overall_system_health": 90.0
+  },
+  "production_assessment": {
+    "status": "GOOD - Operational with Minor Issues",
+    "readiness_level": "OPERATIONAL",
+    "overall_score": 90.0,
+    "meets_95_percent_threshold": false
+  },
+  "acceptance_criteria": {
+    "controllers_95_percent": true,
+    "dynamics_100_percent": true,
+    "reset_75_percent": true,
+    "overall_95_percent": false,
+    "hybrid_functional": true,
+    "config_acceptable": true
+  },
+  "criteria_summary": {
+    "passed": 5,
+    "total": 6,
+    "pass_rate": 83.33333333333334
+  },
+  "validation_matrix": [
+    {
+      "component": "Hybrid Controller",
+      "claimed_status": "Fixed",
+      "recheck_result": "PASS",
+      "notes": "Control computation working, all functions operational"
+    },
+    {
+      "component": "Classical Controller",
+      "claimed_status": "Working",
+      "recheck_result": "PASS",
+      "notes": "Reset method implemented and working"
+    },
+    {
+      "component": "Adaptive Controller",
+      "claimed_status": "Working",
+      "recheck_result": "PASS",
+      "notes": "Reset method working perfectly"
+    },
+    {
+      "component": "STA Controller",
+      "claimed_status": "Working",
+      "recheck_result": "PASS",
+      "notes": "Working, reset not implemented but not critical"
+    },
+    {
+      "component": "Simplified Dynamics",
+      "claimed_status": "Fixed",
+      "recheck_result": "PASS",
+      "notes": "Empty config instantiation successful"
+    },
+    {
+      "component": "Full Dynamics",
+      "claimed_status": "Fixed",
+      "recheck_result": "PASS",
+      "notes": "Parameter binding working correctly"
+    },
+    {
+      "component": "LowRank Dynamics",
+      "claimed_status": "Working",
+      "recheck_result": "PASS",
+      "notes": "No regression detected"
+    }
+  ],
+  "matrix_summary": {
+    "passed": 7,
+    "total": 7,
+    "threshold_met": true,
+    "pass_rate": 100.0
+  }
+}

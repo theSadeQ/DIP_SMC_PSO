@@ -117,6 +117,28 @@ except ImportError:
 
 
 # Map controller names to their implementations and configs
+# Alias mapping for backwards compatibility and normalization
+ALIAS_MAP = {
+    'classic_smc': 'classical_smc',
+    'smc_classical': 'classical_smc',
+    'smc_v1': 'classical_smc',
+    'super_twisting': 'sta_smc',
+    'sta': 'sta_smc',
+    'adaptive': 'adaptive_smc',
+    'hybrid': 'hybrid_adaptive_sta_smc',
+    'hybrid_sta': 'hybrid_adaptive_sta_smc',
+}
+
+def _canonicalize_controller_type(name: str) -> str:
+    """Normalize and alias controller type names.
+
+    - Lowercases and replaces dashes/spaces with underscores
+    - Applies common aliases (e.g., classic_smc -> classical_smc)
+    """
+    if not isinstance(name, str):
+        return name
+    key = name.strip().lower().replace('-', '_').replace(' ', '_')
+    return ALIAS_MAP.get(key, key)
 CONTROLLER_REGISTRY = {
     'classical_smc': {
         'class': ModularClassicalSMC,
@@ -160,6 +182,9 @@ def create_controller(controller_type: str,
         ImportError: If required dependencies are missing
     """
     logger = logging.getLogger(__name__)
+
+    # Normalize/alias controller type
+    controller_type = _canonicalize_controller_type(controller_type)
 
     # Validate controller type
     if controller_type not in CONTROLLER_REGISTRY:
@@ -232,11 +257,42 @@ def create_controller(controller_type: str,
 
     # Create configuration object
     try:
-        config_params = {
-            'gains': controller_gains,
-            'dynamics_model': dynamics_model,
-            **controller_params
-        }
+        # Build config parameters based on controller type
+        if controller_type == 'hybrid_adaptive_sta_smc':
+            # Hybrid controllers require special handling - need sub-configs
+            # Import the config classes
+            from src.controllers.smc.algorithms.classical.config import ClassicalSMCConfig
+            from src.controllers.smc.algorithms.adaptive.config import AdaptiveSMCConfig
+
+            # Create proper sub-configs with all required parameters
+            classical_config = ClassicalSMCConfig(
+                gains=[5.0, 5.0, 5.0, 0.5, 0.5, 0.5],
+                max_force=150.0,
+                dt=0.001,
+                boundary_layer=0.02
+            )
+            adaptive_config = AdaptiveSMCConfig(
+                gains=[10.0, 8.0, 5.0, 4.0, 1.0],
+                max_force=150.0,
+                dt=0.001
+            )
+
+            config_params = {
+                'hybrid_mode': HybridMode.CLASSICAL_ADAPTIVE,  # Default hybrid mode enum
+                'dt': 0.001,
+                'max_force': 150.0,
+                'classical_config': classical_config,
+                'adaptive_config': adaptive_config,
+                'dynamics_model': dynamics_model,
+                **controller_params
+            }
+        else:
+            # Standard controllers use gains
+            config_params = {
+                'gains': controller_gains,
+                'dynamics_model': dynamics_model,
+                **controller_params
+            }
 
         # Remove None values and filter to only valid parameters
         config_params = {k: v for k, v in config_params.items() if v is not None}
@@ -255,6 +311,7 @@ def create_controller(controller_type: str,
             classical_config = ClassicalSMCConfig(
                 gains=[5.0, 5.0, 5.0, 0.5, 0.5, 0.5],
                 max_force=150.0,
+                dt=0.001,
                 boundary_layer=0.02
             )
             adaptive_config = AdaptiveSMCConfig(
@@ -284,6 +341,7 @@ def create_controller(controller_type: str,
             # Add controller-specific required parameters
             if controller_type == 'classical_smc':
                 fallback_params['boundary_layer'] = 0.02
+                fallback_params['dt'] = 0.001
             elif controller_type == 'sta_smc':
                 fallback_params['dt'] = 0.001
             elif controller_type == 'adaptive_smc':

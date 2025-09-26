@@ -1,0 +1,54 @@
+{
+  "cli_help_performance": {
+    "test_name": "cli_help_performance",
+    "timestamp": "2025-09-25T19:55:28.890552",
+    "execution_time": 5.267289766668303,
+    "memory_usage": null,
+    "success_rate": 1.0,
+    "additional_metrics": {
+      "iterations": 3,
+      "valid_executions": 3,
+      "min_time": 5.198748599999817,
+      "max_time": 5.304680600005668
+    }
+  },
+  "config_loading_performance": {
+    "test_name": "config_loading_performance",
+    "timestamp": "2025-09-25T19:55:29.074550",
+    "execution_time": 0.0364783799945144,
+    "memory_usage": null,
+    "success_rate": 1.0,
+    "additional_metrics": {
+      "iterations": 5,
+      "valid_executions": 5,
+      "min_time": 0.02202499999839347,
+      "max_time": 0.05866759999480564
+    }
+  },
+  "integration_test_health": {
+    "test_name": "integration_test_health",
+    "timestamp": "2025-09-25T19:55:29.886200",
+    "execution_time": 0.4051439999966533,
+    "memory_usage": null,
+    "success_rate": 1.0,
+    "additional_metrics": {
+      "iterations": 2,
+      "valid_executions": 2,
+      "min_time": 0.3911022999964189,
+      "max_time": 0.4191856999968877
+    }
+  },
+  "system_stability_check": {
+    "test_name": "system_stability_check",
+    "timestamp": "2025-09-25T19:55:29.925311",
+    "execution_time": 0.036726299993461,
+    "memory_usage": null,
+    "success_rate": 1.0,
+    "additional_metrics": {
+      "iterations": 1,
+      "valid_executions": 1,
+      "min_time": 0.036726299993461,
+      "max_time": 0.036726299993461
+    }
+  }
+}

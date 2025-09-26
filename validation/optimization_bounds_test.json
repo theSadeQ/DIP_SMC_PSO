@@ -1,0 +1,80 @@
+{
+  "parameter_bounds_validation": {
+    "classical_smc": {
+      "expected_dimensions": 6,
+      "gains_meaning": [
+        "k1",
+        "k2",
+        "k3",
+        "lambda1",
+        "lambda2",
+        "lambda3"
+      ],
+      "typical_ranges": {
+        "k_gains": {
+          "min": 0.1,
+          "max": 50.0
+        },
+        "lambda_gains": {
+          "min": 0.01,
+          "max": 5.0
+        }
+      },
+      "bounds_enforcement": "PSO configuration with clipping",
+      "validation_method": "Within PSO bounds checking"
+    },
+    "adaptive_smc": {
+      "expected_dimensions": 5,
+      "gains_meaning": [
+        "k1",
+        "k2",
+        "k3",
+        "k4",
+        "leak_rate"
+      ],
+      "typical_ranges": {
+        "k_gains": {
+          "min": 0.5,
+          "max": 100.0
+        },
+        "leak_rate": {
+          "min": 0.001,
+          "max": 1.0
+        }
+      },
+      "bounds_enforcement": "PSO configuration with clipping",
+      "validation_method": "Within PSO bounds checking"
+    }
+  },
+  "convergence_criteria": {
+    "termination_conditions": [
+      "Maximum iterations reached",
+      "Cost function tolerance achieved",
+      "Population diversity below threshold",
+      "Stagnation detection"
+    ],
+    "pso_specific": {
+      "velocity_clamping": "Optional bounds-based clamping",
+      "inertia_scheduling": "Linear decrease from w_start to w_end",
+      "position_bounds": "Hard bounds enforcement"
+    },
+    "stability_checks": {
+      "instability_penalty": "Applied for unstable trajectories",
+      "nan_handling": "High penalty for non-finite results",
+      "physics_validation": "State and control bounds checking"
+    }
+  },
+  "optimization_performance": {
+    "expected_metrics": {
+      "convergence_rate": 0.85,
+      "typical_iterations": "50-200",
+      "best_practices": "Balanced exploration/exploitation"
+    },
+    "monitoring": {
+      "cost_history": "Tracked per iteration",
+      "position_history": "Best positions recorded",
+      "convergence_diagnostics": "Automatic stagnation detection"
+    }
+  },
+  "validation_timestamp": "2025-09-26T11:27:58.837965"
+}

@@ -196,6 +196,12 @@ class SwingUpSMC:
         # Model’s energy is 0 at upright; measure “energy gained” relative to bottom:
         E_about_bottom = self.E_bottom - E_current
 
+        # Telemetry: track normalized energy ratio relative to bottom
+        try:
+            history["E_ratio"] = float(E_about_bottom / self.E_bottom)
+        except Exception:
+            pass
+
         t = history.get("t", self._t) + self.dt
         history["t"] = t
 

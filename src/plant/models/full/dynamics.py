@@ -11,7 +11,7 @@ comprehensive physics modeling.
 """
 
 from __future__ import annotations
-from typing import Tuple, Optional, Dict, Any
+from typing import Tuple, Optional, Dict, Any, Union
 import numpy as np
 import warnings
 
@@ -40,7 +40,7 @@ class FullDIPDynamics(BaseDynamicsModel):
 
     def __init__(
         self,
-        config: FullDIPConfig,
+        config: Union[FullDIPConfig, Dict[str, Any]],
         enable_monitoring: bool = True,
         enable_validation: bool = True
     ):
@@ -48,20 +48,29 @@ class FullDIPDynamics(BaseDynamicsModel):
         Initialize full-fidelity DIP dynamics.
 
         Args:
-            config: Validated configuration for full DIP model
+            config: Validated configuration for full DIP model or dictionary
             enable_monitoring: Enable comprehensive performance monitoring
             enable_validation: Enable detailed state validation
         """
-        # Set attributes before base class initialization
-        self.config = config
+        # Handle config parameter conversion
+        if isinstance(config, dict):
+            if config:
+                self.config = FullDIPConfig.from_dict(config)
+            else:
+                self.config = FullDIPConfig.create_default()
+        elif isinstance(config, FullDIPConfig):
+            self.config = config
+        else:
+            raise ValueError(f"config must be FullDIPConfig or dict, got {type(config)}")
+
         self.enable_monitoring = enable_monitoring
         self.enable_validation = enable_validation
 
         # Initialize base class
-        super().__init__(config)
+        super().__init__(self.config)
 
         # Initialize physics computer
-        self.physics = FullFidelityPhysicsComputer(config)
+        self.physics = FullFidelityPhysicsComputer(self.config)
 
         # Setup integration state tracking
         self.integration_stats = {

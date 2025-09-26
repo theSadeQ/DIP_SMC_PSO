@@ -40,7 +40,7 @@ class LowRankDIPConfig(BaseDIPConfig):
     damping_coefficient: float = 0.01
 
     # Control limits
-    force_limit: float = 20.0
+    force_limit: float = 150.0
 
     # State bounds (relaxed for low-rank model)
     cart_position_limits: Optional[Tuple[float, float]] = (-2.0, 2.0)
@@ -237,6 +237,11 @@ class LowRankDIPConfig(BaseDIPConfig):
     def from_dict(cls, config_dict: Dict[str, Any]) -> 'LowRankDIPConfig':
         """Create configuration from dictionary."""
         return cls(**config_dict)
+
+    @classmethod
+    def create_default(cls) -> 'LowRankDIPConfig':
+        """Create default configuration."""
+        return cls()
 
     @classmethod
     def create_fast_prototype(cls) -> 'LowRankDIPConfig':

@@ -1,0 +1,23 @@
+{
+  "total_models": 3,
+  "working_models": 3,
+  "individual_results": {
+    "SimplifiedDIPDynamics": {
+      "creation_empty_config": true,
+      "dynamics_computation": true,
+      "errors": []
+    },
+    "FullDIPDynamics": {
+      "creation_empty_config": true,
+      "dynamics_computation": true,
+      "errors": []
+    },
+    "LowRankDIPDynamics": {
+      "creation_empty_config": true,
+      "dynamics_computation": true,
+      "errors": []
+    }
+  },
+  "errors": [],
+  "success_rate": 100.0
+}

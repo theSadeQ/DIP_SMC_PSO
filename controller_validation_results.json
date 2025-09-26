@@ -1,0 +1,26 @@
+{
+  "classical_smc": {
+    "creation": true,
+    "reset": true,
+    "control": true,
+    "status": "FULLY FUNCTIONAL"
+  },
+  "sta_smc": {
+    "creation": true,
+    "reset": false,
+    "control": true,
+    "status": "FULLY FUNCTIONAL"
+  },
+  "adaptive_smc": {
+    "creation": true,
+    "reset": true,
+    "control": true,
+    "status": "FULLY FUNCTIONAL"
+  },
+  "hybrid_adaptive_sta_smc": {
+    "creation": true,
+    "reset": true,
+    "control": true,
+    "status": "FULLY FUNCTIONAL"
+  }
+}

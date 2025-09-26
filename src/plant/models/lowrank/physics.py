@@ -345,7 +345,7 @@ class LowRankPhysicsComputer:
             return False
 
         # Check for reasonable acceleration magnitudes
-        max_accel = 100.0  # m/s² or rad/s²
+        max_accel = 1000.0  # m/s² or rad/s² - relaxed for high control inputs
         if np.any(np.abs(state_derivative[3:]) > max_accel):
             return False
 

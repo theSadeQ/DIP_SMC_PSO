@@ -183,6 +183,10 @@ class MPCController:
         # error【634903324123444†L631-L639】.  Scaling the layer with dt keeps
         # the controller robust across different sampling rates.
         fallback_boundary_layer: Optional[float] = None,
+        # Optional output slew rate limit |du|/step for chattering/jerk reduction.
+        # When provided, the returned control is rate-limited relative to the
+        # previous output. Units: N per control step.
+        max_du: Optional[float] = None,
     ) -> None:
         self.model = dynamics_model
         self.N = int(horizon)
@@ -200,6 +204,8 @@ class MPCController:
 
         # Warm start storage for the input sequence (size N)
         self._U_prev = np.zeros(self.N, dtype=float)
+        self._last_u_out: float = 0.0
+        self._max_du: Optional[float] = max_du
 
         # Create a safe fallback controller used if the QP fails.  Users may
         # provide custom SMC or PD gains via the ``fallback_smc_gains``
@@ -312,7 +318,13 @@ class MPCController:
                 + w.q_xdot * xdot
                 + w.q_thetadot * (th1dot + th2dot)
             )
-            return float(np.clip(u_fb, -self.max_force, self.max_force))
+            u_cmd = float(np.clip(u_fb, -self.max_force, self.max_force))
+            # Optional slew rate limit
+            if self._max_du is not None:
+                du = np.clip(u_cmd - self._last_u_out, -self._max_du, self._max_du)
+                u_cmd = float(self._last_u_out + du)
+            self._last_u_out = u_cmd
+            return u_cmd
 
         # Reference trajectory
         if self._ref_fn is not None:
@@ -395,7 +407,13 @@ class MPCController:
         # Extract first control and cache warm start
         u0 = float(U.value[0, 0])
         self._U_prev = U.value.reshape(-1)
-        return float(np.clip(u0, -self.max_force, self.max_force))
+        u_cmd = float(np.clip(u0, -self.max_force, self.max_force))
+        # Optional slew rate limit
+        if self._max_du is not None:
+            du = np.clip(u_cmd - self._last_u_out, -self._max_du, self._max_du)
+            u_cmd = float(self._last_u_out + du)
+        self._last_u_out = u_cmd
+        return u_cmd
 
     # -- Fallbacks ---------------------------------------------------------------------------
 
@@ -411,7 +429,12 @@ class MPCController:
                 u_fb, self._fb_state, self._fb_history = self._fallback.compute_control(
                     x0, self._fb_state, self._fb_history
                 )
-                return float(np.clip(u_fb, -self.max_force, self.max_force))
+                u_cmd = float(np.clip(u_fb, -self.max_force, self.max_force))
+                if self._max_du is not None:
+                    du = np.clip(u_cmd - self._last_u_out, -self._max_du, self._max_du)
+                    u_cmd = float(self._last_u_out + du)
+                self._last_u_out = u_cmd
+                return u_cmd
             except Exception as e:
                 logger.debug("SMC fallback failed (%s). Degrading to PD.", e)
 
@@ -424,7 +447,12 @@ class MPCController:
         kp = getattr(self, "_pd_kp", 20.0)
         kd = getattr(self, "_pd_kd", 5.0)
         u_fb = -kp * theta_err - kd * dtheta_err
-        return float(np.clip(u_fb, -self.max_force, self.max_force))
+        u_cmd = float(np.clip(u_fb, -self.max_force, self.max_force))
+        if self._max_du is not None:
+            du = np.clip(u_cmd - self._last_u_out, -self._max_du, self._max_du)
+            u_cmd = float(self._last_u_out + du)
+        self._last_u_out = u_cmd
+        return u_cmd
 
 
 # Optional demo (kept minimal; no side-effects when imported)

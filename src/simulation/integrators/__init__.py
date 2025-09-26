@@ -9,6 +9,7 @@ from .adaptive.runge_kutta import AdaptiveRungeKutta, DormandPrince45
 from .fixed_step.euler import ForwardEuler, BackwardEuler
 from .fixed_step.runge_kutta import RungeKutta4, RungeKutta2
 from .discrete.zero_order_hold import ZeroOrderHold
+from .factory import IntegratorFactory, create_integrator, get_available_integrators
 
 __all__ = [
     "BaseIntegrator",
@@ -18,5 +19,8 @@ __all__ = [
     "BackwardEuler",
     "RungeKutta4",
     "RungeKutta2",
-    "ZeroOrderHold"
+    "ZeroOrderHold",
+    "IntegratorFactory",
+    "create_integrator",
+    "get_available_integrators"
 ]

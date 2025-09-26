@@ -34,6 +34,9 @@ class ModularClassicalSMC:
     - Boundary layer: Continuous switching with chattering reduction
     """
 
+    # Required for PSO optimization integration
+    n_gains = 6  # [k1, k2, lam1, lam2, K, kd]
+
     def __init__(self, config: ClassicalSMCConfig):
         """
         Initialize modular classical SMC.
@@ -155,6 +158,16 @@ class ModularClassicalSMC:
         """Return controller gains for interface compatibility."""
         return list(self.config.gains)
 
+    def reset(self) -> None:
+        """Reset controller to initial state."""
+        # Reset any internal state variables if they exist
+        # Classical SMC typically doesn't have internal state to reset
+        # But we ensure any analysis components are reset
+        if hasattr(self._boundary_layer, 'reset'):
+            self._boundary_layer.reset()
+        if hasattr(self._surface, 'reset'):
+            self._surface.reset()
+
     def get_parameters(self) -> Dict[str, Any]:
         """Get all controller parameters."""
         return {
@@ -206,6 +219,10 @@ class ClassicalSMC:
     def gains(self) -> List[float]:
         """Return controller gains."""
         return self._controller.gains
+
+    def reset(self) -> None:
+        """Reset controller to initial state."""
+        self._controller.reset()
 
     def get_parameters(self) -> Dict[str, Any]:
         """Get controller parameters."""

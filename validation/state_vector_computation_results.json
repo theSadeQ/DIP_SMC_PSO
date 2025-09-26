@@ -1,0 +1,41 @@
+{
+  "summary": {
+    "total_successful_computations": 20,
+    "total_tests": 20,
+    "overall_success_percentage": "100.0%",
+    "timestamp": "2025-09-26",
+    "test_description": "Control computation testing with standard 6-element state vectors"
+  },
+  "detailed_results": {
+    "classical_smc": {
+      "controller_type": "ModularClassicalSMC",
+      "state_tests": [
+        {
+          "state_index": 0,
+          "input_state": [
+            0.1,
+            0.0,
+            0.05,
+            0.0,
+            0.02,
+            0.0
+          ],
+          "state_description": "small_angles",
+          "success": true,
+          "output_type": "dict",
+          "output_keys": [
+            "u",
+            "surface_value",
+            "surface_derivative",
+            "equivalent_control",
+            "switching_control",
+            "derivative_control",
+            "total_before_saturation",
+            "saturation_active",
+            "in_boundary_layer",
+            "controller_type",
+            "control_effort",
+            "surface_magnitude"
+          ],
+          "control_value": -0.4999999999999994,
+          "control_finite": 

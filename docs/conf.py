@@ -6,9 +6,18 @@
 
 import os
 import sys
+import subprocess
+import inspect
+from pathlib import Path
+from urllib.parse import quote
 
-# Add project root to Python path (so 'src' module can be imported)
-sys.path.insert(0, os.path.abspath('..'))
+# Ensure repository root and `src` are importable for autodoc/linkcode
+REPO_ROOT = Path(__file__).parent.parent.resolve()
+SRC_PATH = REPO_ROOT / "src"
+EXT_PATH = Path(__file__).parent / "_ext"
+sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(SRC_PATH))
+sys.path.insert(0, str(EXT_PATH))
 
 # Project information
 project = 'DIP_SMC_PSO'
@@ -32,6 +41,8 @@ extensions = [
     'sphinx.ext.autosummary',     # Generate summary tables
     'sphinx.ext.napoleon',        # Google/NumPy style docstrings
     'sphinx.ext.viewcode',        # Add source code links
+    'sphinx.ext.linkcode',        # Permalinks to GitHub
+    'sphinx.ext.githubpages',     # Emit .nojekyll for GitHub Pages
     'sphinx.ext.mathjax',
     'sphinx.ext.intersphinx',
     'sphinx.ext.autosectionlabel',
@@ -43,6 +54,10 @@ extensions = [
     'sphinx_design',
     'sphinxcontrib.mermaid',
     'sphinx_reredirects',
+    'sphinx.ext.doctest',         # Test code blocks
+    'sphinx.ext.duration',
+    'sphinx_gallery.gen_gallery', # Executable examples
+    'traceability',               # Requirements traceability generator
 ]
 
 # MyST Parser configuration - quality-of-life features
@@ -128,7 +143,7 @@ html_theme_options = {
     'sidebar_hide_name': False,
     'navigation_with_keys': True,
     'top_of_page_button': 'edit',
-    'source_repository': 'https://github.com/your-org/DIP_SMC_PSO/',
+    'source_repository': 'https://github.com/theSadeQ/DIP_SMC_PSO/',
     'source_branch': 'main',
     'source_directory': 'docs/',
 }
@@ -180,4 +195,97 @@ redirects = {
     'controllers/super-twisting-smc': 'reference/controllers/super-twisting-smc',
     'controllers/adaptive-smc': 'reference/controllers/adaptive-smc',
     'controllers/hybrid-adaptive-smc': 'reference/controllers/hybrid-adaptive-smc',
+}
+
+# ----------------------------- GitHub linkcode ------------------------------
+GITHUB_USER = "theSadeQ"
+GITHUB_REPO = "DIP_SMC_PSO"
+
+def _get_commit_sha():
+    """Return a commit SHA for permalinks or 'main' as fallback.
+
+    Order of preference: GITHUB_SHA -> READTHEDOCS_GIT_IDENTIFIER -> git HEAD -> 'main'
+    """
+    for env in ("GITHUB_SHA", "READTHEDOCS_GIT_IDENTIFIER"):
+        v = os.getenv(env)
+        if v and len(v) >= 7:
+            return v
+    try:
+        return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+    except Exception:
+        return "main"
+
+
+def linkcode_resolve(domain, info):
+    """Resolve GitHub permalink to source code with line anchors.
+
+    Returns None for unsupported or missing info, otherwise a URL like:
+    https://github.com/<user>/<repo>/blob/<sha>/<path>#L<start>-L<end>
+    """
+    if domain != "py":
+        return None
+
+    modname = info.get("module")
+    fullname = info.get("fullname")
+    if not modname or not fullname:
+        return None
+
+    try:
+        submod = __import__(modname, fromlist=["*"])
+        obj = submod
+        for part in fullname.split("."):
+            obj = getattr(obj, part)
+
+        # Unwrap common wrappers
+        if isinstance(obj, property):
+            obj = obj.fget
+        elif isinstance(obj, (classmethod, staticmethod)):
+            obj = obj.__func__
+        elif hasattr(obj, "__wrapped__"):
+            obj = obj.__wrapped__
+        elif hasattr(obj, "func"):
+            obj = obj.func
+
+        fn = inspect.getsourcefile(inspect.unwrap(obj))
+        if fn is None:
+            return None
+        source, lineno = inspect.getsourcelines(obj)
+    except Exception:
+        return None
+
+    try:
+        rel_fn = Path(fn).resolve().relative_to(REPO_ROOT)
+    except Exception:
+        return None
+
+    rel_fn_posix = str(rel_fn).replace(os.sep, "/")
+    start_line = lineno
+    end_line = lineno + len(source) - 1
+    sha = _get_commit_sha()
+
+    return (
+        f"https://github.com/{GITHUB_USER}/{GITHUB_REPO}/blob/{quote(sha)}/"
+        f"{quote(rel_fn_posix)}#L{start_line}-L{end_line}"
+    )
+
+
+# Mock heavy dependencies to keep doc builds lightweight
+autodoc_mock_imports = [
+    'numpy', 'scipy', 'matplotlib', 'control', 'pyswarms', 'optuna', 'numba',
+    'streamlit', 'pandas', 'yaml', 'pydantic'
+]
+
+
+# ----------------------------- Sphinx-Gallery -------------------------------
+# Run only fast examples in CI when DOCS_FAST=1 is set
+_fast_mode = os.environ.get("DOCS_FAST")
+_filename_pattern = r"^plot_fast_" if _fast_mode else r"^plot_"
+
+sphinx_gallery_conf = {
+    'examples_dirs': ['examples'],      # relative to docs/
+    'gallery_dirs': ['auto_examples'],  # built gallery target
+    'filename_pattern': _filename_pattern,
+    'ignore_pattern': r"_heavy|_skip",
+    'min_reported_time': 0,
+    'remove_config_comments': True,
 }

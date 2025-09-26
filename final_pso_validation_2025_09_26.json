@@ -1,0 +1,41 @@
+{
+  "pso_integration": {
+    "config_loading": false,
+    "pso_import": false,
+    "controller_factory_creation": false,
+    "pso_instantiation": false,
+    "optimization_capability": false,
+    "error_message": "Config loading failed: Configuration validation failed:\n  - controllers.classical_smc: Value error, Unknown configuration keys: boundary_layer, max_force. Set allow_unknown=True when calling load_config to accept unknown keys.\n  - controllers.sta_smc: Value error, Unknown configuration keys: damping_gain, dt, max_force. Set allow_unknown=True when calling load_config to accept unknown keys.\n  - controllers.adaptive_smc: Value error, Unknown configuration keys: K_max, K_min, adapt_rate_limit, boundary_layer, dead_zone, dt, leak_rate, max_force, smooth_switch. Set allow_unknown=True when calling load_config to accept unknown keys.\n  - controllers.swing_up_smc: Value error, Unknown configuration keys: energy_gain, exit_energy_factor, max_force, reentry_angle_tolerance, stabilizing_controller, switch_angle_tolerance, switch_energy_factor. Set allow_unknown=True when calling load_config to accept unknown keys.\n  - controllers.hybrid_adaptive_sta_smc: Value error, Unknown configuration keys: adapt_rate_limit, cart_gain, cart_lambda, cart_p_gain, cart_p_lambda, damping_gain, dead_zone, dt, enable_equivalent, gamma1, gamma2, k1_init, k2_init, max_force, sat_soft_width. Set allow_unknown=True when calling load_config to accept unknown keys.",
+    "status": "FAILED"
+  },
+  "optimization_workflow": {
+    "simulation_engine": true,
+    "cost_function": false,
+    "parameter_bounds": true,
+    "convergence_criteria": true,
+    "batch_simulation": true,
+    "error_message": null,
+    "status": "FUNCTIONAL"
+  },
+  "controller_integration": {},
+  "dynamics_integration": {
+    "dynamics_import": true,
+    "dynamics_instantiation": true,
+    "dynamics_pso_compatibility": true,
+    "parameter_sensitivity": true,
+    "error_message": null,
+    "status": "FUNCTIONAL"
+  },
+  "end_to_end_validation": {},
+  "timestamp": "2025-09-26T13:49:01.554571",
+  "overall_status": "FUNCTIONAL",
+  "summary": {
+    "pso_integration_status": "FAILED",
+    "optimization_workflow_status": "FUNCTIONAL",
+    "dynamics_integration_status": "FUNCTIONAL",
+    "functional_components": 2,
+    "partial_components": 0,
+    "total_components": 3,
+    "overall_health": 0.6666666666666666
+  }
+}

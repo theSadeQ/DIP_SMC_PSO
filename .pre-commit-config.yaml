@@ -99,6 +99,14 @@ repos:
         additional_dependencies: [mdformat-myst]
         files: '^docs/.*\.md$'
 
+  # Spelling (docs only)
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.3.0
+    hooks:
+      - id: codespell
+        files: '^docs/.*\.(md|py)$'
+        args: ["-L", "nd,ot,teh"]
+
   # BibTeX formatting and validation
   - repo: https://github.com/FlamingTempura/bibtex-tidy
     rev: v1.13.0
@@ -140,4 +148,11 @@ repos:
 
             print('✓ Documentation consistency check completed')
         files: '^docs/.*\.md$'
+        pass_filenames: false
+
+      - id: docs-encoding-check
+        name: Check docs encoding/control characters
+        entry: python scripts/check_encoding.py docs
+        language: system
+        files: '^docs/.*\.(md|py)$'
         pass_filenames: false

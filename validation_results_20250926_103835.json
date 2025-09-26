@@ -1,0 +1,102 @@
+{
+  "timestamp": "2025-09-26 10:38:28",
+  "controllers": {
+    "classical_smc": {
+      "creation": "PASS",
+      "computation": "PASS",
+      "control_value": -0.5
+    },
+    "sta_smc": {
+      "creation": "PASS",
+      "computation": "PASS",
+      "control_value": -5.48022557505166
+    },
+    "adaptive_smc": {
+      "creation": "PASS",
+      "computation": "PASS",
+      "control_value": -10.003
+    },
+    "hybrid_adaptive_sta_smc": {
+      "creation": "PASS",
+      "computation": "PASS",
+      "control_value": -0.00980392156862745
+    }
+  },
+  "dynamics": {
+    "simplified": {
+      "creation": "PASS",
+      "computation": "PASS",
+      "derivatives_shape": [
+        6
+      ],
+      "derivatives_norm": 3.6651590200375597
+    },
+    "full": {
+      "creation": "PASS",
+      "computation": "PASS",
+      "derivatives_shape": [
+        6
+      ],
+      "derivatives_norm": 1.87038110856158
+    },
+    "lowrank": {
+      "creation": "PASS",
+      "computation": "PASS",
+      "derivatives_shape": [
+        6
+      ],
+      "derivatives_norm": 8.847790360628183
+    }
+  },
+  "reset_interfaces": {
+    "classical_smc": {
+      "has_reset": true,
+      "reset_works": true
+    },
+    "sta_smc": {
+      "has_reset": false,
+      "reset_works": false
+    },
+    "adaptive_smc": {
+      "has_reset": true,
+      "reset_works": true
+    },
+    "hybrid_adaptive_sta_smc": {
+      "has_reset": true,
+      "reset_works": true
+    }
+  },
+  "summary": {
+    "controllers": {
+      "passed": 4,
+      "total": 4,
+      "percentage": 100.0
+    },
+    "dynamics": {
+      "passed": 3,
+      "total": 3,
+      "percentage": 100.0
+    },
+    "reset_interfaces": {
+      "working": 3,
+      "total": 4,
+      "percentage": 75.0
+    },
+    "hybrid_special": true,
+    "overall_health": 90.9090909090909
+  },
+  "issues": [],
+  "hybrid_deep_test": {
+    "creation": "PASS",
+    "multiple_computations": "PASS",
+    "control_outputs": [
+      -0.00980392156862745,
+      -0.013043060361399461,
+      -0.028473588589607315
+    ],
+    "output_range": [
+      -0.028473588589607315,
+      -0.00980392156862745
+    ]
+  }
+}

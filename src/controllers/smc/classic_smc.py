@@ -450,10 +450,15 @@ class ClassicalSMC:
         u = u_eq + u_robust
         u_saturated = float(np.clip(u, -self.max_force, self.max_force))
 
-        # Package the result into a named tuple.  Explicitly naming the
-        # return fields clarifies the interface and reduces the risk of
-        # misinterpretation.  The named tuple inherits
-        # from ``tuple`` so existing code that expects a tuple
-        # continues to function without modification.
-        return ClassicalSMCOutput(u_saturated, (), history.copy())
+        # Telemetry: append key signals to history (in-place)
+        hist = history if isinstance(history, dict) else {}
+        hist.setdefault('sigma', []).append(float(sigma))
+        hist.setdefault('epsilon_eff', []).append(float(eps_dyn))
+        hist.setdefault('u_eq', []).append(float(u_eq))
+        hist.setdefault('u_robust', []).append(float(u_robust))
+        hist.setdefault('u_total', []).append(float(u))
+        hist.setdefault('u', []).append(float(u_saturated))
+
+        # Return structured output
+        return ClassicalSMCOutput(u_saturated, (), hist)
 #=======================================================================================\\\

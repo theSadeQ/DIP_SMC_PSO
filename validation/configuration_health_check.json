@@ -1,0 +1,22 @@
+{
+  "warnings_detected": 6,
+  "warning_messages": [
+    "Could not create full config, using minimal config: ClassicalSMCConfig.__init__() missing 3 required positional arguments: 'dt', 'max_force', and 'boundary_layer'",
+    "Could not create full config, using minimal config: SuperTwistingSMCConfig.__init__() missing 2 required positional arguments: 'max_force' and 'dt'",
+    "Could not create full config, using minimal config: AdaptiveSMCConfig.__init__() missing 2 required positional arguments: 'max_force' and 'dt'"
+  ],
+  "controllers_tested": 4,
+  "configuration_health": "DEGRADED",
+  "specific_warnings": {
+    "Could not create full config": [
+      "Could not create full config, using minimal config: ClassicalSMCConfig.__init__() missing 3 required positional arguments: 'dt', 'max_force', and 'boundary_layer'",
+      "Could not create full config, using minimal config: SuperTwistingSMCConfig.__init__() missing 2 required positional arguments: 'max_force' and 'dt'",
+      "Could not create full config, using minimal config: AdaptiveSMCConfig.__init__() missing 2 required positional arguments: 'max_force' and 'dt'"
+    ],
+    "using minimal config": [
+      "Could not create full config, using minimal config: ClassicalSMCConfig.__init__() missing 3 required positional arguments: 'dt', 'max_force', and 'boundary_layer'",
+      "Could not create full config, using minimal config: SuperTwistingSMCConfig.__init__() missing 2 required positional arguments: 'max_force' and 'dt'",
+      "Could not create full config, using minimal config: AdaptiveSMCConfig.__init__() missing 2 required positional arguments: 'max_force' and 'dt'"
+    ]
+  }
+}

@@ -372,11 +372,16 @@ class SuperTwistingSMC:
             u_eq=u_eq,
             Kaw=self.anti_windup_gain,
         )
-        # Package results into a named tuple.  The internal state carries
-        # the updated z and the latest sliding surface value, although the
-        # caller may choose to ignore the returned sigma.  Use sigma
-        # computed earlier to maintain consistency.
-        return STAOutput(u, (new_z, float(sigma)), history.copy())
+        # Telemetry: append key signals to history (in-place)
+        hist = history if isinstance(history, dict) else {}
+        hist.setdefault('sigma', []).append(float(sigma))
+        hist.setdefault('z', []).append(float(new_z))
+        hist.setdefault('u', []).append(float(u))
+        hist.setdefault('u_eq', []).append(float(u_eq))
+
+        # Package results into a named tuple. The internal state carries
+        # the updated z and latest sliding surface value.
+        return STAOutput(u, (new_z, float(sigma)), hist)
 
     def validate_gains(self, gains_b: "np.ndarray") -> "np.ndarray":
         """

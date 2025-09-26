@@ -1,0 +1,53 @@
+{
+  "classical_smc": {
+    "creation_status": "SUCCESS",
+    "controller_type": "ModularClassicalSMC"
+  },
+  "sta_smc": {
+    "creation_status": "SUCCESS",
+    "controller_type": "ModularSuperTwistingSMC"
+  },
+  "adaptive_smc": {
+    "creation_status": "SUCCESS",
+    "controller_type": "ModularAdaptiveSMC"
+  },
+  "hybrid_adaptive_sta_smc": {
+    "creation_status": "SUCCESS",
+    "controller_type": "ModularHybridSMC"
+  },
+  "warnings": {
+    "count": 3,
+    "messages": [
+      "Could not create full config, using minimal config: ClassicalSMCConfig.__init__() missing 3 required positional arguments: 'dt', 'max_force', and 'boundary_layer'",
+      "Could not create full config, using minimal config: SuperTwistingSMCConfig.__init__() missing 2 required positional arguments: 'max_force' and 'dt'",
+      "Could not create full config, using minimal config: AdaptiveSMCConfig.__init__() missing 2 required positional arguments: 'max_force' and 'dt'"
+    ]
+  },
+  "scenario_tests": {
+    "empty_config": {
+      "classical_smc": "SUCCESS",
+      "sta_smc": "SUCCESS",
+      "adaptive_smc": "SUCCESS",
+      "hybrid_adaptive_sta_smc": "SUCCESS"
+    },
+    "invalid_config": {
+      "classical_smc": "SUCCESS",
+      "sta_smc": "SUCCESS",
+      "adaptive_smc": "SUCCESS",
+      "hybrid_adaptive_sta_smc": "SUCCESS"
+    },
+    "empty_controllers_config": {
+      "classical_smc": "SUCCESS",
+      "sta_smc": "SUCCESS",
+      "adaptive_smc": "SUCCESS",
+      "hybrid_adaptive_sta_smc": "SUCCESS"
+    }
+  },
+  "summary": {
+    "successful_controllers": 4,
+    "total_controllers": 4,
+    "warning_count": 3,
+    "health_status": "DEGRADED_BUT_FUNCTIONAL",
+    "timestamp": "2025-09-26"
+  }
+}

@@ -23,6 +23,7 @@ class DIPModelType(Enum):
     SIMPLIFIED = "simplified"
     FULL = "full"
     LOWRANK = "lowrank"
+    CONTROLLER = "controller"
 
 
 class ConfigurationFactory:
@@ -241,8 +242,65 @@ class ConfigurationFactory:
                 from ..models.lowrank.config import LowRankDIPConfig
                 cls.register_config(DIPModelType.LOWRANK, LowRankDIPConfig)
 
+            elif model_type == DIPModelType.CONTROLLER:
+                # Import controller configuration class
+                cls._import_controller_config()
+
         except ImportError as e:
             warnings.warn(f"Could not import configuration for {model_type}: {e}", ConfigurationWarning)
+
+    @classmethod
+    def _import_controller_config(cls) -> None:
+        """Import controller configuration class."""
+        try:
+            from .controller_config import ControllerConfiguration
+            cls.register_config(DIPModelType.CONTROLLER, ControllerConfiguration)
+        except ImportError:
+            # Create a basic controller config if the full one doesn't exist
+            from .base_config import BaseDIPConfig
+
+            class BasicControllerConfig(BaseDIPConfig):
+                def __init__(self, **kwargs):
+                    # Default controller settings
+                    defaults = {
+                        'max_force': 150.0,
+                        'dt': 0.001,
+                        'boundary_layer': 0.02,
+                        'classical_smc_gains': [5.0, 5.0, 5.0, 0.5, 0.5, 0.5],
+                        'adaptive_smc_gains': [10.0, 8.0, 5.0, 4.0, 1.0],
+                        'sta_smc_gains': [5.0, 3.0, 4.0, 4.0, 0.4, 0.4]
+                    }
+                    defaults.update(kwargs)
+                    for key, value in defaults.items():
+                        setattr(self, key, value)
+
+                def validate(self) -> bool:
+                    return True
+
+                def to_dict(self) -> Dict[str, Any]:
+                    return {k: v for k, v in self.__dict__.items() if not k.startswith('_')}
+
+                @classmethod
+                def from_dict(cls, config_dict: Dict[str, Any]) -> 'BasicControllerConfig':
+                    return cls(**config_dict)
+
+                @classmethod
+                def create_default(cls) -> 'BasicControllerConfig':
+                    return cls()
+
+                def get_physical_parameters(self) -> Dict[str, float]:
+                    return {'max_force': getattr(self, 'max_force', 150.0)}
+
+                def get_numerical_parameters(self) -> Dict[str, float]:
+                    return {'dt': getattr(self, 'dt', 0.001), 'boundary_layer': getattr(self, 'boundary_layer', 0.02)}
+
+                def check_physical_consistency(self) -> Dict[str, bool]:
+                    return {'max_force_positive': getattr(self, 'max_force', 150.0) > 0}
+
+                def get_system_scales(self) -> Dict[str, float]:
+                    return {'force_scale': getattr(self, 'max_force', 150.0)}
+
+            cls.register_config(DIPModelType.CONTROLLER, BasicControllerConfig)
 
     @classmethod
     def _get_preset_configs(cls) -> Dict[DIPModelType, Dict[str, Dict[str, Any]]]:
