@@ -1,0 +1,50 @@
+{
+  "test_timestamp": "2025-09-26",
+  "total_controllers": 4,
+  "passed_controllers": 0,
+  "failed_controllers": 4,
+  "controller_details": {
+    "classical_smc": {
+      "instantiation": true,
+      "reset_method": true,
+      "compute_control": false,
+      "attributes_valid": true,
+      "error_messages": [
+        "Invalid control output type: <class 'dict'>"
+      ]
+    },
+    "adaptive_smc": {
+      "instantiation": true,
+      "reset_method": true,
+      "compute_control": false,
+      "attributes_valid": true,
+      "error_messages": [
+        "Invalid control output type: <class 'dict'>"
+      ]
+    },
+    "sta_smc": {
+      "instantiation": true,
+      "reset_method": true,
+      "compute_control": false,
+      "attributes_valid": true,
+      "error_messages": [
+        "Invalid control output type: <class 'dict'>"
+      ]
+    },
+    "hybrid_adaptive_sta_smc": {
+      "instantiation": true,
+      "reset_method": true,
+      "compute_control": false,
+      "attributes_valid": true,
+      "error_messages": [
+        "Invalid control output type: <class 'dict'>"
+      ]
+    }
+  },
+  "critical_tests": {
+    "factory_instantiation": 4,
+    "reset_method_coverage": 4,
+    "compute_control_interface": 0,
+    "attribute_integrity": 4
+  }
+}

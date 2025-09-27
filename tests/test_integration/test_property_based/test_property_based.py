@@ -1,5 +1,10 @@
 import json, re
+import sys
+from pathlib import Path
 from hypothesis import given, settings, strategies as st
+
+# Add project root to path to find validator
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / ".scripts"))
 from validator import validate_research_plan
 
 def minimal_plan(success_criteria, acceptance):

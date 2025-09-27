@@ -1,0 +1,52 @@
+{
+  "test_timestamp": "2025-09-26 21:11:18",
+  "total_controllers": 4,
+  "passed_controllers": 4,
+  "failed_controllers": 0,
+  "controller_details": {
+    "classical_smc": {
+      "instantiation": true,
+      "reset_method": true,
+      "compute_control": true,
+      "attributes_valid": true,
+      "output_format_valid": true,
+      "control_value": -0.49999999998611205,
+      "error_messages": []
+    },
+    "adaptive_smc": {
+      "instantiation": true,
+      "reset_method": true,
+      "compute_control": true,
+      "attributes_valid": true,
+      "output_format_valid": true,
+      "control_value": -10.0005,
+      "error_messages": []
+    },
+    "sta_smc": {
+      "instantiation": true,
+      "reset_method": true,
+      "compute_control": true,
+      "attributes_valid": true,
+      "output_format_valid": true,
+      "control_value": -2.23906797749979,
+      "error_messages": []
+    },
+    "hybrid_adaptive_sta_smc": {
+      "instantiation": true,
+      "reset_method": true,
+      "compute_control": true,
+      "attributes_valid": true,
+      "output_format_valid": true,
+      "control_value": -0.009803921568355137,
+      "error_messages": []
+    }
+  },
+  "critical_tests": {
+    "factory_instantiation": 4,
+    "reset_method_coverage": 4,
+    "compute_control_interface": 4,
+    "attribute_integrity": 4,
+    "output_format_compliance": 4
+  },
+  "production_ready": true
+}

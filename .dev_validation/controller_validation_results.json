@@ -1,0 +1,50 @@
+{
+  "test_timestamp": "2025-09-26",
+  "total_controllers": 4,
+  "passed_controllers": 0,
+  "failed_controllers": 4,
+  "controller_details": {
+    "classical_smc": {
+      "instantiation": true,
+      "reset_method": true,
+      "compute_control": false,
+      "attributes_valid": true,
+      "error_messages": [
+        "Compute control error: ModularClassicalSMC.compute_control() missing 1 required positional argument: 'history'"
+      ]
+    },
+    "adaptive_smc": {
+      "instantiation": true,
+      "reset_method": true,
+      "compute_control": false,
+      "attributes_valid": true,
+      "error_messages": [
+        "Compute control error: ModularAdaptiveSMC.compute_control() missing 1 required positional argument: 'history'"
+      ]
+    },
+    "sta_smc": {
+      "instantiation": true,
+      "reset_method": true,
+      "compute_control": false,
+      "attributes_valid": true,
+      "error_messages": [
+        "Compute control error: ModularSuperTwistingSMC.compute_control() missing 1 required positional argument: 'history'"
+      ]
+    },
+    "hybrid_adaptive_sta_smc": {
+      "instantiation": true,
+      "reset_method": true,
+      "compute_control": false,
+      "attributes_valid": true,
+      "error_messages": [
+        "Compute control error: ModularHybridSMC.compute_control() missing 1 required positional argument: 'history'"
+      ]
+    }
+  },
+  "critical_tests": {
+    "factory_instantiation": 4,
+    "reset_method_coverage": 4,
+    "compute_control_interface": 0,
+    "attribute_integrity": 4
+  }
+}
